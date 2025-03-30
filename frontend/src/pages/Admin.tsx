@@ -17,7 +17,6 @@ import {
   BookOpen,
   DollarSign,
   TrendingUp,
-  Download,
   Trash2,
   Edit,
   Plus,
@@ -28,6 +27,7 @@ import type { CompetitionArea, RegistrationSummary, Level, Grade, AreaCost } fro
 import { StudentList } from '../components/admin/StudentList';
 import { StudentDetails } from '../components/admin/StudentDetails';
 import { API_BASE_URL } from '../config';
+import { ModalPortal } from '../components/ModalPortal';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
@@ -56,12 +56,10 @@ export function Admin() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Form states
+  // Simplificar los form states
   const [newLevel, setNewLevel] = useState('');
   const [newGrade, setNewGrade] = useState('');
   const [newArea, setNewArea] = useState({ nombre: '', descripcion: '' });
-  const [selectedAreaId, setSelectedAreaId] = useState('');
-  const [selectedLevelId, setSelectedLevelId] = useState('');
   const [areaCostAmount, setAreaCostAmount] = useState('');
 
   // Cargar datos iniciales
@@ -101,8 +99,8 @@ export function Admin() {
             id: area.Id_area.toString(),
             name: area.nombre,
             description: area.descripcion || '',
-            level: '', // Se llenará más tarde con datos de costos
-            cost: 0 // Se llenará más tarde con datos de costos
+            level: '',
+            cost: 0
           }));
           setAreas(formattedAreas);
         }
@@ -131,7 +129,7 @@ export function Admin() {
               name: inscripcion.area.nombre,
               description: inscripcion.area.descripcion || '',
               level: inscripcion.nivel ? inscripcion.nivel.nombre : '',
-              cost: 0 // Se busca después
+              cost: 0
             } : null;
             
             const areasArray = areaInfo ? [areaInfo] : [];
@@ -143,7 +141,7 @@ export function Admin() {
                 ci: inscripcion.competidor?.ci || '',
                 birthDate: inscripcion.competidor?.fecha_nacimiento || '',
                 email: inscripcion.competidor?.email || '',
-                phone: '', // No está en el modelo
+                phone: '',
                 areas: [inscripcion.Id_area.toString()],
                 guardian: {
                   name: inscripcion.tutor?.nombre || '',
@@ -152,7 +150,7 @@ export function Admin() {
                 }
               },
               areas: areasArray,
-              totalCost: 0, // Se calcula más tarde
+              totalCost: 0,
               paymentStatus: inscripcion.estado.toLowerCase() === 'pagado' ? 'completed' : 'pending',
               registrationDate: inscripcion.fecha || new Date().toISOString()
             };
@@ -207,143 +205,36 @@ export function Admin() {
     fetchData();
   }, []);
 
-  // Handlers para los formularios
-  const handleAddLevel = async (e: React.FormEvent) => {
+  // Funciones simplificadas para manejar los modales - sin lógica de guardado
+  const handleAddLevel = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    try {
-      const response = await fetch(`${API_BASE_URL}/niveles`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({ nombre: newLevel })
-      });
-      
-      const data = await response.json();
-      
-      if (response.ok) {
-        // Actualizar la lista de niveles
-        setLevels([...levels, { id: data.data.Id_nivel.toString(), name: data.data.nombre }]);
-        setNewLevel('');
-        setShowAddLevel(false);
-      } else {
-        alert(`Error: ${data.message || 'No se pudo crear el nivel'}`);
-      }
-    } catch (error) {
-      console.error('Error creating level:', error);
-      alert('Hubo un error al crear el nivel');
-    }
+    console.log("Nuevo nivel:", newLevel);
+    setNewLevel('');
+    setShowAddLevel(false);
   };
 
-  const handleAddGrade = async (e: React.FormEvent) => {
+  const handleAddGrade = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    try {
-      const response = await fetch(`${API_BASE_URL}/grados`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({ nombre: newGrade })
-      });
-      
-      const data = await response.json();
-      
-      if (response.ok) {
-        // Actualizar la lista de grados
-        setGrades([...grades, { id: data.data.Id_grado.toString(), name: data.data.nombre }]);
-        setNewGrade('');
-        setShowAddGrade(false);
-      } else {
-        alert(`Error: ${data.message || 'No se pudo crear el grado'}`);
-      }
-    } catch (error) {
-      console.error('Error creating grade:', error);
-      alert('Hubo un error al crear el grado');
-    }
+    console.log("Nuevo grado:", newGrade);
+    setNewGrade('');
+    setShowAddGrade(false);
   };
 
-  const handleAddArea = async (e: React.FormEvent) => {
+  const handleAddArea = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    try {
-      const response = await fetch(`${API_BASE_URL}/areas`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({ 
-          nombre: newArea.nombre, 
-          descripcion: newArea.descripcion 
-        })
-      });
-      
-      const data = await response.json();
-      
-      if (response.ok) {
-        // Actualizar la lista de áreas
-        setAreas([...areas, { 
-          id: data.data.Id_area.toString(), 
-          name: data.data.nombre,
-          description: data.data.descripcion || '',
-          level: '',
-          cost: 0
-        }]);
-        setNewArea({ nombre: '', descripcion: '' });
-        setShowAddArea(false);
-      } else {
-        alert(`Error: ${data.message || 'No se pudo crear el área'}`);
-      }
-    } catch (error) {
-      console.error('Error creating area:', error);
-      alert('Hubo un error al crear el área');
-    }
+    console.log("Nueva área:", newArea);
+    setNewArea({ nombre: '', descripcion: '' });
+    setShowAddArea(false);
   };
 
-  const handleAddAreaCost = async (e: React.FormEvent) => {
+  const handleAddAreaCost = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    try {
-      const response = await fetch(`${API_BASE_URL}/costos`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({ 
-          Id_area: selectedAreaId, 
-          Id_nivel: selectedLevelId,
-          monto: parseFloat(areaCostAmount)
-        })
-      });
-      
-      const data = await response.json();
-      
-      if (response.ok) {
-        // Actualizar la lista de costos
-        setAreaCosts([...areaCosts, { 
-          id: data.data.Id_costo.toString(), 
-          areaId: data.data.Id_area.toString(),
-          levelId: data.data.Id_nivel.toString(),
-          cost: data.data.monto
-        }]);
-        setSelectedAreaId('');
-        setSelectedLevelId('');
-        setAreaCostAmount('');
-        setShowAddAreaCost(false);
-      } else {
-        alert(`Error: ${data.message || 'No se pudo crear el costo'}`);
-      }
-    } catch (error) {
-      console.error('Error creating cost:', error);
-      alert('Hubo un error al crear el costo');
-    }
+    console.log("Nuevo costo:", areaCostAmount);
+    setAreaCostAmount('');
+    setShowAddAreaCost(false);
   };
 
+  // Mantener las funciones de eliminación
   const handleDeleteLevel = async (id: string) => {
     if (window.confirm('¿Estás seguro de que deseas eliminar este nivel?')) {
       try {
@@ -439,34 +330,6 @@ export function Admin() {
       </div>
     </div>
   );
-
-  const Modal = ({ 
-    title, 
-    isOpen, 
-    onClose, 
-    children 
-  }: { 
-    title: string; 
-    isOpen: boolean; 
-    onClose: () => void; 
-    children: React.ReactNode;
-  }) => {
-    if (!isOpen) return null;
-
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-        <div className="bg-white rounded-lg p-6 w-full max-w-md">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold">{title}</h3>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-              <X size={24} />
-            </button>
-          </div>
-          {children}
-        </div>
-      </div>
-    );
-  };
 
   if (loading) {
     return (
@@ -578,7 +441,6 @@ export function Admin() {
               </ResponsiveContainer>
             </div>
           </div>
-
           <div className="bg-white p-6 rounded-lg shadow-md">
             <h2 className="text-lg font-semibold mb-4">Distribución por Área</h2>
             <div className="h-80">
@@ -598,7 +460,6 @@ export function Admin() {
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -713,14 +574,14 @@ export function Admin() {
 
         {/* Student List */}
         <div className="mb-8">
-          <StudentList
+          <StudentList 
             registrations={registrations}
             onViewDetails={setSelectedRegistration}
           />
         </div>
 
         {/* Modals */}
-        <Modal
+        <ModalPortal 
           title="Agregar Nuevo Nivel"
           isOpen={showAddLevel}
           onClose={() => setShowAddLevel(false)}
@@ -728,7 +589,7 @@ export function Admin() {
           <form onSubmit={handleAddLevel} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">Nombre del Nivel</label>
-              <input
+              <input 
                 type="text"
                 value={newLevel}
                 onChange={(e) => setNewLevel(e.target.value)}
@@ -736,7 +597,7 @@ export function Admin() {
                 placeholder="Ej: Básico"
               />
             </div>
-            <div className="flex justify-end space-x-3">
+            <div className="flex justify-end space-x-3 mt-4">
               <button
                 type="button"
                 onClick={() => setShowAddLevel(false)}
@@ -752,9 +613,9 @@ export function Admin() {
               </button>
             </div>
           </form>
-        </Modal>
+        </ModalPortal>
 
-        <Modal
+        <ModalPortal 
           title="Agregar Nuevo Grado"
           isOpen={showAddGrade}
           onClose={() => setShowAddGrade(false)}
@@ -770,7 +631,7 @@ export function Admin() {
                 placeholder="Ej: Primero"
               />
             </div>
-            <div className="flex justify-end space-x-3">
+            <div className="flex justify-end space-x-3 mt-4">
               <button
                 type="button"
                 onClick={() => setShowAddGrade(false)}
@@ -786,9 +647,9 @@ export function Admin() {
               </button>
             </div>
           </form>
-        </Modal>
+        </ModalPortal>
 
-        <Modal
+        <ModalPortal 
           title="Agregar Nueva Área"
           isOpen={showAddArea}
           onClose={() => setShowAddArea(false)}
@@ -814,7 +675,7 @@ export function Admin() {
                 placeholder="Descripción del área..."
               />
             </div>
-            <div className="flex justify-end space-x-3">
+            <div className="flex justify-end space-x-3 mt-4">
               <button
                 type="button"
                 onClick={() => setShowAddArea(false)}
@@ -830,40 +691,14 @@ export function Admin() {
               </button>
             </div>
           </form>
-        </Modal>
+        </ModalPortal>
 
-        <Modal
-          title="Agregar Costo de Área"
+        <ModalPortal 
+          title="Agregar Costo"
           isOpen={showAddAreaCost}
           onClose={() => setShowAddAreaCost(false)}
         >
           <form onSubmit={handleAddAreaCost} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Área</label>
-              <select
-                value={selectedAreaId}
-                onChange={(e) => setSelectedAreaId(e.target.value)}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              >
-                <option value="">Seleccionar área</option>
-                {areas.map((area) => (
-                  <option key={area.id} value={area.id}>{area.name}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Nivel</label>
-              <select
-                value={selectedLevelId}
-                onChange={(e) => setSelectedLevelId(e.target.value)}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              >
-                <option value="">Seleccionar nivel</option>
-                {levels.map((level) => (
-                  <option key={level.id} value={level.id}>{level.name}</option>
-                ))}
-              </select>
-            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Costo (Bs.)</label>
               <input
@@ -874,7 +709,7 @@ export function Admin() {
                 placeholder="Ej: 150"
               />
             </div>
-            <div className="flex justify-end space-x-3">
+            <div className="flex justify-end space-x-3 mt-4">
               <button
                 type="button"
                 onClick={() => setShowAddAreaCost(false)}
@@ -890,7 +725,7 @@ export function Admin() {
               </button>
             </div>
           </form>
-        </Modal>
+        </ModalPortal>
 
         {selectedRegistration && (
           <StudentDetails
