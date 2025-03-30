@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prueba de Conexión API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #response, #areasResponse, #errorDetails {
+            white-space: pre-wrap;
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            min-height: 100px;
+        }
+        .error {
+            color: red;
+        }
+        .success {
+            color: green;
+        }
+    </style>
+</head>
+<body>
+    <h1>Prueba de Conexión con Backend</h1>
+    
+    <div class="card">
+        <h2>Prueba de Conectividad</h2>
+        <p>Haga clic en el botón para probar la conexión con el backend:</p>
+        <button id="testConnectionBtn">Probar Conexión</button>
+        <div id="response">// La respuesta del servidor aparecerá aquí</div>
+    </div>
+    
+    <div class="card">
+        <h2>Listar Áreas (Endpoint Público de Prueba)</h2>
+        <p>Prueba para listar todas las áreas (versión pública para pruebas):</p>
+        <button id="getTestAreasBtn">Obtener Áreas (Prueba)</button>
+        <div id="areasResponse">// La respuesta del servidor aparecerá aquí</div>
+    </div>
+    
+    <div class="card">
+        <h2>Agregar Área</h2>
+        <p>Probar la creación de una nueva área:</p>
+        <form id="areaForm">
+            <div style="margin-bottom: 10px;">
+                <label for="nombreArea">Nombre:</label>
+                <input type="text" id="nombreArea" required style="padding: 8px; width: 300px;">
+            </div>
+            <div style="margin-bottom: 10px;">
+                <label for="descripcionArea">Descripción:</label>
+                <textarea id="descripcionArea" style="padding: 8px; width: 300px; height: 100px;"></textarea>
+            </div>
+            <button type="submit">Agregar Área</button>
+        </form>
+        <div id="addAreaResponse">// La respuesta del servidor aparecerá aquí</div>
+    </div>
+    
+    <div class="card">
+        <h2>Detalles de Error</h2>
+        <div id="errorDetails">// Información detallada del error aparecerá aquí</div>
+    </div>
+
+    <script>
+        // URL base de tu API - Actualizada con la ruta correcta
+        const API_BASE_URL = 'http://localhost/oh-sansi/backend/public/api';
+        
+        // Prueba de conexión básica
+        document.getElementById('testConnectionBtn').addEventListener('click', async () => {
+            const responseDiv = document.getElementById('response');
+            responseDiv.textContent = 'Conectando...';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/test-connection`);
+                const data = await response.json();
+                
+                responseDiv.textContent = JSON.stringify(data, null, 2);
+                responseDiv.classList.add('success');
+                responseDiv.classList.remove('error');
+            } catch (error) {
+                responseDiv.textContent = `Error: ${error.message}`;
+                responseDiv.classList.add('error');
+                responseDiv.classList.remove('success');
+                console.error('Error completo:', error);
+            }
+        });
+        
+        // Prueba para obtener áreas desde el endpoint público de prueba
+        document.getElementById('getTestAreasBtn').addEventListener('click', async () => {
+            const responseDiv = document.getElementById('areasResponse');
+            const errorDiv = document.getElementById('errorDetails');
+            responseDiv.textContent = 'Conectando...';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/test-areas`);
+                const responseText = await response.text();
+                
+                try {
+                    // Intentar parsear como JSON
+                    const data = JSON.parse(responseText);
+                    responseDiv.textContent = JSON.stringify(data, null, 2);
+                    
+                    if (response.ok) {
+                        responseDiv.classList.add('success');
+                        responseDiv.classList.remove('error');
+                    } else {
+                        responseDiv.classList.add('error');
+                        responseDiv.classList.remove('success');
+                    }
+                } catch (parseError) {
+                    // Si no es JSON válido, mostrar el texto plano y el error
+                    responseDiv.textContent = `Error: No se pudo parsear la respuesta como JSON`;
+                    responseDiv.classList.add('error');
+                    responseDiv.classList.remove('success');
+                    
+                    errorDiv.textContent = `Respuesta recibida: ${responseText.substring(0, 500)}...`;
+                    console.error('Error al parsear JSON:', parseError);
+                }
+            } catch (error) {
+                responseDiv.textContent = `Error de red: ${error.message}`;
+                responseDiv.classList.add('error');
+                responseDiv.classList.remove('success');
+                console.error('Error completo:', error);
+            }
+        });
+        
+        // Formulario para agregar área
+        document.getElementById('areaForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const responseDiv = document.getElementById('addAreaResponse');
+            responseDiv.textContent = 'Enviando datos...';
+            
+            const nombre = document.getElementById('nombreArea').value;
+            const descripcion = document.getElementById('descripcionArea').value;
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/areas`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        nombre: nombre,
+                        descripcion: descripcion
+                    })
+                });
+                
+                const responseText = await response.text();
+                
+                try {
+                    // Intentar parsear como JSON
+                    const data = JSON.parse(responseText);
+                    responseDiv.textContent = JSON.stringify(data, null, 2);
+                    
+                    if (response.ok) {
+                        responseDiv.classList.add('success');
+                        responseDiv.classList.remove('error');
+                        // Limpiar el formulario si fue exitoso
+                        document.getElementById('areaForm').reset();
+                    } else {
+                        responseDiv.classList.add('error');
+                        responseDiv.classList.remove('success');
+                    }
+                } catch (parseError) {
+                    // Si no es JSON válido, mostrar el texto plano y el error
+                    responseDiv.textContent = `Error: No se pudo parsear la respuesta como JSON`;
+                    responseDiv.classList.add('error');
+                    responseDiv.classList.remove('success');
+                    
+                    document.getElementById('errorDetails').textContent = `Respuesta recibida: ${responseText.substring(0, 500)}...`;
+                    console.error('Error al parsear JSON:', parseError);
+                }
+            } catch (error) {
+                responseDiv.textContent = `Error de red: ${error.message}`;
+                responseDiv.classList.add('error');
+                responseDiv.classList.remove('success');
+                console.error('Error completo:', error);
+            }
+        });
+    </script>
+</body>
+</html>

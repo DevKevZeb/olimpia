@@ -1,8 +1,12 @@
 import React from 'react';
-import { Menu, LogIn } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Menu, LogIn, LogOut } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 export function Navbar() {
+  const { isAuthenticated, logout } = useAuth();
+  const navigate = useNavigate();
+
   return (
     <nav className="bg-white shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -20,10 +24,28 @@ export function Navbar() {
             <Link to="/registro" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
               Inscripción
             </Link>
-            <button className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition">
-              <LogIn size={18} />
-              <span>Administrador</span>
-            </button>
+            {isAuthenticated ? (
+              <>
+                <Link to="/admin" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
+                  Panel Admin
+                </Link>
+                <button
+                  onClick={logout}
+                  className="flex items-center space-x-2 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition"
+                >
+                  <LogOut size={18} />
+                  <span>Cerrar Sesión</span>
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => navigate('/login')}
+                className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
+              >
+                <LogIn size={18} />
+                <span>Administrador</span>
+              </button>
+            )}
           </div>
 
           <div className="md:hidden flex items-center">

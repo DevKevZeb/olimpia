@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Student, CompetitionArea, RegistrationSummary } from '../types';
+import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
 const initialFormData: Student = {
   name: '',
@@ -16,34 +18,93 @@ const initialFormData: Student = {
   },
 };
 
-const availableAreas: CompetitionArea[] = [
-  { 
-    id: 'matematicas',
-    name: 'Matemáticas',
-    description: 'Resolución de problemas y pensamiento lógico',
-    level: 'Intermedio',
-    cost: 150
-  },
-  { 
-    id: 'fisica',
-    name: 'Física',
-    description: 'Experimentación y comprensión del universo',
-    level: 'Intermedio',
-    cost: 150
-  },
-  { 
-    id: 'informatica',
-    name: 'Informática',
-    description: 'Programación y desarrollo tecnológico',
-    level: 'Intermedio',
-    cost: 200
-  },
-];
-
 export function Registration() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState<Student>(initialFormData);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [availableAreas, setAvailableAreas] = useState<CompetitionArea[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Cargar áreas disponibles desde la API
+  useEffect(() => {
+    const fetchAreas = async () => {
+      setLoading(true);
+      try {
+        // Obtener áreas
+        const areasResponse = await axios.get(`${API_BASE_URL}/areas`);
+        
+        if (areasResponse.data.status === 'success') {
+          const areasData = areasResponse.data.data;
+          
+          // Obtener costos
+          const costosResponse = await axios.get(`${API_BASE_URL}/costos`);
+          const costosData = costosResponse.data.status === 'success' ? 
+                            costosResponse.data.data : [];
+          
+          // Obtener niveles para mapear los nombres
+          const nivelesResponse = await axios.get(`${API_BASE_URL}/niveles`);
+          const nivelesData = nivelesResponse.data.status === 'success' ? 
+                             nivelesResponse.data.data : [];
+          
+          // Mapear áreas con sus costos y niveles
+          const areasWithCostos: CompetitionArea[] = areasData.map((area: any) => {
+            // Encontrar un costo para esta área (podríamos tomar el primero o un costo específico)
+            const areaCosto = costosData.find((costo: any) => costo.Id_area === area.Id_area);
+            
+            // Encontrar el nivel correspondiente
+            const nivel = areaCosto ? 
+                        nivelesData.find((n: any) => n.Id_nivel === areaCosto.Id_nivel) : null;
+            
+            return {
+              id: area.Id_area.toString(),
+              name: area.nombre,
+              description: area.descripcion || 'Sin descripción',
+              level: nivel ? nivel.nombre : 'No definido',
+              cost: areaCosto ? parseFloat(areaCosto.monto) : 0
+            };
+          });
+          
+          setAvailableAreas(areasWithCostos);
+          setError(null);
+        } else {
+          throw new Error('No se pudieron cargar las áreas');
+        }
+      } catch (err) {
+        console.error("Error al cargar áreas:", err);
+        setError('Hubo un problema al cargar las áreas de competencia. Por favor, intenta nuevamente.');
+        
+        // Usar áreas por defecto para no bloquear el formulario
+        setAvailableAreas([
+          { 
+            id: 'matematicas',
+            name: 'Matemáticas',
+            description: 'Resolución de problemas y pensamiento lógico',
+            level: 'Intermedio',
+            cost: 150
+          },
+          { 
+            id: 'fisica',
+            name: 'Física',
+            description: 'Experimentación y comprensión del universo',
+            level: 'Intermedio',
+            cost: 150
+          },
+          { 
+            id: 'informatica',
+            name: 'Informática',
+            description: 'Programación y desarrollo tecnológico',
+            level: 'Intermedio',
+            cost: 200
+          },
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchAreas();
+  }, []);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -64,21 +125,89 @@ export function Registration() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      const selectedAreas = availableAreas.filter(area => formData.areas.includes(area.id));
-      const totalCost = selectedAreas.reduce((sum, area) => sum + area.cost, 0);
-
-      const registrationSummary: RegistrationSummary = {
-        student: formData,
-        areas: selectedAreas,
-        totalCost,
-        paymentStatus: 'pending',
-        registrationDate: new Date().toISOString(),
-      };
-
-      navigate('/confirmacion', { state: { registration: registrationSummary } });
+      try {
+        const selectedAreas = availableAreas.filter(area => formData.areas.includes(area.id));
+        const totalCost = selectedAreas.reduce((sum, area) => sum + area.cost, 0);
+        
+        // Preparar datos del competidor
+        const competidorData = {
+          nombre: formData.name.split(' ')[0] || formData.name,
+          apellido: formData.name.split(' ').slice(1).join(' ') || '',
+          email: formData.email,
+          ci: formData.ci,
+          fecha_nacimiento: formData.birthDate,
+          colegio: 'Por determinar', // Esto debería ser un campo en el formulario
+          Id_grado: 1, // Esto debería ser seleccionable
+          departamento: 'Por determinar', // Esto debería ser un campo en el formulario
+          provincia: 'Por determinar', // Esto debería ser un campo en el formulario
+        };
+        
+        // Crear competidor
+        const competidorResponse = await axios.post(`${API_BASE_URL}/competidores`, competidorData);
+        
+        if (competidorResponse.data.status === 'success') {
+          // Preparar datos del tutor
+          const tutorData = {
+            nombre: formData.guardian.name.split(' ')[0] || formData.guardian.name,
+            apellido: formData.guardian.name.split(' ').slice(1).join(' ') || '',
+            tipo_tutor: 'Familiar', // Esto debería ser seleccionable
+            telefono: formData.guardian.phone,
+            email: formData.guardian.email
+          };
+          
+          // Crear tutor
+          const tutorResponse = await axios.post(`${API_BASE_URL}/tutores`, tutorData);
+          
+          if (tutorResponse.data.status === 'success') {
+            // Crear inscripciones para cada área seleccionada
+            const inscripciones = [];
+            
+            for (const areaId of formData.areas) {
+              const area = availableAreas.find(a => a.id === areaId);
+              if (area) {
+                // Encontrar el nivel correspondiente al área
+                const costosResponse = await axios.get(`${API_BASE_URL}/costos`);
+                const costosData = costosResponse.data.status === 'success' ? 
+                                  costosResponse.data.data : [];
+                
+                const areaCosto = costosData.find((costo: any) => 
+                  costo.Id_area === parseInt(areaId) && costo.monto === area.cost
+                );
+                
+                if (areaCosto) {
+                  const inscripcionData = {
+                    Id_competidor: competidorResponse.data.data.Id_competidor,
+                    Id_tutor: tutorResponse.data.data.Id_tutor,
+                    Id_area: areaId,
+                    Id_nivel: areaCosto.Id_nivel,
+                    estado: 'Pendiente'
+                  };
+                  
+                  const inscripcionResponse = await axios.post(`${API_BASE_URL}/inscripciones`, inscripcionData);
+                  inscripciones.push(inscripcionResponse.data.data);
+                }
+              }
+            }
+            
+            // Preparar resumen para la página de confirmación
+            const registrationSummary: RegistrationSummary = {
+              student: formData,
+              areas: selectedAreas,
+              totalCost,
+              paymentStatus: 'pending',
+              registrationDate: new Date().toISOString(),
+            };
+            
+            navigate('/confirmacion', { state: { registration: registrationSummary } });
+          }
+        }
+      } catch (error) {
+        console.error('Error al procesar la inscripción:', error);
+        alert('Hubo un error al procesar tu inscripción. Por favor, intenta nuevamente.');
+      }
     }
   };
 
@@ -91,9 +220,26 @@ export function Registration() {
     }));
   };
 
+  if (loading) {
+    return (
+      <div className="py-12 bg-gray-50 flex justify-center items-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Cargando áreas disponibles...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="py-12 bg-gray-50">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        {error && (
+          <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative">
+            {error}
+          </div>
+        )}
+        
         <div className="bg-white rounded-lg shadow-lg p-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-8">Formulario de Inscripción</h2>
           
