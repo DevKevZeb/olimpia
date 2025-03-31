@@ -2,23 +2,40 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class NivelCategoria extends Model
 {
-    protected $table = 'NivelCategoria';
-    protected $primaryKey = 'Id_nivel';
-    public $timestamps = false;
-    
-    protected $fillable = ['nombre'];
-    
-    public function costos()
+    use HasFactory;
+
+    protected $primaryKey = 'id_nivel';
+    protected $table = 'niveles_categoria';
+
+    protected $fillable = [
+        'nombre_nivel',
+        'id_area',
+        'id_grado_min',
+        'id_grado_max'
+    ];
+
+    public function area()
     {
-        return $this->hasMany(Costo::class, 'Id_nivel');
+        return $this->belongsTo(AreaCompetencia::class, 'id_area');
     }
-    
-    public function inscripciones()
+
+    public function gradoMin()
     {
-        return $this->hasMany(Inscripcion::class, 'Id_nivel');
+        return $this->belongsTo(Grado::class, 'id_grado_min');
+    }
+
+    public function gradoMax()
+    {
+        return $this->belongsTo(Grado::class, 'id_grado_max');
+    }
+
+    public function convocatoriasNiveles()
+    {
+        return $this->hasMany(ConvocatoriaNivel::class, 'id_nivel');
     }
 }

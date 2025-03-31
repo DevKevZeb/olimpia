@@ -6,13 +6,19 @@ use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     *
-     * @return void
-     */
     public function run()
     {
-        // User::factory(10)->create();
+        $this->call([
+            GradosSeeder::class,
+            AreasCompetenciaSeeder::class,
+            NivelesCategoriaSeeder::class,
+            UnidadesEducativasSeeder::class,
+            TutoresLegalesSeeder::class,
+            TutoresAcademicosSeeder::class,
+            EstudiantesSeeder::class,
+            ConvocatoriasSeeder::class,
+            ConvocatoriaAreasSeeder::class,
+            ConvocatoriaNivelesSeeder::class,
+        ]);
     }
 }

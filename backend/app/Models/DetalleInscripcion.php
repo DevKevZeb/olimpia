@@ -5,25 +5,30 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Inscripcion extends Model
+class DetalleListaInscripcion extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'id_inscripcion';
-    protected $table = 'inscripciones';
+    protected $primaryKey = 'id_detalle';
+    protected $table = 'detalles_lista_inscripcion';
 
     protected $fillable = [
+        'id_lista',
         'id_estudiante',
         'id_convocatoria_area',
         'id_convocatoria_nivel',
         'id_tutor_academico',
-        'fecha_inscripcion',
-        'estado'
+        'fecha_registro'
     ];
 
     protected $casts = [
-        'fecha_inscripcion' => 'datetime'
+        'fecha_registro' => 'datetime'
     ];
+
+    public function lista()
+    {
+        return $this->belongsTo(ListaInscripcion::class, 'id_lista');
+    }
 
     public function estudiante()
     {
@@ -43,10 +48,5 @@ class Inscripcion extends Model
     public function tutorAcademico()
     {
         return $this->belongsTo(TutorAcademico::class, 'id_tutor_academico');
-    }
-
-    public function ordenPago()
-    {
-        return $this->hasOne(OrdenPago::class, 'id_inscripcion');
     }
 }
