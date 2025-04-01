@@ -31,177 +31,112 @@
         button:hover {
             background-color: #45a049;
         }
-        #response, #areasResponse, #errorDetails {
-            white-space: pre-wrap;
-            background-color: #f5f5f5;
+        .response {
+            margin-top: 20px;
+            background-color: #f7f7f7;
             padding: 15px;
             border-radius: 4px;
-            margin-top: 20px;
-            min-height: 100px;
+            white-space: pre-wrap;
+            word-break: break-all;
         }
         .error {
-            color: red;
+            color: #d32f2f;
+            font-weight: bold;
         }
         .success {
-            color: green;
+            color: #388e3c;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <h1>Prueba de Conexión con Backend</h1>
+    <h1>Prueba de Conexión con la API</h1>
     
     <div class="card">
-        <h2>Prueba de Conectividad</h2>
-        <p>Haga clic en el botón para probar la conexión con el backend:</p>
-        <button id="testConnectionBtn">Probar Conexión</button>
-        <div id="response">// La respuesta del servidor aparecerá aquí</div>
+        <h2>Conexión Básica</h2>
+        <p>Prueba la conexión básica al backend para verificar que el servidor está respondiendo correctamente.</p>
+        <button id="testConnection">Probar Conexión</button>
+        <div id="connectionResponse" class="response"></div>
     </div>
     
     <div class="card">
-        <h2>Listar Áreas (Endpoint Público de Prueba)</h2>
-        <p>Prueba para listar todas las áreas (versión pública para pruebas):</p>
-        <button id="getTestAreasBtn">Obtener Áreas (Prueba)</button>
-        <div id="areasResponse">// La respuesta del servidor aparecerá aquí</div>
+        <h2>Obtener Áreas</h2>
+        <p>Prueba la obtención de áreas desde la API.</p>
+        <button id="getAreas">Obtener Áreas</button>
+        <div id="areasResponse" class="response"></div>
     </div>
     
     <div class="card">
-        <h2>Agregar Área</h2>
-        <p>Probar la creación de una nueva área:</p>
-        <form id="areaForm">
-            <div style="margin-bottom: 10px;">
-                <label for="nombreArea">Nombre:</label>
-                <input type="text" id="nombreArea" required style="padding: 8px; width: 300px;">
-            </div>
-            <div style="margin-bottom: 10px;">
-                <label for="descripcionArea">Descripción:</label>
-                <textarea id="descripcionArea" style="padding: 8px; width: 300px; height: 100px;"></textarea>
-            </div>
-            <button type="submit">Agregar Área</button>
-        </form>
-        <div id="addAreaResponse">// La respuesta del servidor aparecerá aquí</div>
+        <h2>Obtener Niveles</h2>
+        <p>Prueba la obtención de niveles desde la API.</p>
+        <button id="getNiveles">Obtener Niveles</button>
+        <div id="nivelesResponse" class="response"></div>
     </div>
     
     <div class="card">
-        <h2>Detalles de Error</h2>
-        <div id="errorDetails">// Información detallada del error aparecerá aquí</div>
+        <h2>Obtener Grados</h2>
+        <p>Prueba la obtención de grados desde la API.</p>
+        <button id="getGrados">Obtener Grados</button>
+        <div id="gradosResponse" class="response"></div>
     </div>
 
     <script>
-        // URL base de tu API - Actualizada con la ruta correcta
-        const API_BASE_URL = 'http://localhost/oh-sansi/backend/public/api';
+        // Configuración de la URL de la API
+        const API_BASE_URL = window.location.hostname === 'localhost' ? 
+                            '/api/v1' : // Usa el proxy en desarrollo
+                            '/oh-sansi/backend/public/api/v1'; // URL directa en producción
         
-        // Prueba de conexión básica
-        document.getElementById('testConnectionBtn').addEventListener('click', async () => {
-            const responseDiv = document.getElementById('response');
-            responseDiv.textContent = 'Conectando...';
-            
+        // Función para realizar peticiones a la API
+        async function fetchFromApi(endpoint) {
             try {
-                const response = await fetch(`${API_BASE_URL}/test-connection`);
+                const response = await fetch(`${API_BASE_URL}${endpoint}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
                 const data = await response.json();
                 
-                responseDiv.textContent = JSON.stringify(data, null, 2);
-                responseDiv.classList.add('success');
-                responseDiv.classList.remove('error');
+                // Verificar el formato de respuesta esperado
+                if (data.status !== 'success' && data.status !== 'error') {
+                    console.warn('Formato de respuesta inesperado:', data);
+                }
+                
+                return { success: true, data };
             } catch (error) {
-                responseDiv.textContent = `Error: ${error.message}`;
-                responseDiv.classList.add('error');
-                responseDiv.classList.remove('success');
-                console.error('Error completo:', error);
+                console.error('Error en solicitud API:', error);
+                return { success: false, error: error.message };
             }
+        }
+        
+        // Función para mostrar respuestas
+        function displayResponse(elementId, response) {
+            const element = document.getElementById(elementId);
+            if (response.success) {
+                element.innerHTML = `<span class="success">✓ Éxito:</span>\n${JSON.stringify(response.data, null, 2)}`;
+            } else {
+                element.innerHTML = `<span class="error">✗ Error:</span>\n${response.error}`;
+            }
+        }
+        
+        // Eventos para los botones
+        document.getElementById('testConnection').addEventListener('click', async () => {
+            const response = await fetchFromApi('/');
+            displayResponse('connectionResponse', response);
         });
         
-        // Prueba para obtener áreas desde el endpoint público de prueba
-        document.getElementById('getTestAreasBtn').addEventListener('click', async () => {
-            const responseDiv = document.getElementById('areasResponse');
-            const errorDiv = document.getElementById('errorDetails');
-            responseDiv.textContent = 'Conectando...';
-            
-            try {
-                const response = await fetch(`${API_BASE_URL}/test-areas`);
-                const responseText = await response.text();
-                
-                try {
-                    // Intentar parsear como JSON
-                    const data = JSON.parse(responseText);
-                    responseDiv.textContent = JSON.stringify(data, null, 2);
-                    
-                    if (response.ok) {
-                        responseDiv.classList.add('success');
-                        responseDiv.classList.remove('error');
-                    } else {
-                        responseDiv.classList.add('error');
-                        responseDiv.classList.remove('success');
-                    }
-                } catch (parseError) {
-                    // Si no es JSON válido, mostrar el texto plano y el error
-                    responseDiv.textContent = `Error: No se pudo parsear la respuesta como JSON`;
-                    responseDiv.classList.add('error');
-                    responseDiv.classList.remove('success');
-                    
-                    errorDiv.textContent = `Respuesta recibida: ${responseText.substring(0, 500)}...`;
-                    console.error('Error al parsear JSON:', parseError);
-                }
-            } catch (error) {
-                responseDiv.textContent = `Error de red: ${error.message}`;
-                responseDiv.classList.add('error');
-                responseDiv.classList.remove('success');
-                console.error('Error completo:', error);
-            }
+        document.getElementById('getAreas').addEventListener('click', async () => {
+            const response = await fetchFromApi('/areas');
+            displayResponse('areasResponse', response);
         });
         
-        // Formulario para agregar área
-        document.getElementById('areaForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const responseDiv = document.getElementById('addAreaResponse');
-            responseDiv.textContent = 'Enviando datos...';
-            
-            const nombre = document.getElementById('nombreArea').value;
-            const descripcion = document.getElementById('descripcionArea').value;
-            
-            try {
-                const response = await fetch(`${API_BASE_URL}/areas`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        nombre: nombre,
-                        descripcion: descripcion
-                    })
-                });
-                
-                const responseText = await response.text();
-                
-                try {
-                    // Intentar parsear como JSON
-                    const data = JSON.parse(responseText);
-                    responseDiv.textContent = JSON.stringify(data, null, 2);
-                    
-                    if (response.ok) {
-                        responseDiv.classList.add('success');
-                        responseDiv.classList.remove('error');
-                        // Limpiar el formulario si fue exitoso
-                        document.getElementById('areaForm').reset();
-                    } else {
-                        responseDiv.classList.add('error');
-                        responseDiv.classList.remove('success');
-                    }
-                } catch (parseError) {
-                    // Si no es JSON válido, mostrar el texto plano y el error
-                    responseDiv.textContent = `Error: No se pudo parsear la respuesta como JSON`;
-                    responseDiv.classList.add('error');
-                    responseDiv.classList.remove('success');
-                    
-                    document.getElementById('errorDetails').textContent = `Respuesta recibida: ${responseText.substring(0, 500)}...`;
-                    console.error('Error al parsear JSON:', parseError);
-                }
-            } catch (error) {
-                responseDiv.textContent = `Error de red: ${error.message}`;
-                responseDiv.classList.add('error');
-                responseDiv.classList.remove('success');
-                console.error('Error completo:', error);
-            }
+        document.getElementById('getNiveles').addEventListener('click', async () => {
+            const response = await fetchFromApi('/niveles');
+            displayResponse('nivelesResponse', response);
+        });
+        
+        document.getElementById('getGrados').addEventListener('click', async () => {
+            const response = await fetchFromApi('/grados');
+            displayResponse('gradosResponse', response);
         });
     </script>
 </body>

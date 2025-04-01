@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Student, CompetitionArea, RegistrationSummary } from '../types';
-import axios from 'axios';
-import { API_BASE_URL } from '../config';
+import { createEstudiante, createTutorLegal, createInscripcion, getCostos } from '../services/apiServices';
+import { getAreasWithCosts } from '../services/areasService';
 
 const initialFormData: Student = {
   name: '',
@@ -31,45 +31,9 @@ export function Registration() {
     const fetchAreas = async () => {
       setLoading(true);
       try {
-        // Obtener áreas
-        const areasResponse = await axios.get(`${API_BASE_URL}/areas`);
-        
-        if (areasResponse.data.status === 'success') {
-          const areasData = areasResponse.data.data;
-          
-          // Obtener costos
-          const costosResponse = await axios.get(`${API_BASE_URL}/costos`);
-          const costosData = costosResponse.data.status === 'success' ? 
-                            costosResponse.data.data : [];
-          
-          // Obtener niveles para mapear los nombres
-          const nivelesResponse = await axios.get(`${API_BASE_URL}/niveles`);
-          const nivelesData = nivelesResponse.data.status === 'success' ? 
-                             nivelesResponse.data.data : [];
-          
-          // Mapear áreas con sus costos y niveles
-          const areasWithCostos: CompetitionArea[] = areasData.map((area: any) => {
-            // Encontrar un costo para esta área (podríamos tomar el primero o un costo específico)
-            const areaCosto = costosData.find((costo: any) => costo.Id_area === area.Id_area);
-            
-            // Encontrar el nivel correspondiente
-            const nivel = areaCosto ? 
-                        nivelesData.find((n: any) => n.Id_nivel === areaCosto.Id_nivel) : null;
-            
-            return {
-              id: area.Id_area.toString(),
-              name: area.nombre,
-              description: area.descripcion || 'Sin descripción',
-              level: nivel ? nivel.nombre : 'No definido',
-              cost: areaCosto ? parseFloat(areaCosto.monto) : 0
-            };
-          });
-          
-          setAvailableAreas(areasWithCostos);
-          setError(null);
-        } else {
-          throw new Error('No se pudieron cargar las áreas');
-        }
+        const areasWithCostos = await getAreasWithCosts();
+        setAvailableAreas(areasWithCostos);
+        setError(null);
       } catch (err) {
         console.error("Error al cargar áreas:", err);
         setError('Hubo un problema al cargar las áreas de competencia. Por favor, intenta nuevamente.');
@@ -139,55 +103,54 @@ export function Registration() {
           email: formData.email,
           ci: formData.ci,
           fecha_nacimiento: formData.birthDate,
-          colegio: 'Por determinar', // Esto debería ser un campo en el formulario
+          colegio: 'Por determinar', 
           Id_grado: 1, // Esto debería ser seleccionable
-          departamento: 'Por determinar', // Esto debería ser un campo en el formulario
-          provincia: 'Por determinar', // Esto debería ser un campo en el formulario
+          departamento: 'La Paz', 
+          provincia: 'Murillo'
         };
         
-        // Crear competidor
-        const competidorResponse = await axios.post(`${API_BASE_URL}/competidores`, competidorData);
+        // Usar el servicio específico para crear estudiante
+        const competidorResponse = await createEstudiante(competidorData);
         
-        if (competidorResponse.data.status === 'success') {
+        if (competidorResponse.status === 'success') {
           // Preparar datos del tutor
           const tutorData = {
             nombre: formData.guardian.name.split(' ')[0] || formData.guardian.name,
             apellido: formData.guardian.name.split(' ').slice(1).join(' ') || '',
-            tipo_tutor: 'Familiar', // Esto debería ser seleccionable
+            tipo_tutor: 'Familiar',
             telefono: formData.guardian.phone,
             email: formData.guardian.email
           };
           
-          // Crear tutor
-          const tutorResponse = await axios.post(`${API_BASE_URL}/tutores`, tutorData);
+          // Usar el servicio específico para crear tutor
+          const tutorResponse = await createTutorLegal(tutorData);
           
-          if (tutorResponse.data.status === 'success') {
+          if (tutorResponse.status === 'success') {
             // Crear inscripciones para cada área seleccionada
             const inscripciones = [];
             
             for (const areaId of formData.areas) {
               const area = availableAreas.find(a => a.id === areaId);
               if (area) {
-                // Encontrar el nivel correspondiente al área
-                const costosResponse = await axios.get(`${API_BASE_URL}/costos`);
-                const costosData = costosResponse.data.status === 'success' ? 
-                                  costosResponse.data.data : [];
+                const costosResponse = await getCostos();
+                const costosData = costosResponse.status === 'success' ? 
+                                costosResponse.data : [];
                 
                 const areaCosto = costosData.find((costo: any) => 
-                  costo.Id_area === parseInt(areaId) && costo.monto === area.cost
+                  costo.Id_area.toString() === areaId && parseFloat(costo.monto) === area.cost
                 );
                 
                 if (areaCosto) {
                   const inscripcionData = {
-                    Id_competidor: competidorResponse.data.data.Id_competidor,
-                    Id_tutor: tutorResponse.data.data.Id_tutor,
-                    Id_area: areaId,
+                    Id_competidor: competidorResponse.data.Id_competidor,
+                    Id_tutor: tutorResponse.data.Id_tutor,
+                    Id_area: parseInt(areaId),
                     Id_nivel: areaCosto.Id_nivel,
-                    estado: 'Pendiente'
+                    estado: 'pendiente'
                   };
                   
-                  const inscripcionResponse = await axios.post(`${API_BASE_URL}/inscripciones`, inscripcionData);
-                  inscripciones.push(inscripcionResponse.data.data);
+                  const inscripcionResponse = await createInscripcion(inscripcionData);
+                  inscripciones.push(inscripcionResponse.data);
                 }
               }
             }

@@ -26,8 +26,22 @@ import {
 import type { CompetitionArea, RegistrationSummary, Level, Grade, AreaCost } from '../types';
 import { StudentList } from '../components/admin/StudentList';
 import { StudentDetails } from '../components/admin/StudentDetails';
-import { API_BASE_URL } from '../config';
-import { ModalPortal } from '../components/ModalPortal';
+import { ModalPortal } from '../components/ui/ModalPortal';
+import { 
+  getNiveles,
+  getGrados,
+  getAreas,
+  getCostos,
+  getInscripciones,
+  createNivel,
+  createGrado,
+  createArea,
+  createCosto,
+  deleteNivel,
+  deleteGrado,
+  deleteArea,
+  getDashboardStats
+} from "../services/index";
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
@@ -37,8 +51,7 @@ export function Admin() {
   const [showAddGrade, setShowAddGrade] = useState(false);
   const [showAddArea, setShowAddArea] = useState(false);
   const [showAddAreaCost, setShowAddAreaCost] = useState(false);
-  const [selectedRegistration, setSelectedRegistration] = useState<RegistrationSummary | null>(null);
-  
+
   // Estados para guardar datos de la API
   const [levels, setLevels] = useState<Level[]>([]);
   const [grades, setGrades] = useState<Grade[]>([]);
@@ -53,6 +66,7 @@ export function Admin() {
     inscripcionesPorMes: [],
     distribucionPorArea: []
   });
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -67,11 +81,10 @@ export function Admin() {
     const fetchData = async () => {
       setLoading(true);
       setError(null);
-      
+
       try {
         // Fetch niveles
-        const niveleRes = await fetch(`${API_BASE_URL}/niveles`);
-        const nivelesData = await niveleRes.json();
+        const nivelesData = await getNiveles();
         if (nivelesData.status === 'success') {
           const formattedLevels = nivelesData.data.map((nivel: any) => ({
             id: nivel.Id_nivel.toString(),
@@ -79,10 +92,9 @@ export function Admin() {
           }));
           setLevels(formattedLevels);
         }
-        
+
         // Fetch grados
-        const gradosRes = await fetch(`${API_BASE_URL}/grados`);
-        const gradosData = await gradosRes.json();
+        const gradosData = await getGrados();
         if (gradosData.status === 'success') {
           const formattedGrades = gradosData.data.map((grado: any) => ({
             id: grado.Id_grado.toString(),
@@ -90,10 +102,9 @@ export function Admin() {
           }));
           setGrades(formattedGrades);
         }
-        
+
         // Fetch áreas
-        const areasRes = await fetch(`${API_BASE_URL}/areas`);
-        const areasData = await areasRes.json();
+        const areasData = await getAreas();
         if (areasData.status === 'success') {
           const formattedAreas = areasData.data.map((area: any) => ({
             id: area.Id_area.toString(),
@@ -104,10 +115,9 @@ export function Admin() {
           }));
           setAreas(formattedAreas);
         }
-        
+
         // Fetch costos
-        const costosRes = await fetch(`${API_BASE_URL}/costos`);
-        const costosData = await costosRes.json();
+        const costosData = await getCostos();
         if (costosData.status === 'success') {
           const formattedCosts = costosData.data.map((costo: any) => ({
             id: costo.Id_costo.toString(),
@@ -117,12 +127,10 @@ export function Admin() {
           }));
           setAreaCosts(formattedCosts);
         }
-        
+
         // Fetch inscripciones
-        const inscripcionesRes = await fetch(`${API_BASE_URL}/inscripciones`);
-        const inscripcionesData = await inscripcionesRes.json();
+        const inscripcionesData = await getInscripciones();
         if (inscripcionesData.status === 'success') {
-          // Transformar los datos a formato RegistrationSummary
           const formattedRegistrations = inscripcionesData.data.map((inscripcion: any) => {
             const areaInfo = inscripcion.area ? {
               id: inscripcion.area.Id_area.toString(),
@@ -131,9 +139,9 @@ export function Admin() {
               level: inscripcion.nivel ? inscripcion.nivel.nombre : '',
               cost: 0
             } : null;
-            
+
             const areasArray = areaInfo ? [areaInfo] : [];
-            
+
             return {
               id: inscripcion.Id_inscripcion.toString(),
               student: {
@@ -155,29 +163,26 @@ export function Admin() {
               registrationDate: inscripcion.fecha || new Date().toISOString()
             };
           });
-          
+
           setRegistrations(formattedRegistrations);
         }
-        
+
         // Fetch estadísticas del dashboard
         try {
-          const statsRes = await fetch(`${API_BASE_URL}/dashboard/stats`);
-          const statsData = await statsRes.json();
-          
+          const statsData = await getDashboardStats();
           if (statsData.status === 'success') {
-            // Formatear datos para las gráficas
             const monthlyRegistrations = [
               { month: 'Enero', count: Math.floor(Math.random() * 30) },
               { month: 'Febrero', count: Math.floor(Math.random() * 30) },
               { month: 'Marzo', count: statsData.data.total_inscripciones || 0 }
             ];
-            
+
             const areaDistribution = statsData.data.inscripciones_por_area || [];
             const formattedAreaDistribution = areaDistribution.map((item: any) => ({
               name: item.nombre,
               value: parseInt(item.total)
             }));
-            
+
             setStats({
               totalInscripciones: statsData.data.total_inscripciones || 0,
               areasActivas: areas.length,
@@ -191,9 +196,7 @@ export function Admin() {
           }
         } catch (statsError) {
           console.error('Error fetching stats:', statsError);
-          // Continuar con stats por defecto
         }
-        
       } catch (err) {
         console.error('Error fetching data:', err);
         setError('Hubo un error al cargar los datos. Por favor, recarga la página.');
@@ -201,7 +204,7 @@ export function Admin() {
         setLoading(false);
       }
     };
-    
+
     fetchData();
   }, []);
 
@@ -238,21 +241,12 @@ export function Admin() {
   const handleDeleteLevel = async (id: string) => {
     if (window.confirm('¿Estás seguro de que deseas eliminar este nivel?')) {
       try {
-        const response = await fetch(`${API_BASE_URL}/niveles/${id}`, {
-          method: 'DELETE',
-          headers: {
-            'Accept': 'application/json'
-          }
-        });
-        
-        const data = await response.json();
-        
+        const response = await deleteNivel(id);
         if (response.ok) {
-          // Actualizar la lista de niveles
           setLevels(levels.filter(level => level.id !== id));
           alert('Nivel eliminado con éxito');
         } else {
-          alert(`Error: ${data.message || 'No se pudo eliminar el nivel'}`);
+          alert(`Error: ${response.message || 'No se pudo eliminar el nivel'}`);
         }
       } catch (error) {
         console.error('Error deleting level:', error);
@@ -264,21 +258,12 @@ export function Admin() {
   const handleDeleteGrade = async (id: string) => {
     if (window.confirm('¿Estás seguro de que deseas eliminar este grado?')) {
       try {
-        const response = await fetch(`${API_BASE_URL}/grados/${id}`, {
-          method: 'DELETE',
-          headers: {
-            'Accept': 'application/json'
-          }
-        });
-        
-        const data = await response.json();
-        
+        const response = await deleteGrado(id);
         if (response.ok) {
-          // Actualizar la lista de grados
           setGrades(grades.filter(grade => grade.id !== id));
           alert('Grado eliminado con éxito');
         } else {
-          alert(`Error: ${data.message || 'No se pudo eliminar el grado'}`);
+          alert(`Error: ${response.message || 'No se pudo eliminar el grado'}`);
         }
       } catch (error) {
         console.error('Error deleting grade:', error);
@@ -290,19 +275,11 @@ export function Admin() {
   const handleDeleteAreaCost = async (id: string) => {
     if (window.confirm('¿Estás seguro de que deseas eliminar este costo?')) {
       try {
-        const response = await fetch(`${API_BASE_URL}/costos/${id}`, {
-          method: 'DELETE',
-          headers: {
-            'Accept': 'application/json'
-          }
-        });
-        
+        const response = await deleteArea(id);
         if (response.ok) {
-          // Actualizar la lista de costos
           setAreaCosts(areaCosts.filter(cost => cost.id !== id));
         } else {
-          const data = await response.json();
-          alert(`Error: ${data.message || 'No se pudo eliminar el costo'}`);
+          alert(`Error: ${response.message || 'No se pudo eliminar el costo'}`);
         }
       } catch (error) {
         console.error('Error deleting cost:', error);
@@ -623,7 +600,7 @@ export function Admin() {
           <form onSubmit={handleAddGrade} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">Nombre del Grado</label>
-              <input
+              <input 
                 type="text"
                 value={newGrade}
                 onChange={(e) => setNewGrade(e.target.value)}
@@ -657,7 +634,7 @@ export function Admin() {
           <form onSubmit={handleAddArea} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">Nombre del Área</label>
-              <input
+              <input 
                 type="text"
                 value={newArea.nombre}
                 onChange={(e) => setNewArea({ ...newArea, nombre: e.target.value })}
