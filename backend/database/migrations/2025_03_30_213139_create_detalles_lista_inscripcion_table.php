@@ -18,7 +18,7 @@ return new class extends Migration
             $table->dateTime('fecha_registro');
             $table->timestamps();
             
-            $table->unique(['id_lista', 'id_estudiante', 'id_convocatoria_area']);
+            $table->unique(['id_lista', 'id_estudiante', 'id_convocatoria_area'], 'unique_detalle_lista_est_area');
         });
     }
 
