@@ -14,21 +14,21 @@ class Grado extends Model
 
     protected $fillable = [
         'nombre_grado',
-        'orden'
+        'orden',
     ];
-
-    public function nivelesComoMinimo()
-    {
-        return $this->hasMany(NivelCategoria::class, 'id_grado_min');
-    }
-
-    public function nivelesComoMaximo()
-    {
-        return $this->hasMany(NivelCategoria::class, 'id_grado_max');
-    }
 
     public function estudiantes()
     {
         return $this->hasMany(Estudiante::class, 'id_grado');
+    }
+
+    public function nivelesMin()
+    {
+        return $this->hasMany(NivelCategoria::class, 'id_grado_min');
+    }
+
+    public function nivelesMax()
+    {
+        return $this->hasMany(NivelCategoria::class, 'id_grado_max');
     }
 }

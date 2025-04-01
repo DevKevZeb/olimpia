@@ -9,24 +9,19 @@ class TutorAcademico extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'id_tutor_academico';
     protected $table = 'tutores_academicos';
-
+    protected $primaryKey = 'id_tutor_academico';
+    
     protected $fillable = [
         'nombres',
         'apellidos',
         'ci',
         'telefono',
-        'email'
+        'email',
     ];
 
     public function inscripciones()
     {
         return $this->hasMany(Inscripcion::class, 'id_tutor_academico');
-    }
-
-    public function detallesLista()
-    {
-        return $this->hasMany(DetalleListaInscripcion::class, 'id_tutor_academico');
     }
 }

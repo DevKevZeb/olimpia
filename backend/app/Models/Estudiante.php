@@ -9,9 +9,9 @@ class Estudiante extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'id_estudiante';
     protected $table = 'estudiantes';
-
+    protected $primaryKey = 'id_estudiante';
+    
     protected $fillable = [
         'nombres',
         'apellidos',
@@ -20,11 +20,11 @@ class Estudiante extends Model
         'email',
         'id_unidad_educativa',
         'id_grado',
-        'id_tutor_legal'
+        'id_tutor_legal',
     ];
 
     protected $casts = [
-        'fecha_nacimiento' => 'date'
+        'fecha_nacimiento' => 'date',
     ];
 
     public function unidadEducativa()

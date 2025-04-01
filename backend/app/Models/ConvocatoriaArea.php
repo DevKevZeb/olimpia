@@ -9,13 +9,13 @@ class ConvocatoriaArea extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'id_convocatoria_area';
     protected $table = 'convocatoria_areas';
-
+    protected $primaryKey = 'id_convocatoria_area';
+    
     protected $fillable = [
         'id_convocatoria',
         'id_area',
-        'costo_inscripcion'
+        'costo_inscripcion',
     ];
 
     public function convocatoria()
@@ -31,10 +31,5 @@ class ConvocatoriaArea extends Model
     public function inscripciones()
     {
         return $this->hasMany(Inscripcion::class, 'id_convocatoria_area');
-    }
-
-    public function detallesLista()
-    {
-        return $this->hasMany(DetalleListaInscripcion::class, 'id_convocatoria_area');
     }
 }

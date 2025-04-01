@@ -9,13 +9,13 @@ class UnidadEducativa extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'id_unidad_educativa';
     protected $table = 'unidades_educativas';
-
+    protected $primaryKey = 'id_unidad_educativa';
+    
     protected $fillable = [
         'nombre',
         'departamento',
-        'provincia'
+        'provincia',
     ];
 
     public function estudiantes()

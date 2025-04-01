@@ -9,9 +9,9 @@ class TutorLegal extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'id_tutor_legal';
     protected $table = 'tutores_legales';
-
+    protected $primaryKey = 'id_tutor_legal';
+    
     protected $fillable = [
         'nombres',
         'apellidos',
@@ -19,7 +19,11 @@ class TutorLegal extends Model
         'telefono',
         'email',
         'parentesco',
-        'es_el_mismo_estudiante'
+        'es_el_mismo_estudiante',
+    ];
+
+    protected $casts = [
+        'es_el_mismo_estudiante' => 'boolean',
     ];
 
     public function estudiantes()

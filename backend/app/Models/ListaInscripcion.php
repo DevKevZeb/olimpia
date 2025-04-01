@@ -9,17 +9,17 @@ class ListaInscripcion extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'id_lista';
     protected $table = 'listas_inscripcion';
-
+    protected $primaryKey = 'id_lista';
+    
     protected $fillable = [
         'codigo_lista',
         'id_unidad_educativa',
-        'fecha_creacion'
+        'fecha_creacion',
     ];
 
     protected $casts = [
-        'fecha_creacion' => 'datetime'
+        'fecha_creacion' => 'datetime',
     ];
 
     public function unidadEducativa()

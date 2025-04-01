@@ -9,9 +9,9 @@ class OrdenPago extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'id_orden';
     protected $table = 'ordenes_pago';
-
+    protected $primaryKey = 'id_orden';
+    
     protected $fillable = [
         'codigo_unico',
         'tipo_origen',
@@ -20,12 +20,12 @@ class OrdenPago extends Model
         'monto_total',
         'fecha_emision',
         'fecha_vencimiento',
-        'estado'
+        'estado',
     ];
 
     protected $casts = [
         'fecha_emision' => 'datetime',
-        'fecha_vencimiento' => 'date'
+        'fecha_vencimiento' => 'date',
     ];
 
     public function inscripcion()

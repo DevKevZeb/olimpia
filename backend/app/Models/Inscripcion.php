@@ -18,11 +18,11 @@ class Inscripcion extends Model
         'id_convocatoria_nivel',
         'id_tutor_academico',
         'fecha_inscripcion',
-        'estado'
+        'estado',
     ];
 
     protected $casts = [
-        'fecha_inscripcion' => 'datetime'
+        'fecha_inscripcion' => 'datetime',
     ];
 
     public function estudiante()
@@ -45,8 +45,8 @@ class Inscripcion extends Model
         return $this->belongsTo(TutorAcademico::class, 'id_tutor_academico');
     }
 
-    public function ordenPago()
+    public function ordenesPago()
     {
-        return $this->hasOne(OrdenPago::class, 'id_inscripcion');
+        return $this->hasMany(OrdenPago::class, 'id_inscripcion');
     }
 }

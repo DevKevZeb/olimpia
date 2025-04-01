@@ -9,19 +9,19 @@ class AreaCompetencia extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'id_area';
     protected $table = 'areas_competencia';
-
+    protected $primaryKey = 'id_area';
+    
     protected $fillable = [
-        'nombre_area'
+        'nombre_area',
     ];
 
-    public function niveles()
+    public function nivelesCategoria()
     {
         return $this->hasMany(NivelCategoria::class, 'id_area');
     }
 
-    public function convocatoriasAreas()
+    public function convocatoriaAreas()
     {
         return $this->hasMany(ConvocatoriaArea::class, 'id_area');
     }

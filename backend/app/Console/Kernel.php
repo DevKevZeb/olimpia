@@ -4,6 +4,7 @@ namespace App\Console;
 
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+use Illuminate\Support\Facades\DB;
 
 class Kernel extends ConsoleKernel
 {
@@ -24,7 +25,13 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
+        // Update expired payment orders daily
+        $schedule->call(function () {
+            DB::table('ordenes_pago')
+                ->where('estado', 'pendiente')
+                ->where('fecha_vencimiento', '<', now()->format('Y-m-d'))
+                ->update(['estado' => 'vencida']);
+        })->daily();
     }
 
     /**

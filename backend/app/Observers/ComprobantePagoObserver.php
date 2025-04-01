@@ -3,6 +3,7 @@
 namespace App\Observers;
 
 use App\Models\ComprobantePago;
+use App\Models\Inscripcion;
 
 class ComprobantePagoObserver
 {

@@ -9,12 +9,12 @@ class ConvocatoriaNivel extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'id_convocatoria_nivel';
     protected $table = 'convocatoria_niveles';
-
+    protected $primaryKey = 'id_convocatoria_nivel';
+    
     protected $fillable = [
         'id_convocatoria',
-        'id_nivel'
+        'id_nivel',
     ];
 
     public function convocatoria()
@@ -30,10 +30,5 @@ class ConvocatoriaNivel extends Model
     public function inscripciones()
     {
         return $this->hasMany(Inscripcion::class, 'id_convocatoria_nivel');
-    }
-
-    public function detallesLista()
-    {
-        return $this->hasMany(DetalleListaInscripcion::class, 'id_convocatoria_nivel');
     }
 }

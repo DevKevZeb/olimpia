@@ -16,7 +16,7 @@ class NivelCategoria extends Model
         'nombre_nivel',
         'id_area',
         'id_grado_min',
-        'id_grado_max'
+        'id_grado_max',
     ];
 
     public function area()
@@ -34,7 +34,7 @@ class NivelCategoria extends Model
         return $this->belongsTo(Grado::class, 'id_grado_max');
     }
 
-    public function convocatoriasNiveles()
+    public function convocatoriaNiveles()
     {
         return $this->hasMany(ConvocatoriaNivel::class, 'id_nivel');
     }

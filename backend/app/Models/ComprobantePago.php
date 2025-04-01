@@ -9,9 +9,9 @@ class ComprobantePago extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'id_comprobante';
     protected $table = 'comprobantes_pago';
-
+    protected $primaryKey = 'id_comprobante';
+    
     protected $fillable = [
         'id_orden',
         'numero_comprobante',
@@ -20,12 +20,13 @@ class ComprobantePago extends Model
         'monto_pagado',
         'pdf_comprobante',
         'datos_ocr',
-        'estado_verificacion'
+        'estado_verificacion',
     ];
 
     protected $casts = [
         'fecha_pago' => 'datetime',
-        'datos_ocr' => 'array'
+        'monto_pagado' => 'decimal:2',
+        'datos_ocr' => 'json',
     ];
 
     public function orden()

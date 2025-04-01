@@ -9,20 +9,20 @@ class DetalleListaInscripcion extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'id_detalle';
     protected $table = 'detalles_lista_inscripcion';
-
+    protected $primaryKey = 'id_detalle';
+    
     protected $fillable = [
         'id_lista',
         'id_estudiante',
         'id_convocatoria_area',
         'id_convocatoria_nivel',
         'id_tutor_academico',
-        'fecha_registro'
+        'fecha_registro',
     ];
 
     protected $casts = [
-        'fecha_registro' => 'datetime'
+        'fecha_registro' => 'datetime',
     ];
 
     public function lista()
