@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\InscripcionDatosController;
 use App\Http\Controllers\Api\InscripcionCompletaController;
 use App\Http\Controllers\Api\AdminDashboardController;
 use App\Http\Controllers\Api\ConvocatoriaCompletaController;
+use App\Http\Controllers\Api\AdminConvocatoriaController;
 
 /*
 |--------------------------------------------------------------------------
@@ -100,4 +101,10 @@ Route::prefix('v1')->group(function () {
     Route::get('/admin/dashboard-data', [AdminDashboardController::class, 'getDashboardData']);
     Route::post('/admin/convocatorias/completa', [ConvocatoriaCompletaController::class, 'crearConvocatoriaCompleta']);
     Route::get('/admin/convocatorias/{id}/completa', [ConvocatoriaCompletaController::class, 'getConvocatoriaCompleta']);
+    
+    // Endpoints para el panel de administración de convocatorias
+    Route::get('/admin/convocatorias-activas', [AdminConvocatoriaController::class, 'getConvocatoriasActivas']);
+    Route::get('/admin/areas-competencia', [AdminConvocatoriaController::class, 'getAreasCompetencia']);
+    Route::post('/admin/convocatorias', [AdminConvocatoriaController::class, 'crearConvocatoria']);
+    Route::post('/admin/convocatorias/asociar-areas', [AdminConvocatoriaController::class, 'asociarAreas']);
 });

@@ -37,30 +37,24 @@ class ConvocatoriaAreaController extends ApiController
     {
         $validator = Validator::make($request->all(), [
             'id_convocatoria' => 'required|exists:convocatorias,id_convocatoria',
-            'id_area' => 'required|exists:areas_competencia,id_area',
-            'costo_inscripcion' => 'required|numeric|min:0',
+            'areas' => 'required|array|min:1',
+            'areas.*.id_area' => 'required|exists:areas_competencia,id_area',
+            'areas.*.costo_inscripcion' => 'required|numeric|min:0',
         ]);
 
         if ($validator->fails()) {
-            return $this->errorResponse($validator->errors()->first(), 422);
-        }
-        
-        // Check if this combination already exists
-        $exists = ConvocatoriaArea::where('id_convocatoria', $request->id_convocatoria)
-            ->where('id_area', $request->id_area)
-            ->exists();
-            
-        if ($exists) {
-            return $this->errorResponse('Esta área ya está asignada a la convocatoria', 422);
+            return response()->json(['error' => $validator->errors()], 422);
         }
 
-        $area = ConvocatoriaArea::create($request->all());
-        
-        return $this->successResponse(
-            new ConvocatoriaAreaResource($area->load(['convocatoria', 'area'])),
-            'Área asignada a la convocatoria correctamente',
-            201
-        );
+        foreach ($request->input('areas') as $area) {
+            ConvocatoriaArea::create([
+                'id_convocatoria' => $request->input('id_convocatoria'),
+                'id_area' => $area['id_area'],
+                'costo_inscripcion' => $area['costo_inscripcion'],
+            ]);
+        }
+
+        return response()->json(['message' => 'Áreas asociadas correctamente'], 201);
     }
 
     /**
