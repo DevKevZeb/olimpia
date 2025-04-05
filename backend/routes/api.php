@@ -16,6 +16,11 @@ use App\Http\Controllers\Api\OrdenPagoController;
 use App\Http\Controllers\Api\ComprobantePagoController;
 use App\Http\Controllers\Api\ConvocatoriaAreaController;
 use App\Http\Controllers\Api\ConvocatoriaNivelController;
+use App\Http\Controllers\Api\PublicConvocatoriaController;
+use App\Http\Controllers\Api\InscripcionDatosController;
+use App\Http\Controllers\Api\InscripcionCompletaController;
+use App\Http\Controllers\Api\AdminDashboardController;
+use App\Http\Controllers\Api\ConvocatoriaCompletaController;
 
 /*
 |--------------------------------------------------------------------------
@@ -80,4 +85,19 @@ Route::prefix('v1')->group(function () {
     // Comprobantes de Pago
     Route::apiResource('comprobantes-pago', ComprobantePagoController::class);
     Route::get('comprobantes-pago/{id}/download', [ComprobantePagoController::class, 'downloadPdf']);
+    
+    // Nuevos endpoints orientados a páginas/casos de uso
+    
+    // Endpoint para página Home
+    Route::get('/public/convocatoria-actual', [PublicConvocatoriaController::class, 'getConvocatoriaActual']);
+    
+    // Endpoints para página de Inscripción
+    Route::get('/public/datos-inscripcion', [InscripcionDatosController::class, 'getDatosInscripcion']);
+    Route::get('/public/unidades-educativas/buscar', [InscripcionDatosController::class, 'buscarUnidadesEducativas']);
+    Route::post('/public/inscripcion-completa', [InscripcionCompletaController::class, 'inscribirEstudiante']);
+    
+    // Endpoints para página de Administración
+    Route::get('/admin/dashboard-data', [AdminDashboardController::class, 'getDashboardData']);
+    Route::post('/admin/convocatorias/completa', [ConvocatoriaCompletaController::class, 'crearConvocatoriaCompleta']);
+    Route::get('/admin/convocatorias/{id}/completa', [ConvocatoriaCompletaController::class, 'getConvocatoriaCompleta']);
 });
