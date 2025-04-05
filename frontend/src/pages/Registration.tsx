@@ -1,399 +1,474 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { Student, CompetitionArea, RegistrationSummary } from '../types';
-import { createEstudiante, createTutorLegal, createInscripcion, getCostos } from '../services/apiServices';
-import { getAreasWithCosts } from '../services/areasService';
-
-const initialFormData: Student = {
-  name: '',
-  ci: '',
-  birthDate: '',
-  email: '',
-  phone: '',
-  areas: [],
-  guardian: {
-    name: '',
-    email: '',
-    phone: '',
-  },
-};
+import { inscripcionService } from '../services';
 
 export function Registration() {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState<Student>(initialFormData);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [availableAreas, setAvailableAreas] = useState<CompetitionArea[]>([]);
   const [loading, setLoading] = useState(true);
+  const [datosInscripcion, setDatosInscripcion] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  
+  // Estado para el formulario
+  const [formData, setFormData] = useState({
+    estudiante: {
+      nombres: '',
+      apellidos: '',
+      ci: '',
+      fecha_nacimiento: '',
+      email: '',
+      id_unidad_educativa: '',
+      id_grado: ''
+    },
+    tutor_legal: {
+      nombres: '',
+      apellidos: '',
+      ci: '',
+      telefono: '',
+      email: '',
+      parentesco: 'Familiar',
+      es_el_mismo_estudiante: false
+    },
+    tutor_academico: {
+      nombres: '',
+      apellidos: '',
+      ci: '',
+      telefono: '',
+      email: ''
+    },
+    areas_seleccionadas: [] as { id_convocatoria_area: number, id_convocatoria_nivel: number }[]
+  });
 
-  // Cargar áreas disponibles desde la API
+  // Cargar datos iniciales para el formulario
   useEffect(() => {
-    const fetchAreas = async () => {
+    const fetchData = async () => {
       setLoading(true);
       try {
-        const areasWithCostos = await getAreasWithCosts();
-        setAvailableAreas(areasWithCostos);
-        setError(null);
-      } catch (err) {
-        console.error("Error al cargar áreas:", err);
-        setError('Hubo un problema al cargar las áreas de competencia. Por favor, intenta nuevamente.');
-        
-        // Usar áreas por defecto para no bloquear el formulario
-        setAvailableAreas([
-          { 
-            id: 'matematicas',
-            name: 'Matemáticas',
-            description: 'Resolución de problemas y pensamiento lógico',
-            level: 'Intermedio',
-            cost: 150
-          },
-          { 
-            id: 'fisica',
-            name: 'Física',
-            description: 'Experimentación y comprensión del universo',
-            level: 'Intermedio',
-            cost: 150
-          },
-          { 
-            id: 'informatica',
-            name: 'Informática',
-            description: 'Programación y desarrollo tecnológico',
-            level: 'Intermedio',
-            cost: 200
-          },
-        ]);
+        const response = await inscripcionService.getDatosInscripcion();
+        if (response.status === 'success') {
+          setDatosInscripcion(response.data);
+          setError(null);
+        } else {
+          setError(response.message || 'Error al cargar datos para inscripción');
+        }
+      } catch (err: any) {
+        console.error('Error cargando datos de inscripción:', err);
+        setError(err.friendlyMessage || 'Error al conectar con el servidor');
       } finally {
         setLoading(false);
       }
     };
     
-    fetchAreas();
+    fetchData();
   }, []);
 
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target;
     
-    if (!formData.name) newErrors.name = 'El nombre es requerido';
-    if (!formData.ci) newErrors.ci = 'El CI es requerido';
-    if (!formData.birthDate) newErrors.birthDate = 'La fecha de nacimiento es requerida';
-    if (!formData.email) newErrors.email = 'El correo electrónico es requerido';
-    if (!formData.phone) newErrors.phone = 'El teléfono es requerido';
-    if (formData.areas.length === 0) newErrors.areas = 'Debe seleccionar al menos un área';
-    
-    // Validate guardian information
-    if (!formData.guardian.name) newErrors['guardian.name'] = 'El nombre del tutor es requerido';
-    if (!formData.guardian.email) newErrors['guardian.email'] = 'El correo del tutor es requerido';
-    if (!formData.guardian.phone) newErrors['guardian.phone'] = 'El teléfono del tutor es requerido';
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    // Identificar a qué sección pertenece el campo (estudiante, tutor_legal, tutor_academico)
+    if (name.startsWith('estudiante.')) {
+      const field = name.split('.')[1];
+      setFormData(prev => ({
+        ...prev,
+        estudiante: {
+          ...prev.estudiante,
+          [field]: value
+        }
+      }));
+    } else if (name.startsWith('tutor_legal.')) {
+      const field = name.split('.')[1];
+      setFormData(prev => ({
+        ...prev,
+        tutor_legal: {
+          ...prev.tutor_legal,
+          [field]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
+        }
+      }));
+    } else if (name.startsWith('tutor_academico.')) {
+      const field = name.split('.')[1];
+      setFormData(prev => ({
+        ...prev,
+        tutor_academico: {
+          ...prev.tutor_academico,
+          [field]: value
+        }
+      }));
+    }
+  };
+
+  const handleAreaToggle = (areaId: number, nivelId: number) => {
+    setFormData(prev => {
+      // Verificar si ya está seleccionada esta combinación de área y nivel
+      const isSelected = prev.areas_seleccionadas.some(
+        item => item.id_convocatoria_area === areaId && item.id_convocatoria_nivel === nivelId
+      );
+      
+      if (isSelected) {
+        // Si ya está seleccionada, quitarla
+        return {
+          ...prev,
+          areas_seleccionadas: prev.areas_seleccionadas.filter(
+            item => !(item.id_convocatoria_area === areaId && item.id_convocatoria_nivel === nivelId)
+          )
+        };
+      } else {
+        // Si no está seleccionada, agregarla
+        return {
+          ...prev,
+          areas_seleccionadas: [
+            ...prev.areas_seleccionadas,
+            { id_convocatoria_area: areaId, id_convocatoria_nivel: nivelId }
+          ]
+        };
+      }
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (validateForm()) {
-      try {
-        const selectedAreas = availableAreas.filter(area => formData.areas.includes(area.id));
-        const totalCost = selectedAreas.reduce((sum, area) => sum + area.cost, 0);
-        
-        // Preparar datos del competidor
-        const competidorData = {
-          nombre: formData.name.split(' ')[0] || formData.name,
-          apellido: formData.name.split(' ').slice(1).join(' ') || '',
-          email: formData.email,
-          ci: formData.ci,
-          fecha_nacimiento: formData.birthDate,
-          colegio: 'Por determinar', 
-          Id_grado: 1, // Esto debería ser seleccionable
-          departamento: 'La Paz', 
-          provincia: 'Murillo'
-        };
-        
-        // Usar el servicio específico para crear estudiante
-        const competidorResponse = await createEstudiante(competidorData);
-        
-        if (competidorResponse.status === 'success') {
-          // Preparar datos del tutor
-          const tutorData = {
-            nombre: formData.guardian.name.split(' ')[0] || formData.guardian.name,
-            apellido: formData.guardian.name.split(' ').slice(1).join(' ') || '',
-            tipo_tutor: 'Familiar',
-            telefono: formData.guardian.phone,
-            email: formData.guardian.email
-          };
-          
-          // Usar el servicio específico para crear tutor
-          const tutorResponse = await createTutorLegal(tutorData);
-          
-          if (tutorResponse.status === 'success') {
-            // Crear inscripciones para cada área seleccionada
-            const inscripciones = [];
-            
-            for (const areaId of formData.areas) {
-              const area = availableAreas.find(a => a.id === areaId);
-              if (area) {
-                const costosResponse = await getCostos();
-                const costosData = costosResponse.status === 'success' ? 
-                                costosResponse.data : [];
-                
-                const areaCosto = costosData.find((costo: any) => 
-                  costo.Id_area.toString() === areaId && parseFloat(costo.monto) === area.cost
-                );
-                
-                if (areaCosto) {
-                  const inscripcionData = {
-                    Id_competidor: competidorResponse.data.Id_competidor,
-                    Id_tutor: tutorResponse.data.Id_tutor,
-                    Id_area: parseInt(areaId),
-                    Id_nivel: areaCosto.Id_nivel,
-                    estado: 'pendiente'
-                  };
-                  
-                  const inscripcionResponse = await createInscripcion(inscripcionData);
-                  inscripciones.push(inscripcionResponse.data);
-                }
-              }
-            }
-            
-            // Preparar resumen para la página de confirmación
-            const registrationSummary: RegistrationSummary = {
-              student: formData,
-              areas: selectedAreas,
-              totalCost,
-              paymentStatus: 'pending',
-              registrationDate: new Date().toISOString(),
-            };
-            
-            navigate('/confirmacion', { state: { registration: registrationSummary } });
-          }
-        }
-      } catch (error) {
-        console.error('Error al procesar la inscripción:', error);
-        alert('Hubo un error al procesar tu inscripción. Por favor, intenta nuevamente.');
+    
+    try {
+      setLoading(true);
+      
+      // Asignar ID de unidad educativa y grado si no están seleccionados
+      if (!formData.estudiante.id_unidad_educativa && datosInscripcion?.unidades_educativas?.length > 0) {
+        formData.estudiante.id_unidad_educativa = datosInscripcion.unidades_educativas[0].id_unidad_educativa;
       }
+      
+      if (!formData.estudiante.id_grado && datosInscripcion?.grados?.length > 0) {
+        formData.estudiante.id_grado = datosInscripcion.grados[0].id_grado;
+      }
+      
+      const response = await inscripcionService.inscribirEstudiante(formData);
+      
+      if (response.status === 'success') {
+        // Navegar a la página de confirmación con los datos de la orden
+        navigate('/confirmacion', { 
+          state: { 
+            ordenPago: response.data.orden_pago,
+            estudiante: response.data.estudiante,
+            costoTotal: response.data.costo_total
+          } 
+        });
+      } else {
+        setError(response.message || 'Error al realizar la inscripción');
+      }
+    } catch (err: any) {
+      console.error('Error realizando inscripción:', err);
+      setError(err.friendlyMessage || 'Error al procesar la inscripción');
+    } finally {
+      setLoading(false);
     }
-  };
-
-  const handleAreaChange = (areaId: string) => {
-    setFormData(prev => ({
-      ...prev,
-      areas: prev.areas.includes(areaId)
-        ? prev.areas.filter(id => id !== areaId)
-        : [...prev.areas, areaId],
-    }));
   };
 
   if (loading) {
     return (
-      <div className="py-12 bg-gray-50 flex justify-center items-center min-h-screen">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Cargando áreas disponibles...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Cargando formulario de inscripción...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="py-12 bg-gray-50">
+    <div className="bg-gray-50 min-h-screen py-8">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        {error && (
-          <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative">
-            {error}
-          </div>
-        )}
-        
-        <div className="bg-white rounded-lg shadow-lg p-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-8">Formulario de Inscripción</h2>
+        <div className="bg-white rounded-lg shadow-lg p-6 md:p-8">
+          <h1 className="text-2xl font-bold text-gray-900 mb-6">Formulario de Inscripción</h1>
           
-          <form onSubmit={handleSubmit} className="space-y-6">
+          {error && (
+            <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded">
+              <p className="text-red-700">{error}</p>
+            </div>
+          )}
+          
+          <form onSubmit={handleSubmit} className="space-y-8">
             {/* Datos del Estudiante */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-700">Datos del Estudiante</h3>
-              
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                  Nombre Completo
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className={`mt-1 block w-full rounded-md shadow-sm ${
-                    errors.name ? 'border-red-300' : 'border-gray-300'
-                  } focus:border-blue-500 focus:ring-blue-500`}
-                />
-                {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
-              </div>
-
-              <div>
-                <label htmlFor="ci" className="block text-sm font-medium text-gray-700">
-                  Cédula de Identidad
-                </label>
-                <input
-                  type="text"
-                  id="ci"
-                  value={formData.ci}
-                  onChange={(e) => setFormData({ ...formData, ci: e.target.value })}
-                  className={`mt-1 block w-full rounded-md shadow-sm ${
-                    errors.ci ? 'border-red-300' : 'border-gray-300'
-                  } focus:border-blue-500 focus:ring-blue-500`}
-                />
-                {errors.ci && <p className="mt-1 text-sm text-red-600">{errors.ci}</p>}
-              </div>
-
-              <div>
-                <label htmlFor="birthDate" className="block text-sm font-medium text-gray-700">
-                  Fecha de Nacimiento
-                </label>
-                <input
-                  type="date"
-                  id="birthDate"
-                  value={formData.birthDate}
-                  onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
-                  className={`mt-1 block w-full rounded-md shadow-sm ${
-                    errors.birthDate ? 'border-red-300' : 'border-gray-300'
-                  } focus:border-blue-500 focus:ring-blue-500`}
-                />
-                {errors.birthDate && <p className="mt-1 text-sm text-red-600">{errors.birthDate}</p>}
-              </div>
-
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                  Correo Electrónico
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className={`mt-1 block w-full rounded-md shadow-sm ${
-                    errors.email ? 'border-red-300' : 'border-gray-300'
-                  } focus:border-blue-500 focus:ring-blue-500`}
-                />
-                {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
-              </div>
-
-              <div>
-                <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
-                  Teléfono
-                </label>
-                <input
-                  type="tel"
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className={`mt-1 block w-full rounded-md shadow-sm ${
-                    errors.phone ? 'border-red-300' : 'border-gray-300'
-                  } focus:border-blue-500 focus:ring-blue-500`}
-                />
-                {errors.phone && <p className="mt-1 text-sm text-red-600">{errors.phone}</p>}
+            <div>
+              <h2 className="text-lg font-medium text-gray-900 mb-4">Datos del Estudiante</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="estudiante.nombres" className="block text-sm font-medium text-gray-700 mb-1">
+                    Nombres*
+                  </label>
+                  <input
+                    type="text"
+                    id="estudiante.nombres"
+                    name="estudiante.nombres"
+                    required
+                    value={formData.estudiante.nombres}
+                    onChange={handleChange}
+                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="estudiante.apellidos" className="block text-sm font-medium text-gray-700 mb-1">
+                    Apellidos*
+                  </label>
+                  <input
+                    type="text"
+                    id="estudiante.apellidos"
+                    name="estudiante.apellidos"
+                    required
+                    value={formData.estudiante.apellidos}
+                    onChange={handleChange}
+                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="estudiante.ci" className="block text-sm font-medium text-gray-700 mb-1">
+                    CI*
+                  </label>
+                  <input
+                    type="text"
+                    id="estudiante.ci"
+                    name="estudiante.ci"
+                    required
+                    value={formData.estudiante.ci}
+                    onChange={handleChange}
+                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="estudiante.fecha_nacimiento" className="block text-sm font-medium text-gray-700 mb-1">
+                    Fecha de Nacimiento*
+                  </label>
+                  <input
+                    type="date"
+                    id="estudiante.fecha_nacimiento"
+                    name="estudiante.fecha_nacimiento"
+                    required
+                    value={formData.estudiante.fecha_nacimiento}
+                    onChange={handleChange}
+                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="estudiante.email" className="block text-sm font-medium text-gray-700 mb-1">
+                    Correo Electrónico
+                  </label>
+                  <input
+                    type="email"
+                    id="estudiante.email"
+                    name="estudiante.email"
+                    value={formData.estudiante.email}
+                    onChange={handleChange}
+                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="estudiante.id_grado" className="block text-sm font-medium text-gray-700 mb-1">
+                    Grado*
+                  </label>
+                  <select
+                    id="estudiante.id_grado"
+                    name="estudiante.id_grado"
+                    required
+                    value={formData.estudiante.id_grado}
+                    onChange={handleChange}
+                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  >
+                    <option value="">Seleccione un grado</option>
+                    {datosInscripcion?.grados?.map((grado: any) => (
+                      <option key={grado.id_grado} value={grado.id_grado}>
+                        {grado.nombre_grado}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="md:col-span-2">
+                  <label htmlFor="estudiante.id_unidad_educativa" className="block text-sm font-medium text-gray-700 mb-1">
+                    Unidad Educativa*
+                  </label>
+                  <select
+                    id="estudiante.id_unidad_educativa"
+                    name="estudiante.id_unidad_educativa"
+                    required
+                    value={formData.estudiante.id_unidad_educativa}
+                    onChange={handleChange}
+                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  >
+                    <option value="">Seleccione una unidad educativa</option>
+                    {datosInscripcion?.unidades_educativas?.map((unidad: any) => (
+                      <option key={unidad.id_unidad_educativa} value={unidad.id_unidad_educativa}>
+                        {unidad.nombre} - {unidad.departamento}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
-
+            
+            {/* Datos del Tutor Legal */}
+            <div>
+              <h2 className="text-lg font-medium text-gray-900 mb-4">Datos del Tutor Legal</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="tutor_legal.nombres" className="block text-sm font-medium text-gray-700 mb-1">
+                    Nombres*
+                  </label>
+                  <input
+                    type="text"
+                    id="tutor_legal.nombres"
+                    name="tutor_legal.nombres"
+                    required
+                    value={formData.tutor_legal.nombres}
+                    onChange={handleChange}
+                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="tutor_legal.apellidos" className="block text-sm font-medium text-gray-700 mb-1">
+                    Apellidos*
+                  </label>
+                  <input
+                    type="text"
+                    id="tutor_legal.apellidos"
+                    name="tutor_legal.apellidos"
+                    required
+                    value={formData.tutor_legal.apellidos}
+                    onChange={handleChange}
+                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="tutor_legal.ci" className="block text-sm font-medium text-gray-700 mb-1">
+                    CI*
+                  </label>
+                  <input
+                    type="text"
+                    id="tutor_legal.ci"
+                    name="tutor_legal.ci"
+                    required
+                    value={formData.tutor_legal.ci}
+                    onChange={handleChange}
+                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="tutor_legal.telefono" className="block text-sm font-medium text-gray-700 mb-1">
+                    Teléfono*
+                  </label>
+                  <input
+                    type="tel"
+                    id="tutor_legal.telefono"
+                    name="tutor_legal.telefono"
+                    required
+                    value={formData.tutor_legal.telefono}
+                    onChange={handleChange}
+                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="tutor_legal.email" className="block text-sm font-medium text-gray-700 mb-1">
+                    Correo Electrónico
+                  </label>
+                  <input
+                    type="email"
+                    id="tutor_legal.email"
+                    name="tutor_legal.email"
+                    value={formData.tutor_legal.email}
+                    onChange={handleChange}
+                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="tutor_legal.parentesco" className="block text-sm font-medium text-gray-700 mb-1">
+                    Parentesco*
+                  </label>
+                  <select
+                    id="tutor_legal.parentesco"
+                    name="tutor_legal.parentesco"
+                    required
+                    value={formData.tutor_legal.parentesco}
+                    onChange={handleChange}
+                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  >
+                    <option value="Padre">Padre</option>
+                    <option value="Madre">Madre</option>
+                    <option value="Familiar">Otro Familiar</option>
+                    <option value="Tutor">Tutor</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            
             {/* Áreas de Competencia */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-700">Áreas de Competencia</h3>
-              <div className="space-y-2">
-                {availableAreas.map((area) => (
-                  <div key={area.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-center">
-                      <input
-                        type="checkbox"
-                        id={area.id}
-                        checked={formData.areas.includes(area.id)}
-                        onChange={() => handleAreaChange(area.id)}
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                      />
-                      <label htmlFor={area.id} className="ml-3">
-                        <div className="text-sm font-medium text-gray-700">{area.name}</div>
-                        <div className="text-sm text-gray-500">{area.description}</div>
-                      </label>
-                    </div>
-                    <div className="text-sm font-medium text-gray-900">
-                      Bs. {area.cost}
-                    </div>
-                  </div>
-                ))}
-                {errors.areas && <p className="mt-1 text-sm text-red-600">{errors.areas}</p>}
-              </div>
-            </div>
-
-            {/* Datos del Tutor */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-700">Datos del Tutor</h3>
+            <div>
+              <h2 className="text-lg font-medium text-gray-900 mb-4">Áreas de Competencia</h2>
+              <p className="text-sm text-gray-500 mb-4">
+                Selecciona las áreas y niveles en los que deseas participar.
+                Puedes seleccionar hasta {datosInscripcion?.convocatoria?.max_areas || 2} áreas.
+              </p>
               
-              <div>
-                <label htmlFor="guardianName" className="block text-sm font-medium text-gray-700">
-                  Nombre Completo
-                </label>
-                <input
-                  type="text"
-                  id="guardianName"
-                  value={formData.guardian.name}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    guardian: { ...formData.guardian, name: e.target.value }
+              {datosInscripcion?.areas && (
+                <div className="space-y-4">
+                  {datosInscripcion.areas.map((area: any) => {
+                    const nivelesArea = datosInscripcion.niveles_por_area[area.id_area] || [];
+                    
+                    return (
+                      <div key={area.id} className="border border-gray-200 rounded-lg p-4">
+                        <h3 className="font-medium text-gray-900 mb-2">{area.nombre}</h3>
+                        <p className="text-sm text-gray-500 mb-2">Costo: Bs. {area.costo}</p>
+                        
+                        <div className="mt-3 space-y-2">
+                          {nivelesArea.map((nivel: any) => {
+                            const isSelected = formData.areas_seleccionadas.some(
+                              item => item.id_convocatoria_area === area.id && item.id_convocatoria_nivel === nivel.id
+                            );
+                            
+                            return (
+                              <label key={nivel.id} className="flex items-start">
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={() => handleAreaToggle(area.id, nivel.id)}
+                                  className="mt-1 h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                                />
+                                <span className="ml-2 block text-sm">
+                                  <span className="font-medium text-gray-700">{nivel.nombre}</span>
+                                  <span className="text-gray-500 block text-xs">
+                                    Grados: {nivel.grado_min} a {nivel.grado_max}
+                                  </span>
+                                </span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
                   })}
-                  className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 ${
-                    errors['guardian.name'] ? 'border-red-300' : ''
-                  }`}
-                />
-                {errors['guardian.name'] && (
-                  <p className="mt-1 text-sm text-red-600">{errors['guardian.name']}</p>
-                )}
-              </div>
-
-              <div>
-                <label htmlFor="guardianEmail" className="block text-sm font-medium text-gray-700">
-                  Correo Electrónico
-                </label>
-                <input
-                  type="email"
-                  id="guardianEmail"
-                  value={formData.guardian.email}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    guardian: { ...formData.guardian, email: e.target.value }
-                  })}
-                  className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 ${
-                    errors['guardian.email'] ? 'border-red-300' : ''
-                  }`}
-                />
-                {errors['guardian.email'] && (
-                  <p className="mt-1 text-sm text-red-600">{errors['guardian.email']}</p>
-                )}
-              </div>
-
-              <div>
-                <label htmlFor="guardianPhone" className="block text-sm font-medium text-gray-700">
-                  Teléfono
-                </label>
-                <input
-                  type="tel"
-                  id="guardianPhone"
-                  value={formData.guardian.phone}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    guardian: { ...formData.guardian, phone: e.target.value }
-                  })}
-                  className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 ${
-                    errors['guardian.phone'] ? 'border-red-300' : ''
-                  }`}
-                />
-                {errors['guardian.phone'] && (
-                  <p className="mt-1 text-sm text-red-600">{errors['guardian.phone']}</p>
-                )}
-              </div>
+                </div>
+              )}
+              
+              {formData.areas_seleccionadas.length === 0 && (
+                <p className="text-sm text-red-500 mt-2">
+                  Debes seleccionar al menos un área y nivel
+                </p>
+              )}
             </div>
-
-            <div className="pt-4">
+            
+            {/* Botón de envío */}
+            <div>
               <button
                 type="submit"
-                className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
+                disabled={loading || formData.areas_seleccionadas.length === 0}
+                className={`w-full py-3 px-4 bg-blue-600 text-white rounded-md font-medium 
+                  ${(loading || formData.areas_seleccionadas.length === 0) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'}`}
               >
-                Continuar con el Pago
+                {loading ? 'Procesando...' : 'Completar Inscripción'}
               </button>
             </div>
           </form>

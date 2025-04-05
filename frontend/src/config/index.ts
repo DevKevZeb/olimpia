@@ -55,45 +55,38 @@ export const API_BASE_URL = config.apiUrl;
 
 // Rutas de la API - actualizadas para coincidir con el backend actual
 export const API_ROUTES = {
-  // Áreas
-  AREAS: '/areas',
+  // Nuevos endpoints orientados a casos de uso
+  HOME: {
+    CONVOCATORIA_ACTUAL: '/public/convocatoria-actual',
+  },
+  INSCRIPCION: {
+    DATOS: '/public/datos-inscripcion',
+    BUSCAR_UNIDADES: '/public/unidades-educativas/buscar',
+    INSCRIPCION_COMPLETA: '/public/inscripcion-completa',
+  },
+  ADMIN: {
+    DASHBOARD_DATA: '/admin/dashboard-data',
+    CONVOCATORIA_COMPLETA: '/admin/convocatorias/completa',
+    CONVOCATORIA_DETALLE: '/admin/convocatorias', // Para /admin/convocatorias/{id}/completa
+  },
   
-  // Convocatorias
+  // Mantener las rutas CRUD por si son necesarias
+  AREAS: '/areas',
   CONVOCATORIAS: '/convocatorias',
   CONVOCATORIA_AREAS: '/convocatoria-areas',
   CONVOCATORIA_NIVELES: '/convocatoria-niveles',
-  
-  // Estudiantes
   ESTUDIANTES: '/estudiantes',
   ESTUDIANTES_SEARCH: '/estudiantes/search',
-  
-  // Inscripciones
   INSCRIPCIONES: '/inscripciones',
-  
-  // Unidades Educativas
   UNIDADES_EDUCATIVAS: '/unidades-educativas',
-  
-  // Grados y Niveles
   GRADOS: '/grados',
   NIVELES: '/niveles',
-  
-  // Tutores
   TUTORES_LEGALES: '/tutores-legales',
   TUTORES_ACADEMICOS: '/tutores-academicos',
-  
-  // Listas de Inscripción
   LISTAS_INSCRIPCION: '/listas-inscripcion',
-  
-  // Pagos
   ORDENES_PAGO: '/ordenes-pago',
   ORDENES_PAGO_BUSCAR: '/ordenes-pago/buscar-por-codigo',
   COMPROBANTES_PAGO: '/comprobantes-pago',
-  
-  // Dashboard
-  DASHBOARD_STATS: '/dashboard/stats',
-  
-  // Costos
-  COSTOS: '/costos',
 };
 
 // Constantes de aplicación
