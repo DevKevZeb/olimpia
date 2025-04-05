@@ -27,6 +27,32 @@ export const getAreasCompetencia = async () => {
 };
 
 /**
+ * Obtiene todos los niveles de categoría
+ */
+export const getNivelesCategoria = async () => {
+  try {
+    const response = await axiosInstance.get('/v1/admin/niveles-categoria');
+    return response.data;
+  } catch (error) {
+    console.error('Error al obtener niveles de categoría:', error);
+    throw error;
+  }
+};
+
+/**
+ * Obtiene todos los grados
+ */
+export const getGrados = async () => {
+  try {
+    const response = await axiosInstance.get('/v1/admin/grados');
+    return response.data;
+  } catch (error) {
+    console.error('Error al obtener grados:', error);
+    throw error;
+  }
+};
+
+/**
  * Crea una nueva convocatoria
  * @param data Datos de la convocatoria
  */
@@ -36,10 +62,15 @@ export const crearConvocatoria = async (data) => {
 };
 
 /**
- * Asocia áreas a una convocatoria
+ * Asocia áreas y niveles a una convocatoria
  * @param data Datos de asociación
  */
 export const asociarAreas = async (data) => {
-  const response = await axiosInstance.post('/v1/admin/convocatorias/asociar-areas', data);
-  return response.data;
+  try {
+    const response = await axiosInstance.post('/v1/admin/convocatorias/asociar-areas', data);
+    return response.data;
+  } catch (error) {
+    console.error('Error al asociar áreas y niveles:', error);
+    throw error;
+  }
 };

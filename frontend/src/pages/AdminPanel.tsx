@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { 
   getConvocatoriasActivas, 
-  getAreasCompetencia, 
+  getAreasCompetencia,
+  getNivelesCategoria,
+  getGrados,
   crearConvocatoria,
   asociarAreas 
 } from '../api/adminConvocatoriaApi';
@@ -18,8 +20,12 @@ export default function AdminPanel() {
   });
   const [convocatorias, setConvocatorias] = useState([]);
   const [areas, setAreas] = useState([]);
+  const [niveles, setNiveles] = useState([]);
+  const [grados, setGrados] = useState([]);
   const [selectedConvocatoria, setSelectedConvocatoria] = useState('');
   const [selectedAreas, setSelectedAreas] = useState([]);
+  const [selectedNiveles, setSelectedNiveles] = useState([]);
+  const [nivelGrados, setNivelGrados] = useState({});
 
   useEffect(() => {
     if (showConvocatoriaForm || showAsociarAreasForm) {
@@ -29,34 +35,43 @@ export default function AdminPanel() {
 
   const fetchData = async () => {
     try {
-      // Obtener convocatorias siempre
       if (showConvocatoriaForm || showAsociarAreasForm) {
         const convocatoriasResponse = await getConvocatoriasActivas();
-        console.log('Respuesta convocatorias:', convocatoriasResponse); // Para depuración
-        
-        // ApiController->successResponse devuelve un objeto con data y message
         if (convocatoriasResponse && convocatoriasResponse.data) {
           setConvocatorias(convocatoriasResponse.data);
         } else if (convocatoriasResponse && Array.isArray(convocatoriasResponse)) {
-          // En caso de que la respuesta sea directamente un array
           setConvocatorias(convocatoriasResponse);
         } else {
           console.error('Formato de respuesta inesperado:', convocatoriasResponse);
         }
       }
 
-      // Obtener áreas solo si es necesario
       if (showAsociarAreasForm) {
         const areasResponse = await getAreasCompetencia();
-        console.log('Respuesta áreas:', areasResponse); // Para depuración
-        
-        // Maneja diferentes formatos posibles de respuesta
         if (areasResponse && areasResponse.data) {
           setAreas(areasResponse.data);
         } else if (areasResponse && Array.isArray(areasResponse)) {
           setAreas(areasResponse);
         } else {
           console.error('Formato de respuesta inesperado:', areasResponse);
+        }
+
+        const nivelesResponse = await getNivelesCategoria();
+        if (nivelesResponse && nivelesResponse.data) {
+          setNiveles(nivelesResponse.data);
+        } else if (nivelesResponse && Array.isArray(nivelesResponse)) {
+          setNiveles(nivelesResponse);
+        } else {
+          console.error('Formato de respuesta inesperado (niveles):', nivelesResponse);
+        }
+
+        const gradosResponse = await getGrados();
+        if (gradosResponse && gradosResponse.data) {
+          setGrados(gradosResponse.data);
+        } else if (gradosResponse && Array.isArray(gradosResponse)) {
+          setGrados(gradosResponse);
+        } else {
+          console.error('Formato de respuesta inesperado (grados):', gradosResponse);
         }
       }
     } catch (error) {
@@ -77,7 +92,6 @@ export default function AdminPanel() {
     e.preventDefault();
     try {
       const response = await crearConvocatoria(formData);
-      console.log('Convocatoria creada:', response);
       alert('Convocatoria creada exitosamente');
       setShowConvocatoriaForm(false);
       setFormData({
@@ -98,8 +112,9 @@ export default function AdminPanel() {
     const isSelected = selectedAreas.some((area) => area.id_area === areaId);
     if (isSelected) {
       setSelectedAreas(selectedAreas.filter((area) => area.id_area !== areaId));
+      setSelectedNiveles(selectedNiveles.filter(nivel => nivel.id_area !== areaId));
     } else {
-      setSelectedAreas([...selectedAreas, { id_area: areaId, costo_inscripcion: '' }]); // Inicializar con string vacío
+      setSelectedAreas([...selectedAreas, { id_area: areaId, costo_inscripcion: '' }]);
     }
   };
 
@@ -109,6 +124,35 @@ export default function AdminPanel() {
         area.id_area === areaId ? { ...area, costo_inscripcion: cost } : area
       )
     );
+  };
+
+  const handleNivelSelect = (nivelId, areaId) => {
+    const isSelected = selectedNiveles.some(n => n.id_nivel === nivelId);
+    if (isSelected) {
+      setSelectedNiveles(selectedNiveles.filter(n => n.id_nivel !== nivelId));
+      setNivelGrados({...nivelGrados, [nivelId]: []});
+    } else {
+      setSelectedNiveles([...selectedNiveles, { id_nivel: nivelId, id_area: areaId }]);
+      if (!nivelGrados[nivelId]) {
+        setNivelGrados({...nivelGrados, [nivelId]: []});
+      }
+    }
+  };
+
+  const handleGradoSelect = (gradoId, nivelId) => {
+    const currentGrados = nivelGrados[nivelId] || [];
+    const isSelected = currentGrados.includes(gradoId);
+    if (isSelected) {
+      setNivelGrados({
+        ...nivelGrados,
+        [nivelId]: currentGrados.filter(g => g !== gradoId)
+      });
+    } else {
+      setNivelGrados({
+        ...nivelGrados,
+        [nivelId]: [...currentGrados, gradoId]
+      });
+    }
   };
 
   const handleAsociarAreasSubmit = async (e) => {
@@ -124,34 +168,60 @@ export default function AdminPanel() {
       return;
     }
 
+    if (selectedNiveles.length === 0) {
+      alert('Debe seleccionar al menos un nivel');
+      return;
+    }
+
+    const nivelesConGrados = selectedNiveles.every(nivel => 
+      nivelGrados[nivel.id_nivel] && nivelGrados[nivel.id_nivel].length > 0
+    );
+
+    if (!nivelesConGrados) {
+      alert('Todos los niveles deben tener al menos un grado seleccionado');
+      return;
+    }
+
     try {
       const dataToSubmit = {
         id_convocatoria: selectedConvocatoria,
         areas: selectedAreas.map(area => ({
           ...area,
-          costo_inscripcion: parseInt(area.costo_inscripcion, 10) // Convertir a entero
+          costo_inscripcion: parseInt(area.costo_inscripcion, 10)
         })),
+        niveles: selectedNiveles.map(nivel => ({
+          id_nivel: nivel.id_nivel,
+          grados: nivelGrados[nivel.id_nivel] || []
+        }))
       };
 
-      console.log('Enviando datos:', dataToSubmit);
-
       const response = await asociarAreas(dataToSubmit);
-      console.log('Respuesta del servidor:', response);
-
-      alert('Áreas asociadas exitosamente');
+      alert('Configuración guardada exitosamente');
       setShowAsociarAreasForm(false);
       setSelectedConvocatoria('');
       setSelectedAreas([]);
+      setSelectedNiveles([]);
+      setNivelGrados({});
       fetchData();
     } catch (error) {
-      console.error('Error al asociar áreas:', error);
+      console.error('Error al asociar áreas y niveles:', error);
       if (error.response) {
-        console.error('Detalles del error:', error.response.data);
-        alert(`Error al asociar áreas: ${error.response.data.message || 'Error desconocido'}`);
+        alert(`Error: ${error.response.data.message || 'Error desconocido'}`);
       } else {
-        alert('Error al asociar áreas. Por favor, verifica tu conexión.');
+        alert('Error al guardar. Por favor, verifica tu conexión.');
       }
     }
+  };
+
+  const getNivelesByArea = (areaId) => {
+    return niveles.filter(nivel => nivel.id_area === areaId);
+  };
+
+  const getGradosByRange = (minGradoId, maxGradoId) => {
+    return grados.filter(grado => {
+      const gradoId = grado.id_grado;
+      return gradoId >= minGradoId && gradoId <= maxGradoId;
+    });
   };
 
   return (
@@ -253,10 +323,12 @@ export default function AdminPanel() {
 
       {showAsociarAreasForm && (
         <form onSubmit={handleAsociarAreasSubmit} className="bg-white rounded-lg shadow-lg p-8">
-          <h2 className="text-2xl font-bold mb-6">Asociar Áreas a Convocatoria</h2>
+          <h2 className="text-2xl font-bold mb-6">Configurar Convocatoria</h2>
 
           {convocatorias.length === 0 && <p className="text-amber-600 mb-4">Cargando convocatorias...</p>}
           {areas.length === 0 && <p className="text-amber-600 mb-4">Cargando áreas...</p>}
+          {niveles.length === 0 && <p className="text-amber-600 mb-4">Cargando niveles...</p>}
+          {grados.length === 0 && <p className="text-amber-600 mb-4">Cargando grados...</p>}
 
           <div className="mb-6">
             <label className="block text-gray-700 font-medium mb-2">Seleccionar Convocatoria</label>
@@ -275,49 +347,157 @@ export default function AdminPanel() {
             </select>
           </div>
 
-          <h3 className="text-xl font-bold mb-4">Seleccionar Áreas</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            {areas.map((area) => (
-              <div key={area.id_area} className="border rounded-lg p-4">
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id={`area-${area.id_area}`}
-                    checked={selectedAreas.some((a) => a.id_area === area.id_area)}
-                    onChange={() => handleAreaSelect(area.id_area)}
-                    className="mr-2"
-                  />
-                  <label htmlFor={`area-${area.id_area}`} className="font-medium">
-                    {area.nombre_area}
-                  </label>
-                </div>
-                {selectedAreas.some((a) => a.id_area === area.id_area) && (
-                  <div className="mt-4">
-                    <label className="block text-sm text-gray-600 mb-1">Costo de Inscripción (Bs.)</label>
+          <div className="mb-8">
+            <h3 className="text-xl font-bold mb-4">1. Seleccionar Áreas de Competencia</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {areas.map((area) => (
+                <div 
+                  key={area.id_area} 
+                  className={`border rounded-lg p-4 cursor-pointer transition-all ${
+                    selectedAreas.some(a => a.id_area === area.id_area) 
+                      ? 'border-blue-500 bg-blue-50' 
+                      : 'hover:border-gray-400'
+                  }`}
+                  onClick={() => handleAreaSelect(area.id_area)}
+                >
+                  <div className="flex items-center mb-2">
                     <input
-                      type="number"
-                      min="1"
-                      step="1" // Solo permitir números enteros
-                      value={
-                        selectedAreas.find((a) => a.id_area === area.id_area)?.costo_inscripcion || ''
-                      }
-                      onChange={(e) => handleAreaCostChange(area.id_area, e.target.value)}
-                      className="w-full border border-gray-300 rounded px-2 py-1"
-                      placeholder="Ingrese costo"
-                      required
+                      type="checkbox"
+                      id={`area-${area.id_area}`}
+                      checked={selectedAreas.some(a => a.id_area === area.id_area)}
+                      onChange={() => {}}
+                      className="mr-3 h-4 w-4 text-blue-600"
                     />
+                    <label htmlFor={`area-${area.id_area}`} className="font-medium text-gray-700">
+                      {area.nombre_area}
+                    </label>
                   </div>
-                )}
-              </div>
-            ))}
+                  
+                  {selectedAreas.some(a => a.id_area === area.id_area) && (
+                    <div className="mt-3 pt-3 border-t border-gray-200">
+                      <label className="block text-sm text-gray-600 mb-1">Costo de Inscripción (Bs.)</label>
+                      <input
+                        type="number"
+                        min="1"
+                        step="1"
+                        value={selectedAreas.find(a => a.id_area === area.id_area)?.costo_inscripcion || ''}
+                        onChange={(e) => handleAreaCostChange(area.id_area, e.target.value)}
+                        className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
+                        placeholder="Ingrese costo"
+                        onClick={(e) => e.stopPropagation()}
+                        required
+                      />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
 
-          <div className="flex justify-end">
+          {selectedAreas.length > 0 && (
+            <div className="mb-8">
+              <h3 className="text-xl font-bold mb-4">2. Seleccionar Niveles por Área</h3>
+              
+              <div className="space-y-6">
+                {selectedAreas.map(selectedArea => {
+                  const area = areas.find(a => a.id_area === selectedArea.id_area);
+                  const nivelesFiltrados = getNivelesByArea(selectedArea.id_area);
+                  
+                  return (
+                    <div key={`nivel-section-${selectedArea.id_area}`} className="p-4 border rounded-lg bg-gray-50">
+                      <h4 className="text-lg font-semibold mb-3 text-blue-800">
+                        Niveles para {area?.nombre_area}
+                      </h4>
+                      
+                      {nivelesFiltrados.length === 0 ? (
+                        <p className="text-gray-500 italic">No hay niveles disponibles para esta área.</p>
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {nivelesFiltrados.map(nivel => (
+                            <div 
+                              key={`nivel-${nivel.id_nivel}`}
+                              className={`border rounded-lg p-3 cursor-pointer transition-all ${
+                                selectedNiveles.some(n => n.id_nivel === nivel.id_nivel)
+                                  ? 'border-green-500 bg-green-50'
+                                  : 'hover:border-gray-400'
+                              }`}
+                              onClick={() => handleNivelSelect(nivel.id_nivel, selectedArea.id_area)}
+                            >
+                              <div className="flex items-center">
+                                <input
+                                  type="checkbox"
+                                  id={`nivel-${nivel.id_nivel}`}
+                                  checked={selectedNiveles.some(n => n.id_nivel === nivel.id_nivel)}
+                                  onChange={() => {}}
+                                  className="mr-2 h-4 w-4 text-green-600"
+                                />
+                                <label htmlFor={`nivel-${nivel.id_nivel}`} className="font-medium text-gray-700">
+                                  {nivel.nombre_nivel}
+                                </label>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {selectedNiveles.length > 0 && (
+            <div className="mb-8">
+              <h3 className="text-xl font-bold mb-4">3. Seleccionar Grados por Nivel</h3>
+              
+              <div className="space-y-6">
+                {selectedNiveles.map(selectedNivel => {
+                  const nivel = niveles.find(n => n.id_nivel === selectedNivel.id_nivel);
+                  const area = areas.find(a => a.id_area === selectedNivel.id_area);
+                  const gradosDisponibles = getGradosByRange(nivel?.id_grado_min, nivel?.id_grado_max);
+                  
+                  return (
+                    <div key={`grado-section-${selectedNivel.id_nivel}`} className="p-4 border rounded-lg bg-gray-50">
+                      <h4 className="text-lg font-semibold mb-2 text-green-800">
+                        Grados para {nivel?.nombre_nivel} ({area?.nombre_area})
+                      </h4>
+                      
+                      {gradosDisponibles.length === 0 ? (
+                        <p className="text-gray-500 italic">No hay grados disponibles para este nivel.</p>
+                      ) : (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+                          {gradosDisponibles.map(grado => {
+                            const isSelected = nivelGrados[selectedNivel.id_nivel]?.includes(grado.id_grado);
+                            
+                            return (
+                              <div 
+                                key={`grado-${selectedNivel.id_nivel}-${grado.id_grado}`}
+                                className={`border rounded-lg p-2 cursor-pointer transition-all text-center ${
+                                  isSelected 
+                                    ? 'border-purple-500 bg-purple-50 text-purple-700'
+                                    : 'hover:border-gray-400 text-gray-700'
+                                }`}
+                                onClick={() => handleGradoSelect(grado.id_grado, selectedNivel.id_nivel)}
+                              >
+                                <span className="font-medium">{grado.nombre_grado}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-end mt-8">
             <button
               type="submit"
-              className="bg-green-600 text-white px-6 py-3 rounded-md font-medium hover:bg-green-700 transition"
+              className="bg-green-600 text-white px-6 py-3 rounded-md font-medium hover:bg-green-700 transition-colors"
             >
-              Guardar Áreas
+              Guardar Configuración
             </button>
           </div>
         </form>

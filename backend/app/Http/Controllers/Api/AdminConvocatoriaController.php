@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Api;
 use App\Models\AreaCompetencia;
 use App\Models\Convocatoria;
 use App\Models\ConvocatoriaArea;
+use App\Models\ConvocatoriaNivel;
+use App\Models\NivelCategoria;
+use App\Models\Grado;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -45,6 +48,36 @@ class AdminConvocatoriaController extends ApiController
     }
     
     /**
+     * Obtiene todos los niveles de categoría
+     * 
+     * @return JsonResponse
+     */
+    public function getNivelesCategoria(): JsonResponse
+    {
+        $niveles = NivelCategoria::with(['area', 'gradoMin', 'gradoMax'])->get();
+        
+        return $this->successResponse(
+            $niveles,
+            'Niveles de categoría obtenidos correctamente'
+        );
+    }
+    
+    /**
+     * Obtiene todos los grados
+     * 
+     * @return JsonResponse
+     */
+    public function getGrados(): JsonResponse
+    {
+        $grados = Grado::orderBy('orden')->get();
+        
+        return $this->successResponse(
+            $grados,
+            'Grados obtenidos correctamente'
+        );
+    }
+    
+    /**
      * Crea una nueva convocatoria
      * 
      * @param Request $request
@@ -74,7 +107,7 @@ class AdminConvocatoriaController extends ApiController
     }
     
     /**
-     * Asocia áreas a una convocatoria
+     * Asocia áreas y niveles a una convocatoria
      * 
      * @param Request $request
      * @return JsonResponse
@@ -85,7 +118,9 @@ class AdminConvocatoriaController extends ApiController
             'id_convocatoria' => 'required|exists:convocatorias,id_convocatoria',
             'areas' => 'required|array|min:1',
             'areas.*.id_area' => 'required|exists:areas_competencia,id_area',
-            'areas.*.costo_inscripcion' => 'required|integer|min:1', // Cambiado a integer positivo
+            'areas.*.costo_inscripcion' => 'required|integer|min:1',
+            'niveles' => 'required|array|min:1',
+            'niveles.*.id_nivel' => 'required|exists:niveles_categoria,id_nivel',
         ]);
 
         if ($validator->fails()) {
@@ -95,19 +130,17 @@ class AdminConvocatoriaController extends ApiController
         DB::beginTransaction();
         
         try {
+            // Procesar áreas
             foreach ($request->input('areas') as $area) {
-                // Verificar si ya existe la asociación
                 $existente = ConvocatoriaArea::where('id_convocatoria', $request->id_convocatoria)
                     ->where('id_area', $area['id_area'])
                     ->first();
                 
                 if ($existente) {
-                    // Actualizar el costo si existe
                     $existente->update([
                         'costo_inscripcion' => $area['costo_inscripcion']
                     ]);
                 } else {
-                    // Crear nueva asociación
                     ConvocatoriaArea::create([
                         'id_convocatoria' => $request->id_convocatoria,
                         'id_area' => $area['id_area'],
@@ -116,20 +149,34 @@ class AdminConvocatoriaController extends ApiController
                 }
             }
             
+            // Procesar niveles
+            foreach ($request->input('niveles') as $nivel) {
+                $existente = ConvocatoriaNivel::where('id_convocatoria', $request->id_convocatoria)
+                    ->where('id_nivel', $nivel['id_nivel'])
+                    ->first();
+                
+                if (!$existente) {
+                    ConvocatoriaNivel::create([
+                        'id_convocatoria' => $request->id_convocatoria,
+                        'id_nivel' => $nivel['id_nivel'],
+                    ]);
+                }
+            }
+            
             DB::commit();
             
-            // Obtener la convocatoria con las áreas asociadas
-            $convocatoria = Convocatoria::with(['areas.area'])
+            // Obtener la convocatoria con las áreas y niveles asociados
+            $convocatoria = Convocatoria::with(['areas.area', 'niveles.nivel'])
                 ->find($request->id_convocatoria);
             
             return $this->successResponse(
                 $convocatoria,
-                'Áreas asociadas correctamente',
+                'Áreas y niveles asociados correctamente',
                 200
             );
         } catch (\Exception $e) {
             DB::rollBack();
-            return $this->errorResponse('Error al asociar áreas: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Error al asociar áreas y niveles: ' . $e->getMessage(), 500);
         }
     }
 }

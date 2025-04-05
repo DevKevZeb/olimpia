@@ -105,6 +105,8 @@ Route::prefix('v1')->group(function () {
     // Endpoints para el panel de administración de convocatorias
     Route::get('/admin/convocatorias-activas', [AdminConvocatoriaController::class, 'getConvocatoriasActivas']);
     Route::get('/admin/areas-competencia', [AdminConvocatoriaController::class, 'getAreasCompetencia']);
+    Route::get('/admin/niveles-categoria', [AdminConvocatoriaController::class, 'getNivelesCategoria']);
     Route::post('/admin/convocatorias', [AdminConvocatoriaController::class, 'crearConvocatoria']);
     Route::post('/admin/convocatorias/asociar-areas', [AdminConvocatoriaController::class, 'asociarAreas']);
+    Route::get('/admin/grados', [AdminConvocatoriaController::class, 'getGrados']);
 });
