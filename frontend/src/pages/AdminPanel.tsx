@@ -7,7 +7,6 @@ import {
   crearConvocatoria,
   asociarAreas 
 } from '../api/adminConvocatoriaApi';
-import DebugData from '../components/DebugData'; // Importa el componente de depuración
 
 export default function AdminPanel() {
   const [showCrearConvocatoriaForm, setShowCrearConvocatoriaForm] = useState(false);
@@ -396,22 +395,7 @@ export default function AdminPanel() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      {/* Componente de depuración - ELIMINAR EN PRODUCCIÓN */}
-      {process.env.NODE_ENV !== 'production' && (
-        <DebugData 
-          data={{ 
-            areas, 
-            niveles, 
-            grados, 
-            selectedAreas, 
-            selectedNiveles,
-            nivelGrados
-          }} 
-          title="Estado del Formulario" 
-          collapsed={true}
-        />
-      )}
-
+      
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Panel Administrativo</h1>
         <div>
