@@ -9,8 +9,8 @@ class Inscripcion extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'id_inscripcion';
     protected $table = 'inscripciones';
+    protected $primaryKey = 'id_inscripcion';
 
     protected $fillable = [
         'id_estudiante',
@@ -42,5 +42,11 @@ class Inscripcion extends Model
     public function ordenesPago()
     {
         return $this->hasMany(OrdenPago::class, 'id_inscripcion');
+    }
+
+    // Método auxiliar para acceder a ConvocatoriaArea a través de ConvocatoriaNivel
+    public function getConvocatoriaAreaAttribute()
+    {
+        return $this->convocatoriaNivel->convocatoriaArea;
     }
 }

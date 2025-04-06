@@ -26,7 +26,9 @@ class ComprobantePagoObserver
                     ->get()
                     ->flatMap(function($detalle) use ($orden) {
                         return $detalle->estudiante->inscripciones()
-                            ->where('id_convocatoria_area', $detalle->id_convocatoria_area)
+                            ->whereHas('convocatoriaNivel', function($query) use ($detalle) {
+                                $query->where('id_convocatoria_area', $detalle->id_convocatoria_area);
+                            })
                             ->pluck('id_inscripcion');
                     });
                 

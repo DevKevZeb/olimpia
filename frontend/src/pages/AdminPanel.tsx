@@ -7,6 +7,7 @@ import {
   crearConvocatoria,
   asociarAreas 
 } from '../api/adminConvocatoriaApi';
+import DebugData from '../components/DebugData'; // Importa el componente de depuración
 
 export default function AdminPanel() {
   const [showCrearConvocatoriaForm, setShowCrearConvocatoriaForm] = useState(false);
@@ -38,41 +39,24 @@ export default function AdminPanel() {
     try {
       // Cargar convocatorias
       const convocatoriasResponse = await getConvocatoriasActivas();
-      if (convocatoriasResponse && convocatoriasResponse.data) {
-        setConvocatorias(convocatoriasResponse.data);
-      } else if (convocatoriasResponse && Array.isArray(convocatoriasResponse)) {
-        setConvocatorias(convocatoriasResponse);
-      } else {
-        console.error('Formato de respuesta inesperado:', convocatoriasResponse);
-      }
-
+      setConvocatorias(Array.isArray(convocatoriasResponse) ? convocatoriasResponse : []);
+      
       // Cargar áreas, niveles y grados siempre
       const areasResponse = await getAreasCompetencia();
-      if (areasResponse && areasResponse.data) {
-        setAreas(areasResponse.data);
-      } else if (areasResponse && Array.isArray(areasResponse)) {
-        setAreas(areasResponse);
-      } else {
-        console.error('Formato de respuesta inesperado:', areasResponse);
-      }
-
+      setAreas(Array.isArray(areasResponse) ? areasResponse : []);
+      
       const nivelesResponse = await getNivelesCategoria();
-      if (nivelesResponse && nivelesResponse.data) {
-        setNiveles(nivelesResponse.data);
-      } else if (nivelesResponse && Array.isArray(nivelesResponse)) {
-        setNiveles(nivelesResponse);
-      } else {
-        console.error('Formato de respuesta inesperado (niveles):', nivelesResponse);
-      }
-
+      setNiveles(Array.isArray(nivelesResponse) ? nivelesResponse : []);
+      
       const gradosResponse = await getGrados();
-      if (gradosResponse && gradosResponse.data) {
-        setGrados(gradosResponse.data);
-      } else if (gradosResponse && Array.isArray(gradosResponse)) {
-        setGrados(gradosResponse);
-      } else {
-        console.error('Formato de respuesta inesperado (grados):', gradosResponse);
-      }
+      setGrados(Array.isArray(gradosResponse) ? gradosResponse : []);
+      
+      console.log('Datos cargados:', { 
+        convocatorias: Array.isArray(convocatoriasResponse) ? convocatoriasResponse : [], 
+        areas: Array.isArray(areasResponse) ? areasResponse : [], 
+        niveles: Array.isArray(nivelesResponse) ? nivelesResponse : [],
+        grados: Array.isArray(gradosResponse) ? gradosResponse : []
+      });
     } catch (error) {
       console.error('Error detallado al cargar los datos:', error);
       alert('Error al cargar los datos. Por favor, inténtelo de nuevo.');
@@ -88,8 +72,7 @@ export default function AdminPanel() {
   };
 
   const handleNextStep = (e) => {
-    e.preventDefault();
-    
+    e.preventDefault();  
     // Validaciones según el paso actual
     if (currentStep === 1) {
       // Validar datos básicos de la convocatoria
@@ -118,65 +101,108 @@ export default function AdminPanel() {
       setCurrentStep(3);
     }
   };
-  
+
   const handlePreviousStep = () => {
     setCurrentStep(currentStep - 1);
   };
-  
+
   const handleSubmitConvocatoria = async (e) => {
     e.preventDefault();
     
     // Validar que todos los niveles tengan al menos un grado seleccionado
-    const nivelesConGrados = selectedNiveles.every(nivel => 
-      nivelGrados[nivel.id_nivel] && nivelGrados[nivel.id_nivel].length > 0
-    );
+    const nivelesValidos = selectedNiveles.every(nivel => {
+      const key = `${nivel.id_area}-${nivel.id_nivel}`;
+      return nivelGrados[key] && nivelGrados[key].length > 0;
+    });
 
-    if (!nivelesConGrados) {
+    if (!nivelesValidos) {
       alert('Todos los niveles deben tener al menos un grado seleccionado');
       return;
     }
     
     try {
       // Primero crear la convocatoria
+      console.log('Datos del formulario a enviar:', formData);
       const convocatoriaResponse = await crearConvocatoria(formData);
+      console.log('Respuesta de creación de convocatoria:', convocatoriaResponse);
       
-      if (convocatoriaResponse && convocatoriaResponse.id_convocatoria) {
-        // Luego asociar áreas, niveles y grados
-        const dataToSubmit = {
-          id_convocatoria: convocatoriaResponse.id_convocatoria,
-          areas: selectedAreas.map(area => ({
-            ...area,
-            costo_inscripcion: parseInt(area.costo_inscripcion, 10)
-          })),
-          niveles: selectedNiveles.map(nivel => ({
+      // Verificar que tenemos un ID de convocatoria válido
+      if (!convocatoriaResponse || typeof convocatoriaResponse.id_convocatoria === 'undefined') {
+        console.error('Respuesta inválida al crear convocatoria:', convocatoriaResponse);
+        throw new Error('No se recibió el ID de la convocatoria correctamente');
+      }
+      
+      const idConvocatoria = convocatoriaResponse.id_convocatoria;
+      console.log('ID de convocatoria creada:', idConvocatoria);
+      
+      if (idConvocatoria) {
+        // Preparar datos de áreas correctamente formateados
+        const areasData = selectedAreas.map(area => ({
+          id_area: area.id_area,
+          costo_inscripcion: parseInt(area.costo_inscripcion, 10)
+        }));
+        
+        // Preparar datos de niveles con el formato correcto para el backend
+        const nivelesData = selectedNiveles.map(nivel => {
+          const key = `${nivel.id_area}-${nivel.id_nivel}`;
+          // Encontrar el grado mínimo y máximo de los grados seleccionados
+          const gradosSeleccionados = nivelGrados[key] || [];
+          if (gradosSeleccionados.length === 0) {
+            console.error('No hay grados seleccionados para nivel:', nivel);
+            throw new Error(`No hay grados seleccionados para el nivel ${nivel.id_nivel}`);
+          }
+          
+          return {
             id_nivel: nivel.id_nivel,
-            grados: nivelGrados[nivel.id_nivel] || []
-          }))
+            id_area: nivel.id_area,
+            id_grado_min: Math.min(...gradosSeleccionados),
+            id_grado_max: Math.max(...gradosSeleccionados)
+          };
+        });
+        
+        // Crear el objeto de datos a enviar
+        const dataToSubmit = {
+          id_convocatoria: idConvocatoria,
+          areas: areasData,
+          niveles: nivelesData
         };
         
-        await asociarAreas(dataToSubmit);
-        alert('Convocatoria creada exitosamente');
+        console.log('Datos a enviar para asociar áreas:', dataToSubmit);
         
-        // Reiniciar el formulario
-        setShowCrearConvocatoriaForm(false);
-        setCurrentStep(1);
-        setFormData({
-          nombre: '',
-          fecha_inicio_inscripcion: '',
-          fecha_fin_inscripcion: '',
-          max_areas_por_estudiante: 2,
-          estado: 'planificada',
-        });
-        setSelectedAreas([]);
-        setSelectedNiveles([]);
-        setNivelGrados({});
-        fetchData();
+        try {
+          const resultado = await asociarAreas(dataToSubmit);
+          console.log('Respuesta de asociación de áreas:', resultado);
+          alert('Convocatoria creada exitosamente');
+          
+          // Reiniciar el formulario
+          setShowCrearConvocatoriaForm(false);
+          setCurrentStep(1);
+          setFormData({
+            nombre: '',
+            fecha_inicio_inscripcion: '',
+            fecha_fin_inscripcion: '',
+            max_areas_por_estudiante: 2,
+            estado: 'planificada',
+          });
+          setSelectedAreas([]);
+          setSelectedNiveles([]);
+          setNivelGrados({});
+          fetchData();
+        } catch (error) {
+          console.error('Error al asociar áreas y niveles:', error);
+          alert(`Error al asociar áreas: ${error.message || 'Error desconocido'}`);
+        }
       } else {
         throw new Error('No se recibió el ID de la convocatoria');
       }
     } catch (error) {
-      console.error('Error al crear la convocatoria:', error.response?.data || error.message);
-      alert('Error al crear la convocatoria');
+      console.error('Error detallado al crear la convocatoria:', error);
+      if (error.response && error.response.data) {
+        console.error('Respuesta del servidor:', error.response.data);
+        alert(`Error al crear la convocatoria: ${error.response.data.message || 'Error en el servidor'}`);
+      } else {
+        alert(`Error al crear la convocatoria: ${error.message || 'Error desconocido'}`);
+      }
     }
   };
 
@@ -199,30 +225,37 @@ export default function AdminPanel() {
   };
 
   const handleNivelSelect = (nivelId, areaId) => {
-    const isSelected = selectedNiveles.some(n => n.id_nivel === nivelId);
+    const isSelected = selectedNiveles.some(n => n.id_nivel === nivelId && n.id_area === areaId);
     if (isSelected) {
-      setSelectedNiveles(selectedNiveles.filter(n => n.id_nivel !== nivelId));
-      setNivelGrados({...nivelGrados, [nivelId]: []});
+      setSelectedNiveles(selectedNiveles.filter(n => !(n.id_nivel === nivelId && n.id_area === areaId)));
+      // Eliminar los grados seleccionados para este nivel
+      const updatedGrados = { ...nivelGrados };
+      delete updatedGrados[`${areaId}-${nivelId}`];
+      setNivelGrados(updatedGrados);
     } else {
       setSelectedNiveles([...selectedNiveles, { id_nivel: nivelId, id_area: areaId }]);
-      if (!nivelGrados[nivelId]) {
-        setNivelGrados({...nivelGrados, [nivelId]: []});
-      }
+      // Inicializar un array vacío para los grados de este nivel
+      setNivelGrados({
+        ...nivelGrados,
+        [`${areaId}-${nivelId}`]: []
+      });
     }
   };
 
-  const handleGradoSelect = (gradoId, nivelId) => {
-    const currentGrados = nivelGrados[nivelId] || [];
+  const handleGradoSelect = (gradoId, areaId, nivelId) => {
+    const key = `${areaId}-${nivelId}`;
+    const currentGrados = nivelGrados[key] || [];
     const isSelected = currentGrados.includes(gradoId);
+    
     if (isSelected) {
       setNivelGrados({
         ...nivelGrados,
-        [nivelId]: currentGrados.filter(g => g !== gradoId)
+        [key]: currentGrados.filter(g => g !== gradoId)
       });
     } else {
       setNivelGrados({
         ...nivelGrados,
-        [nivelId]: [...currentGrados, gradoId]
+        [key]: [...currentGrados, gradoId]
       });
     }
   };
@@ -245,26 +278,39 @@ export default function AdminPanel() {
       return;
     }
 
-    const nivelesConGrados = selectedNiveles.every(nivel => 
-      nivelGrados[nivel.id_nivel] && nivelGrados[nivel.id_nivel].length > 0
-    );
+    // Validar que todos los niveles tengan al menos un grado seleccionado
+    const nivelesValidos = selectedNiveles.every(nivel => {
+      const key = `${nivel.id_area}-${nivel.id_nivel}`;
+      return nivelGrados[key] && nivelGrados[key].length > 0;
+    });
 
-    if (!nivelesConGrados) {
+    if (!nivelesValidos) {
       alert('Todos los niveles deben tener al menos un grado seleccionado');
       return;
     }
 
     try {
+      // Preparar los datos para asociar áreas y niveles
+      const areasData = selectedAreas.map(area => ({
+        id_area: area.id_area,
+        costo_inscripcion: parseInt(area.costo_inscripcion, 10)
+      }));
+      
+      // Preparar los niveles y sus grados correspondientes
+      const nivelesData = selectedNiveles.map(nivel => {
+        const key = `${nivel.id_area}-${nivel.id_nivel}`;
+        return {
+          id_nivel: nivel.id_nivel,
+          id_area: nivel.id_area,
+          id_grado_min: Math.min(...(nivelGrados[key] || [])),
+          id_grado_max: Math.max(...(nivelGrados[key] || []))
+        };
+      });
+      
       const dataToSubmit = {
         id_convocatoria: selectedConvocatoria,
-        areas: selectedAreas.map(area => ({
-          ...area,
-          costo_inscripcion: parseInt(area.costo_inscripcion, 10)
-        })),
-        niveles: selectedNiveles.map(nivel => ({
-          id_nivel: nivel.id_nivel,
-          grados: nivelGrados[nivel.id_nivel] || []
-        }))
+        areas: areasData,
+        niveles: nivelesData
       };
 
       const response = await asociarAreas(dataToSubmit);
@@ -285,23 +331,91 @@ export default function AdminPanel() {
     }
   };
 
-  const getNivelesByArea = (areaId) => {
-    return niveles.filter(nivel => nivel.id_area === areaId);
+  const renderNiveles = (selectedArea) => {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+        {niveles.map(nivel => (
+          <div 
+            key={`nivel-${selectedArea.id_area}-${nivel.id_nivel}`}
+            className={`border rounded-lg p-3 cursor-pointer transition-all ${
+              selectedNiveles.some(n => n.id_nivel === nivel.id_nivel && n.id_area === selectedArea.id_area)
+                ? 'border-green-500 bg-green-50'
+                : 'hover:border-gray-400'
+            }`}
+            onClick={() => handleNivelSelect(nivel.id_nivel, selectedArea.id_area)}
+          >
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id={`nivel-${selectedArea.id_area}-${nivel.id_nivel}`}
+                checked={selectedNiveles.some(n => n.id_nivel === nivel.id_nivel && n.id_area === selectedArea.id_area)}
+                onChange={() => {}}
+                className="mr-2 h-4 w-4 text-green-600"
+              />
+              <label htmlFor={`nivel-${selectedArea.id_area}-${nivel.id_nivel}`} className="font-medium text-gray-700">
+                {nivel.nombre_nivel}
+              </label>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
   };
 
-  const getGradosByRange = (minGradoId, maxGradoId) => {
-    return grados.filter(grado => {
-      const gradoId = grado.id_grado;
-      return gradoId >= minGradoId && gradoId <= maxGradoId;
-    });
+  const renderGrados = (areaId, nivelId) => {
+    const key = `${areaId}-${nivelId}`;
+    const nivel = niveles.find(n => n.id_nivel === nivelId);
+    
+    if (!nivel) return null;
+    
+    return (
+      <div key={`grados-${key}`} className="p-3 border rounded-lg bg-gray-50 mb-3">
+        <h6 className="font-medium text-gray-700 mb-2">{nivel.nombre_nivel}</h6>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+          {grados.map(grado => {
+            const isSelected = (nivelGrados[key] || []).includes(grado.id_grado);
+            
+            return (
+              <div 
+                key={`grado-${key}-${grado.id_grado}`}
+                className={`border rounded-lg p-2 cursor-pointer transition-all text-center ${
+                  isSelected 
+                    ? 'border-purple-500 bg-purple-50 text-purple-700'
+                    : 'hover:border-gray-400 text-gray-700'
+                }`}
+                onClick={() => handleGradoSelect(grado.id_grado, areaId, nivelId)}
+              >
+                <span className="font-medium">{grado.nombre_grado}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
   };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      {/* Componente de depuración - ELIMINAR EN PRODUCCIÓN */}
+      {process.env.NODE_ENV !== 'production' && (
+        <DebugData 
+          data={{ 
+            areas, 
+            niveles, 
+            grados, 
+            selectedAreas, 
+            selectedNiveles,
+            nivelGrados
+          }} 
+          title="Estado del Formulario" 
+          collapsed={true}
+        />
+      )}
+
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Panel Administrativo</h1>
         <div>
-          <button
+          <button 
             onClick={() => {
               setShowCrearConvocatoriaForm(!showCrearConvocatoriaForm);
               if (showCrearConvocatoriaForm) {
@@ -349,80 +463,80 @@ export default function AdminPanel() {
           {/* Paso 1: Datos básicos */}
           {currentStep === 1 && (
             <form onSubmit={handleNextStep} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <div>
-              <label className="block text-gray-700 font-medium mb-2">Nombre</label>
-              <input
-                type="text"
-                name="nombre"
-                value={formData.nombre}
-                onChange={handleInputChange}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-gray-700 font-medium mb-2">Fecha de Inicio</label>
-              <input
-                type="date"
-                name="fecha_inicio_inscripcion"
-                value={formData.fecha_inicio_inscripcion}
-                onChange={handleInputChange}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-gray-700 font-medium mb-2">Fecha de Fin</label>
-              <input
-                type="date"
-                name="fecha_fin_inscripcion"
-                value={formData.fecha_fin_inscripcion}
-                onChange={handleInputChange}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-gray-700 font-medium mb-2">Máximo de Áreas por Estudiante</label>
-              <input
-                type="number"
-                name="max_areas_por_estudiante"
-                value={formData.max_areas_por_estudiante}
-                onChange={handleInputChange}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2"
-                min="1"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-gray-700 font-medium mb-2">Estado</label>
-              <select
-                name="estado"
-                value={formData.estado}
-                onChange={handleInputChange}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2"
-                required
-              >
-                <option value="planificada">Planificada</option>
-                <option value="abierta">Abierta</option>
-                <option value="cerrada">Cerrada</option>
-                <option value="finalizada">Finalizada</option>
-              </select>
-            </div>
-          </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">Nombre</label>
+                  <input
+                    type="text"
+                    name="nombre"
+                    value={formData.nombre}
+                    onChange={handleInputChange}
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">Fecha de Inicio</label>
+                  <input
+                    type="date"
+                    name="fecha_inicio_inscripcion"
+                    value={formData.fecha_inicio_inscripcion}
+                    onChange={handleInputChange}
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">Fecha de Fin</label>
+                  <input
+                    type="date"
+                    name="fecha_fin_inscripcion"
+                    value={formData.fecha_fin_inscripcion}
+                    onChange={handleInputChange}
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">Máximo de Áreas por Estudiante</label>
+                  <input
+                    type="number"
+                    name="max_areas_por_estudiante"
+                    value={formData.max_areas_por_estudiante}
+                    onChange={handleInputChange}
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2"
+                    min="1"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">Estado</label>
+                  <select
+                    name="estado"
+                    value={formData.estado}
+                    onChange={handleInputChange}
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2"
+                    required
+                  >
+                    <option value="planificada">Planificada</option>
+                    <option value="abierta">Abierta</option>
+                    <option value="cerrada">Cerrada</option>
+                    <option value="finalizada">Finalizada</option>
+                  </select>
+                </div>
+              </div>
 
-          <div className="flex justify-end mt-8">
-            <button
-              type="submit"
-              className="bg-blue-600 text-white px-6 py-3 rounded-md font-medium hover:bg-blue-700 transition"
-            >
-              Siguiente
-            </button>
-          </div>
-        </form>
+              <div className="flex justify-end mt-8">
+                <button
+                  type="submit"
+                  className="bg-blue-600 text-white px-6 py-3 rounded-md font-medium hover:bg-blue-700 transition"
+                >
+                  Siguiente
+                </button>
+              </div>
+            </form>
           )}
-          
+
           {/* Paso 2: Selección de áreas */}
           {currentStep === 2 && (
             <form onSubmit={handleNextStep}>
@@ -495,7 +609,7 @@ export default function AdminPanel() {
                   </div>
                 </div>
               )}
-              
+
               <div className="flex justify-between mt-8">
                 <button
                   type="button"
@@ -513,25 +627,24 @@ export default function AdminPanel() {
               </div>
             </form>
           )}
-          
+
           {/* Paso 3: Configuración de niveles y grados */}
           {currentStep === 3 && (
             <form onSubmit={handleSubmitConvocatoria}>
               <div className="mb-8">
-                <h3 className="text-xl font-bold mb-4">Configuración de niveles</h3>
-                <p className="text-gray-600 mb-4">Selecciona áreas para configurar sus niveles y grados permitidos</p>
+                <h3 className="text-xl font-bold mb-4">Configuración de niveles y grados</h3>
+                <p className="text-gray-600 mb-4">Selecciona niveles para cada área y los grados permitidos</p>
                 
                 <div className="space-y-4">
                   {selectedAreas.map(selectedArea => {
                     const area = areas.find(a => a.id_area === selectedArea.id_area);
-                    const nivelesFiltrados = getNivelesByArea(selectedArea.id_area);
                     const areaNiveles = selectedNiveles.filter(n => n.id_area === selectedArea.id_area);
                     
                     return (
                       <div key={`config-${selectedArea.id_area}`} className="border rounded-lg p-4">
                         <h4 className="text-lg font-semibold mb-2">{area?.nombre_area}</h4>
                         <p className="text-sm text-gray-600 mb-3">
-                          Niveles: {areaNiveles.length > 0 ? 
+                          Niveles seleccionados: {areaNiveles.length > 0 ? 
                             areaNiveles.map(n => niveles.find(niv => niv.id_nivel === n.id_nivel)?.nombre_nivel).join(', ') : 
                             'Ninguno seleccionado'}
                         </p>
@@ -541,17 +654,13 @@ export default function AdminPanel() {
                             type="button"
                             className="text-blue-600 hover:text-blue-800 flex items-center text-sm font-medium"
                             onClick={() => {
-                              // Mostrar modal o expandir para configurar niveles y grados
-                              // Por ahora, simplemente mostramos los niveles disponibles
-                              const isExpanded = document.getElementById(`niveles-${selectedArea.id_area}`)?.classList.contains('hidden');
-                              if (isExpanded) {
-                                document.getElementById(`niveles-${selectedArea.id_area}`).classList.remove('hidden');
-                              } else {
-                                document.getElementById(`niveles-${selectedArea.id_area}`).classList.add('hidden');
+                              const element = document.getElementById(`niveles-${selectedArea.id_area}`);
+                              if (element) {
+                                element.classList.toggle('hidden');
                               }
                             }}
                           >
-                            Configurar
+                            Configurar niveles y grados
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
                               <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
                             </svg>
@@ -559,67 +668,19 @@ export default function AdminPanel() {
                         </div>
                         
                         <div id={`niveles-${selectedArea.id_area}`} className="mt-4 pt-4 border-t border-gray-200 hidden">
-                          <h5 className="font-medium text-gray-700 mb-3">Niveles</h5>
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
-                            {nivelesFiltrados.map(nivel => (
-                              <div 
-                                key={`nivel-${nivel.id_nivel}`}
-                                className={`border rounded-lg p-3 cursor-pointer transition-all ${
-                                  selectedNiveles.some(n => n.id_nivel === nivel.id_nivel)
-                                    ? 'border-green-500 bg-green-50'
-                                    : 'hover:border-gray-400'
-                                }`}
-                                onClick={() => handleNivelSelect(nivel.id_nivel, selectedArea.id_area)}
-                              >
-                                <div className="flex items-center">
-                                  <input
-                                    type="checkbox"
-                                    id={`nivel-${nivel.id_nivel}`}
-                                    checked={selectedNiveles.some(n => n.id_nivel === nivel.id_nivel)}
-                                    onChange={() => {}}
-                                    className="mr-2 h-4 w-4 text-green-600"
-                                  />
-                                  <label htmlFor={`nivel-${nivel.id_nivel}`} className="font-medium text-gray-700">
-                                    {nivel.nombre_nivel}
-                                  </label>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
+                          <h5 className="font-medium text-gray-700 mb-3">Selecciona niveles para {area?.nombre_area}</h5>
                           
-                          {selectedNiveles.filter(n => n.id_area === selectedArea.id_area).length > 0 && (
+                          {/* Mostrar todos los niveles disponibles */}
+                          {renderNiveles(selectedArea)}
+                          
+                          {/* Si hay niveles seleccionados para esta área, mostrar los grados para cada nivel */}
+                          {areaNiveles.length > 0 && (
                             <div className="mt-4">
-                              <h5 className="font-medium text-gray-700 mb-3">Grados por nivel</h5>
-                              <div className="space-y-4">
-                                {selectedNiveles.filter(n => n.id_area === selectedArea.id_area).map(selectedNivel => {
-                                  const nivel = niveles.find(n => n.id_nivel === selectedNivel.id_nivel);
-                                  const gradosDisponibles = getGradosByRange(nivel?.id_grado_min, nivel?.id_grado_max);
-                                  
-                                  return (
-                                    <div key={`grados-${selectedNivel.id_nivel}`} className="p-3 border rounded-lg bg-gray-50">
-                                      <h6 className="font-medium text-gray-700 mb-2">{nivel?.nombre_nivel}</h6>
-                                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
-                                        {gradosDisponibles.map(grado => {
-                                          const isSelected = nivelGrados[selectedNivel.id_nivel]?.includes(grado.id_grado);
-                                          
-                                          return (
-                                            <div 
-                                              key={`grado-${selectedNivel.id_nivel}-${grado.id_grado}`}
-                                              className={`border rounded-lg p-2 cursor-pointer transition-all text-center ${
-                                                isSelected 
-                                                  ? 'border-purple-500 bg-purple-50 text-purple-700'
-                                                  : 'hover:border-gray-400 text-gray-700'
-                                              }`}
-                                              onClick={() => handleGradoSelect(grado.id_grado, selectedNivel.id_nivel)}
-                                            >
-                                              <span className="font-medium">{grado.nombre_grado}</span>
-                                            </div>
-                                          );
-                                        })}
-                                      </div>
-                                    </div>
-                                  );
-                                })}
+                              <h5 className="font-medium text-gray-700 mb-3">Selecciona grados para cada nivel</h5>
+                              <div className="space-y-3">
+                                {areaNiveles.map(selectedNivel => 
+                                  renderGrados(selectedArea.id_area, selectedNivel.id_nivel)
+                                )}
                               </div>
                             </div>
                           )}
@@ -629,7 +690,7 @@ export default function AdminPanel() {
                   })}
                 </div>
               </div>
-              
+
               <div className="flex justify-between mt-8">
                 <button
                   type="button"
@@ -648,189 +709,6 @@ export default function AdminPanel() {
             </form>
           )}
         </div>
-      )}
-
-      {/* Eliminamos el formulario de asociar áreas ya que ahora está integrado en el flujo */}
-      {false && (
-        <form onSubmit={handleAsociarAreasSubmit} className="bg-white rounded-lg shadow-lg p-8">
-          <h2 className="text-2xl font-bold mb-6">Configurar Convocatoria</h2>
-
-          {convocatorias.length === 0 && <p className="text-amber-600 mb-4">Cargando convocatorias...</p>}
-          {areas.length === 0 && <p className="text-amber-600 mb-4">Cargando áreas...</p>}
-          {niveles.length === 0 && <p className="text-amber-600 mb-4">Cargando niveles...</p>}
-          {grados.length === 0 && <p className="text-amber-600 mb-4">Cargando grados...</p>}
-
-          <div className="mb-6">
-            <label className="block text-gray-700 font-medium mb-2">Seleccionar Convocatoria</label>
-            <select
-              value={selectedConvocatoria}
-              onChange={(e) => setSelectedConvocatoria(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2"
-              required
-            >
-              <option value="">Seleccione una convocatoria</option>
-              {convocatorias.map((convocatoria) => (
-                <option key={convocatoria.id_convocatoria} value={convocatoria.id_convocatoria}>
-                  {convocatoria.nombre}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="mb-8">
-            <h3 className="text-xl font-bold mb-4">1. Seleccionar Áreas de Competencia</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {areas.map((area) => (
-                <div 
-                  key={area.id_area} 
-                  className={`border rounded-lg p-4 cursor-pointer transition-all ${
-                    selectedAreas.some(a => a.id_area === area.id_area) 
-                      ? 'border-blue-500 bg-blue-50' 
-                      : 'hover:border-gray-400'
-                  }`}
-                  onClick={() => handleAreaSelect(area.id_area)}
-                >
-                  <div className="flex items-center mb-2">
-                    <input
-                      type="checkbox"
-                      id={`area-${area.id_area}`}
-                      checked={selectedAreas.some(a => a.id_area === area.id_area)}
-                      onChange={() => {}}
-                      className="mr-3 h-4 w-4 text-blue-600"
-                    />
-                    <label htmlFor={`area-${area.id_area}`} className="font-medium text-gray-700">
-                      {area.nombre_area}
-                    </label>
-                  </div>
-                  
-                  {selectedAreas.some(a => a.id_area === area.id_area) && (
-                    <div className="mt-3 pt-3 border-t border-gray-200">
-                      <label className="block text-sm text-gray-600 mb-1">Costo de Inscripción (Bs.)</label>
-                      <input
-                        type="number"
-                        min="1"
-                        step="1"
-                        value={selectedAreas.find(a => a.id_area === area.id_area)?.costo_inscripcion || ''}
-                        onChange={(e) => handleAreaCostChange(area.id_area, e.target.value)}
-                        className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
-                        placeholder="Ingrese costo"
-                        onClick={(e) => e.stopPropagation()}
-                        required
-                      />
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {selectedAreas.length > 0 && (
-            <div className="mb-8">
-              <h3 className="text-xl font-bold mb-4">2. Seleccionar Niveles por Área</h3>
-              
-              <div className="space-y-6">
-                {selectedAreas.map(selectedArea => {
-                  const area = areas.find(a => a.id_area === selectedArea.id_area);
-                  const nivelesFiltrados = getNivelesByArea(selectedArea.id_area);
-                  
-                  return (
-                    <div key={`nivel-section-${selectedArea.id_area}`} className="p-4 border rounded-lg bg-gray-50">
-                      <h4 className="text-lg font-semibold mb-3 text-blue-800">
-                        Niveles para {area?.nombre_area}
-                      </h4>
-                      
-                      {nivelesFiltrados.length === 0 ? (
-                        <p className="text-gray-500 italic">No hay niveles disponibles para esta área.</p>
-                      ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          {nivelesFiltrados.map(nivel => (
-                            <div 
-                              key={`nivel-${nivel.id_nivel}`}
-                              className={`border rounded-lg p-3 cursor-pointer transition-all ${
-                                selectedNiveles.some(n => n.id_nivel === nivel.id_nivel)
-                                  ? 'border-green-500 bg-green-50'
-                                  : 'hover:border-gray-400'
-                              }`}
-                              onClick={() => handleNivelSelect(nivel.id_nivel, selectedArea.id_area)}
-                            >
-                              <div className="flex items-center">
-                                <input
-                                  type="checkbox"
-                                  id={`nivel-${nivel.id_nivel}`}
-                                  checked={selectedNiveles.some(n => n.id_nivel === nivel.id_nivel)}
-                                  onChange={() => {}}
-                                  className="mr-2 h-4 w-4 text-green-600"
-                                />
-                                <label htmlFor={`nivel-${nivel.id_nivel}`} className="font-medium text-gray-700">
-                                  {nivel.nombre_nivel}
-                                </label>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {selectedNiveles.length > 0 && (
-            <div className="mb-8">
-              <h3 className="text-xl font-bold mb-4">3. Seleccionar Grados por Nivel</h3>
-              
-              <div className="space-y-6">
-                {selectedNiveles.map(selectedNivel => {
-                  const nivel = niveles.find(n => n.id_nivel === selectedNivel.id_nivel);
-                  const area = areas.find(a => a.id_area === selectedNivel.id_area);
-                  const gradosDisponibles = getGradosByRange(nivel?.id_grado_min, nivel?.id_grado_max);
-                  
-                  return (
-                    <div key={`grado-section-${selectedNivel.id_nivel}`} className="p-4 border rounded-lg bg-gray-50">
-                      <h4 className="text-lg font-semibold mb-2 text-green-800">
-                        Grados para {nivel?.nombre_nivel} ({area?.nombre_area})
-                      </h4>
-                      
-                      {gradosDisponibles.length === 0 ? (
-                        <p className="text-gray-500 italic">No hay grados disponibles para este nivel.</p>
-                      ) : (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
-                          {gradosDisponibles.map(grado => {
-                            const isSelected = nivelGrados[selectedNivel.id_nivel]?.includes(grado.id_grado);
-                            
-                            return (
-                              <div 
-                                key={`grado-${selectedNivel.id_nivel}-${grado.id_grado}`}
-                                className={`border rounded-lg p-2 cursor-pointer transition-all text-center ${
-                                  isSelected 
-                                    ? 'border-purple-500 bg-purple-50 text-purple-700'
-                                    : 'hover:border-gray-400 text-gray-700'
-                                }`}
-                                onClick={() => handleGradoSelect(grado.id_grado, selectedNivel.id_nivel)}
-                              >
-                                <span className="font-medium">{grado.nombre_grado}</span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          <div className="flex justify-end mt-8">
-            <button
-              type="submit"
-              className="bg-green-600 text-white px-6 py-3 rounded-md font-medium hover:bg-green-700 transition-colors"
-            >
-              Guardar Configuración
-            </button>
-          </div>
-        </form>
       )}
     </div>
   );

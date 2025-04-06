@@ -97,13 +97,28 @@ class AdminConvocatoriaController extends ApiController
             return $this->errorResponse($validator->errors()->first(), 422);
         }
 
-        $convocatoria = Convocatoria::create($request->all());
-
-        return $this->successResponse(
-            $convocatoria,
-            'Convocatoria creada correctamente',
-            201
-        );
+        try {
+            $convocatoria = Convocatoria::create($request->all());
+            
+            // Verificar que la convocatoria se haya creado y tenga un ID
+            if (!$convocatoria || !$convocatoria->id_convocatoria) {
+                throw new \Exception('No se pudo crear la convocatoria correctamente');
+            }
+            
+            return $this->successResponse(
+                [
+                    'id_convocatoria' => $convocatoria->id_convocatoria,
+                    'nombre' => $convocatoria->nombre,
+                    'estado' => $convocatoria->estado,
+                    'fecha_inicio_inscripcion' => $convocatoria->fecha_inicio_inscripcion,
+                    'fecha_fin_inscripcion' => $convocatoria->fecha_fin_inscripcion
+                ],
+                'Convocatoria creada correctamente',
+                201
+            );
+        } catch (\Exception $e) {
+            return $this->errorResponse('Error al crear la convocatoria: ' . $e->getMessage(), 500);
+        }
     }
 
     /**
@@ -118,9 +133,12 @@ class AdminConvocatoriaController extends ApiController
             'id_convocatoria' => 'required|exists:convocatorias,id_convocatoria',
             'areas' => 'required|array|min:1',
             'areas.*.id_area' => 'required|exists:areas_competencia,id_area',
-            'areas.*.costo_inscripcion' => 'required|integer|min:1',
+            'areas.*.costo_inscripcion' => 'required|numeric|min:0',
             'niveles' => 'required|array|min:1',
             'niveles.*.id_nivel' => 'required|exists:niveles_categoria,id_nivel',
+            'niveles.*.id_area' => 'required|exists:areas_competencia,id_area',
+            'niveles.*.id_grado_min' => 'required|exists:grados,id_grado',
+            'niveles.*.id_grado_max' => 'required|exists:grados,id_grado',
         ]);
 
         if ($validator->fails()) {
@@ -130,71 +148,77 @@ class AdminConvocatoriaController extends ApiController
         DB::beginTransaction();
 
         try {
-            // Procesar áreas
-            foreach ($request->input('areas') as $area) {
-                $existente = ConvocatoriaArea::where('id_convocatoria', $request->id_convocatoria)
-                    ->where('id_area', $area['id_area'])
+            $idConvocatoria = $request->id_convocatoria;
+            $areasMap = []; // Para mapear id_area a id_convocatoria_area
+            
+            // 1. Primero procesamos las áreas y guardamos una referencia
+            foreach ($request->input('areas') as $areaData) {
+                $id_area = $areaData['id_area'];
+                
+                // Verificar si ya existe esta área para esta convocatoria
+                $existingArea = ConvocatoriaArea::where('id_convocatoria', $idConvocatoria)
+                    ->where('id_area', $id_area)
                     ->first();
-
-                if ($existente) {
-                    $existente->update([
-                        'costo_inscripcion' => $area['costo_inscripcion']
+                    
+                if ($existingArea) {
+                    // Actualizar el costo si ya existe
+                    $existingArea->update([
+                        'costo_inscripcion' => $areaData['costo_inscripcion']
                     ]);
+                    $areasMap[$id_area] = $existingArea->id_convocatoria_area;
                 } else {
-                    ConvocatoriaArea::create([
-                        'id_convocatoria' => $request->id_convocatoria,
-                        'id_area' => $area['id_area'],
-                        'costo_inscripcion' => $area['costo_inscripcion'],
+                    // Crear nueva área
+                    $newArea = ConvocatoriaArea::create([
+                        'id_convocatoria' => $idConvocatoria,
+                        'id_area' => $id_area,
+                        'costo_inscripcion' => $areaData['costo_inscripcion'],
                     ]);
+                    $areasMap[$id_area] = $newArea->id_convocatoria_area;
                 }
             }
-
-            // Procesar niveles para cada área
-            foreach ($request->input('niveles') as $nivel) {
-                // Verificar que el nivel tenga el id_convocatoria_area
-                if (!isset($nivel['id_convocatoria_area'])) {
-                    throw new \Exception('Se requiere id_convocatoria_area para cada nivel');
+            
+            // 2. Ahora procesamos los niveles usando el mapa de áreas
+            foreach ($request->input('niveles') as $nivelData) {
+                $id_area = $nivelData['id_area'];
+                $id_nivel = $nivelData['id_nivel'];
+                
+                // Verificar que el área fue creada correctamente
+                if (!isset($areasMap[$id_area])) {
+                    throw new \Exception("No se encontró el área con ID {$id_area} para esta convocatoria");
                 }
-
-                // Verificar que el área pertenezca a la convocatoria
-                $area = ConvocatoriaArea::where('id_convocatoria_area', $nivel['id_convocatoria_area'])
-                    ->where('id_convocatoria', $request->id_convocatoria)
-                    ->first();
-
-                if (!$area) {
-                    throw new \Exception('El área seleccionada no pertenece a esta convocatoria');
-                }
-
+                
+                $id_convocatoria_area = $areasMap[$id_area];
+                
                 // Verificar si ya existe este nivel para esta área
-                $existente = ConvocatoriaNivel::where('id_convocatoria_area', $nivel['id_convocatoria_area'])
-                    ->where('id_nivel', $nivel['id_nivel'])
+                $existingNivel = ConvocatoriaNivel::where('id_convocatoria_area', $id_convocatoria_area)
+                    ->where('id_nivel', $id_nivel)
                     ->first();
-
-                if (!$existente) {
-                    // Validar que existan los grados mínimo y máximo
-                    if (!isset($nivel['id_grado_min']) || !isset($nivel['id_grado_max'])) {
-                        throw new \Exception('Se requieren grados mínimo y máximo para cada nivel');
-                    }
-
+                    
+                if (!$existingNivel) {
                     // Validar que el grado mínimo no sea mayor que el máximo
-                    if ($nivel['id_grado_min'] > $nivel['id_grado_max']) {
+                    if ($nivelData['id_grado_min'] > $nivelData['id_grado_max']) {
                         throw new \Exception('El grado mínimo no puede ser mayor que el grado máximo');
                     }
-
+                    
+                    // Crear nuevo nivel
                     ConvocatoriaNivel::create([
-                        'id_convocatoria_area' => $nivel['id_convocatoria_area'],
-                        'id_nivel' => $nivel['id_nivel'],
-                        'id_grado_min' => $nivel['id_grado_min'],
-                        'id_grado_max' => $nivel['id_grado_max'],
+                        'id_convocatoria_area' => $id_convocatoria_area,
+                        'id_nivel' => $id_nivel,
+                        'id_grado_min' => $nivelData['id_grado_min'],
+                        'id_grado_max' => $nivelData['id_grado_max'],
                     ]);
                 }
             }
 
             DB::commit();
 
-            // Obtener la convocatoria con las áreas y niveles asociados
-            $convocatoria = Convocatoria::with(['areas.area', 'niveles.nivel'])
-                ->find($request->id_convocatoria);
+            // Obtener la convocatoria actualizada con relaciones
+            $convocatoria = Convocatoria::with([
+                'areas.area', 
+                'niveles.nivel',
+                'niveles.gradoMin',
+                'niveles.gradoMax'
+            ])->find($idConvocatoria);
 
             return $this->successResponse(
                 $convocatoria,
@@ -204,6 +228,66 @@ class AdminConvocatoriaController extends ApiController
         } catch (\Exception $e) {
             DB::rollBack();
             return $this->errorResponse('Error al asociar áreas y niveles: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Procesa las áreas para una convocatoria
+     */
+    private function procesarAreas(int $idConvocatoria, array $areas): void
+    {
+        foreach ($areas as $area) {
+            $existente = ConvocatoriaArea::where('id_convocatoria', $idConvocatoria)
+                ->where('id_area', $area['id_area'])
+                ->first();
+
+            if ($existente) {
+                $existente->update([
+                    'costo_inscripcion' => $area['costo_inscripcion']
+                ]);
+            } else {
+                ConvocatoriaArea::create([
+                    'id_convocatoria' => $idConvocatoria,
+                    'id_area' => $area['id_area'],
+                    'costo_inscripcion' => $area['costo_inscripcion'],
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Procesa los niveles para una convocatoria
+     */
+    private function procesarNiveles(int $idConvocatoria, array $niveles): void
+    {
+        foreach ($niveles as $nivel) {
+            // Verificar que el área pertenezca a la convocatoria
+            $area = ConvocatoriaArea::where('id_convocatoria_area', $nivel['id_convocatoria_area'])
+                ->where('id_convocatoria', $idConvocatoria)
+                ->first();
+
+            if (!$area) {
+                throw new \Exception('El área seleccionada no pertenece a esta convocatoria');
+            }
+
+            // Verificar si ya existe este nivel para esta área
+            $existente = ConvocatoriaNivel::where('id_convocatoria_area', $nivel['id_convocatoria_area'])
+                ->where('id_nivel', $nivel['id_nivel'])
+                ->first();
+
+            if (!$existente) {
+                // Validar que el grado mínimo no sea mayor que el máximo
+                if ($nivel['id_grado_min'] > $nivel['id_grado_max']) {
+                    throw new \Exception('El grado mínimo no puede ser mayor que el grado máximo');
+                }
+
+                ConvocatoriaNivel::create([
+                    'id_convocatoria_area' => $nivel['id_convocatoria_area'],
+                    'id_nivel' => $nivel['id_nivel'],
+                    'id_grado_min' => $nivel['id_grado_min'],
+                    'id_grado_max' => $nivel['id_grado_max'],
+                ]);
+            }
         }
     }
 }

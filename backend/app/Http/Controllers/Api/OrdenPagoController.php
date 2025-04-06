@@ -70,8 +70,8 @@ class OrdenPagoController extends ApiController
             
             // Calculate monto_total based on tipo_origen
             if ($request->tipo_origen === 'individual') {
-                $inscripcion = Inscripcion::with('convocatoriaArea')->findOrFail($request->id_inscripcion);
-                $montoTotal = $inscripcion->convocatoriaArea->costo_inscripcion;
+                $inscripcion = Inscripcion::with('convocatoriaNivel.convocatoriaArea')->findOrFail($request->id_inscripcion);
+                $montoTotal = $inscripcion->convocatoriaNivel->convocatoriaArea->costo_inscripcion;
                 
                 // Check if there's already an active order for this inscripcion
                 $existingOrder = OrdenPago::where('id_inscripcion', $request->id_inscripcion)

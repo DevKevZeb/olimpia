@@ -8,6 +8,7 @@ use App\Models\Inscripcion;
 use App\Models\OrdenPago;
 use App\Models\TutorAcademico;
 use App\Models\TutorLegal;
+use App\Models\ConvocatoriaNivel;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -86,9 +87,10 @@ class InscripcionCompletaController extends ApiController
             $costoTotal = 0;
             
             foreach ($request->input('areas_seleccionadas') as $areaSeleccionada) {
+                $nivel = ConvocatoriaNivel::with('convocatoriaArea')->find($areaSeleccionada['id_convocatoria_nivel']);
+                
                 $inscripcion = new Inscripcion([
                     'id_estudiante' => $estudiante->id_estudiante,
-                    'id_convocatoria_area' => $areaSeleccionada['id_convocatoria_area'],
                     'id_convocatoria_nivel' => $areaSeleccionada['id_convocatoria_nivel'],
                     'id_tutor_academico' => $tutorAcademico ? $tutorAcademico->id_tutor_academico : null,
                     'fecha_inscripcion' => now(),
@@ -99,7 +101,7 @@ class InscripcionCompletaController extends ApiController
                 $inscripciones[] = $inscripcion;
                 
                 // Sumar el costo de la inscripción
-                $costoInscripcion = $inscripcion->convocatoriaArea->costo_inscripcion;
+                $costoInscripcion = $nivel->convocatoriaArea->costo_inscripcion;
                 $costoTotal += $costoInscripcion;
             }
             

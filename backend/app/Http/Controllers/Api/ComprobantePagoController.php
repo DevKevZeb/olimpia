@@ -261,9 +261,9 @@ class ComprobantePagoController extends ApiController
     private function processListRegistrations($lista)
     {
         foreach ($lista->detalles as $detalle) {
-            // Check if the student is already registered for this area
+            // Check if the student is already registered for this nivel
             $existingRegistration = \App\Models\Inscripcion::where('id_estudiante', $detalle->id_estudiante)
-                ->where('id_convocatoria_area', $detalle->id_convocatoria_area)
+                ->where('id_convocatoria_nivel', $detalle->id_convocatoria_nivel)
                 ->first();
                 
             if ($existingRegistration) {
@@ -273,7 +273,6 @@ class ComprobantePagoController extends ApiController
                 // Create a new verified registration
                 \App\Models\Inscripcion::create([
                     'id_estudiante' => $detalle->id_estudiante,
-                    'id_convocatoria_area' => $detalle->id_convocatoria_area,
                     'id_convocatoria_nivel' => $detalle->id_convocatoria_nivel,
                     'id_tutor_academico' => $detalle->id_tutor_academico,
                     'fecha_inscripcion' => now(),
