@@ -17,21 +17,17 @@ class InscripcionResource extends JsonResource
         return [
             'id' => $this->id_inscripcion,
             'id_estudiante' => $this->id_estudiante,
-            'id_convocatoria_area' => $this->id_convocatoria_area,
             'id_convocatoria_nivel' => $this->id_convocatoria_nivel,
             'id_tutor_academico' => $this->id_tutor_academico,
             'fecha_inscripcion' => $this->fecha_inscripcion,
             'estado' => $this->estado,
-            'estudiante' => $this->whenLoaded('estudiante', function() {
+            'estudiante' => $this->whenLoaded('estudiante', function () {
                 return new EstudianteResource($this->estudiante);
             }),
-            'convocatoria_area' => $this->whenLoaded('convocatoriaArea', function() {
-                return new ConvocatoriaAreaResource($this->convocatoriaArea);
-            }),
-            'convocatoria_nivel' => $this->whenLoaded('convocatoriaNivel', function() {
+            'convocatoria_nivel' => $this->whenLoaded('convocatoriaNivel', function () {
                 return new ConvocatoriaNivelResource($this->convocatoriaNivel);
             }),
-            'tutor_academico' => $this->whenLoaded('tutorAcademico', function() {
+            'tutor_academico' => $this->whenLoaded('tutorAcademico', function () {
                 return new TutorAcademicoResource($this->tutorAcademico);
             }),
             'created_at' => $this->created_at,

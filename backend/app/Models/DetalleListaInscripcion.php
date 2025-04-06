@@ -11,11 +11,10 @@ class DetalleListaInscripcion extends Model
 
     protected $table = 'detalles_lista_inscripcion';
     protected $primaryKey = 'id_detalle';
-    
+
     protected $fillable = [
         'id_lista',
         'id_estudiante',
-        'id_convocatoria_area',
         'id_convocatoria_nivel',
         'id_tutor_academico',
         'fecha_registro',
@@ -33,11 +32,6 @@ class DetalleListaInscripcion extends Model
     public function estudiante()
     {
         return $this->belongsTo(Estudiante::class, 'id_estudiante');
-    }
-
-    public function convocatoriaArea()
-    {
-        return $this->belongsTo(ConvocatoriaArea::class, 'id_convocatoria_area');
     }
 
     public function convocatoriaNivel()

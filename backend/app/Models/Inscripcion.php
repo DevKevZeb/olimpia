@@ -14,7 +14,6 @@ class Inscripcion extends Model
 
     protected $fillable = [
         'id_estudiante',
-        'id_convocatoria_area',
         'id_convocatoria_nivel',
         'id_tutor_academico',
         'fecha_inscripcion',
@@ -28,11 +27,6 @@ class Inscripcion extends Model
     public function estudiante()
     {
         return $this->belongsTo(Estudiante::class, 'id_estudiante');
-    }
-
-    public function convocatoriaArea()
-    {
-        return $this->belongsTo(ConvocatoriaArea::class, 'id_convocatoria_area');
     }
 
     public function convocatoriaNivel()

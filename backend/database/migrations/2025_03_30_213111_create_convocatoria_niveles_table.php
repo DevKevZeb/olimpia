@@ -10,11 +10,13 @@ return new class extends Migration
     {
         Schema::create('convocatoria_niveles', function (Blueprint $table) {
             $table->id('id_convocatoria_nivel');
-            $table->foreignId('id_convocatoria')->constrained('convocatorias', 'id_convocatoria');
+            $table->foreignId('id_convocatoria_area')->constrained('convocatoria_areas', 'id_convocatoria_area');
             $table->foreignId('id_nivel')->constrained('niveles_categoria', 'id_nivel');
+            $table->foreignId('id_grado_min')->constrained('grados', 'id_grado');
+            $table->foreignId('id_grado_max')->constrained('grados', 'id_grado');
             $table->timestamps();
-            
-            $table->unique(['id_convocatoria', 'id_nivel']);
+
+            $table->unique(['id_convocatoria_area', 'id_nivel']);
         });
     }
 

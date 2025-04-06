@@ -18,20 +18,17 @@ class DetalleListaInscripcionResource extends JsonResource
             'id' => $this->id_detalle,
             'id_lista' => $this->id_lista,
             'id_estudiante' => $this->id_estudiante,
-            'id_convocatoria_area' => $this->id_convocatoria_area,
             'id_convocatoria_nivel' => $this->id_convocatoria_nivel,
             'id_tutor_academico' => $this->id_tutor_academico,
             'fecha_registro' => $this->fecha_registro,
-            'estudiante' => $this->whenLoaded('estudiante', function() {
+            'estudiante' => $this->whenLoaded('estudiante', function () {
                 return new EstudianteResource($this->estudiante);
             }),
-            'convocatoria_area' => $this->whenLoaded('convocatoriaArea', function() {
-                return new ConvocatoriaAreaResource($this->convocatoriaArea);
-            }),
-            'convocatoria_nivel' => $this->whenLoaded('convocatoriaNivel', function() {
+
+            'convocatoria_nivel' => $this->whenLoaded('convocatoriaNivel', function () {
                 return new ConvocatoriaNivelResource($this->convocatoriaNivel);
             }),
-            'tutor_academico' => $this->whenLoaded('tutorAcademico', function() {
+            'tutor_academico' => $this->whenLoaded('tutorAcademico', function () {
                 return new TutorAcademicoResource($this->tutorAcademico);
             }),
             'created_at' => $this->created_at,

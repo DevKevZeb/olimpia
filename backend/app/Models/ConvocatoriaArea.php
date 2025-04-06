@@ -11,7 +11,7 @@ class ConvocatoriaArea extends Model
 
     protected $table = 'convocatoria_areas';
     protected $primaryKey = 'id_convocatoria_area';
-    
+
     protected $fillable = [
         'id_convocatoria',
         'id_area',
@@ -28,8 +28,10 @@ class ConvocatoriaArea extends Model
         return $this->belongsTo(AreaCompetencia::class, 'id_area');
     }
 
-    public function inscripciones()
+    public function convocatoriaNiveles()
     {
-        return $this->hasMany(Inscripcion::class, 'id_convocatoria_area');
+        return $this->hasMany(ConvocatoriaNivel::class, 'id_convocatoria_area');
     }
+
+    // Relación con detallesListaInscripcion eliminada según nuevo esquema
 }

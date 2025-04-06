@@ -15,7 +15,7 @@ class NivelCategoriaController extends ApiController
      */
     public function index(): JsonResponse
     {
-        $niveles = NivelCategoria::with(['area', 'gradoMin', 'gradoMax'])->get();
+        $niveles = NivelCategoria::all();
         return $this->successResponse(
             NivelCategoriaResource::collection($niveles),
             'Niveles obtenidos correctamente'
@@ -29,28 +29,24 @@ class NivelCategoriaController extends ApiController
     {
         $validator = Validator::make($request->all(), [
             'nombre_nivel' => 'required|string|max:100',
-            'id_area' => 'required|exists:areas_competencia,id_area',
-            'id_grado_min' => 'required|exists:grados,id_grado',
-            'id_grado_max' => 'required|exists:grados,id_grado|gte:id_grado_min',
         ]);
 
         if ($validator->fails()) {
             return $this->errorResponse($validator->errors()->first(), 422);
         }
 
-        // Check unique constraint (area, nombre_nivel)
-        $exists = NivelCategoria::where('id_area', $request->id_area)
-            ->where('nombre_nivel', $request->nombre_nivel)
+        // Check unique constraint for nombre_nivel
+        $exists = NivelCategoria::where('nombre_nivel', $request->nombre_nivel)
             ->exists();
-        
+
         if ($exists) {
-            return $this->errorResponse('Ya existe un nivel con ese nombre para el área seleccionada', 422);
+            return $this->errorResponse('Ya existe un nivel con ese nombre', 422);
         }
 
         $nivel = NivelCategoria::create($request->all());
-        
+
         return $this->successResponse(
-            new NivelCategoriaResource($nivel->load(['area', 'gradoMin', 'gradoMax'])),
+            new NivelCategoriaResource($nivel),
             'Nivel creado correctamente',
             201
         );
@@ -61,12 +57,12 @@ class NivelCategoriaController extends ApiController
      */
     public function show(int $id): JsonResponse
     {
-        $nivel = NivelCategoria::with(['area', 'gradoMin', 'gradoMax'])->find($id);
-        
+        $nivel = NivelCategoria::find($id);
+
         if (!$nivel) {
             return $this->errorResponse('Nivel no encontrado', 404);
         }
-        
+
         return $this->successResponse(
             new NivelCategoriaResource($nivel),
             'Nivel obtenido correctamente'
@@ -79,41 +75,36 @@ class NivelCategoriaController extends ApiController
     public function update(Request $request, int $id): JsonResponse
     {
         $nivel = NivelCategoria::find($id);
-        
+
         if (!$nivel) {
             return $this->errorResponse('Nivel no encontrado', 404);
         }
-        
+
         $validator = Validator::make($request->all(), [
             'nombre_nivel' => 'sometimes|required|string|max:100',
-            'id_area' => 'sometimes|required|exists:areas_competencia,id_area',
-            'id_grado_min' => 'sometimes|required|exists:grados,id_grado',
-            'id_grado_max' => 'sometimes|required|exists:grados,id_grado|gte:id_grado_min',
         ]);
 
         if ($validator->fails()) {
             return $this->errorResponse($validator->errors()->first(), 422);
         }
 
-        // Check unique constraint (area, nombre_nivel) if changing area or name
-        if ($request->has('id_area') || $request->has('nombre_nivel')) {
-            $area_id = $request->id_area ?? $nivel->id_area;
-            $nombre = $request->nombre_nivel ?? $nivel->nombre_nivel;
-            
-            $exists = NivelCategoria::where('id_area', $area_id)
-                ->where('nombre_nivel', $nombre)
+        // Check unique constraint for nombre_nivel if changing name
+        if ($request->has('nombre_nivel')) {
+            $nombre = $request->nombre_nivel;
+
+            $exists = NivelCategoria::where('nombre_nivel', $nombre)
                 ->where('id_nivel', '!=', $id)
                 ->exists();
-            
+
             if ($exists) {
-                return $this->errorResponse('Ya existe un nivel con ese nombre para el área seleccionada', 422);
+                return $this->errorResponse('Ya existe un nivel con ese nombre', 422);
             }
         }
 
         $nivel->update($request->all());
-        
+
         return $this->successResponse(
-            new NivelCategoriaResource($nivel->fresh(['area', 'gradoMin', 'gradoMax'])),
+            new NivelCategoriaResource($nivel->fresh()),
             'Nivel actualizado correctamente'
         );
     }
@@ -124,18 +115,18 @@ class NivelCategoriaController extends ApiController
     public function destroy(int $id): JsonResponse
     {
         $nivel = NivelCategoria::find($id);
-        
+
         if (!$nivel) {
             return $this->errorResponse('Nivel no encontrado', 404);
         }
-        
+
         // Check for related records
         if ($nivel->convocatoriaNiveles()->exists()) {
             return $this->errorResponse('No se puede eliminar el nivel porque tiene convocatorias asociadas', 409);
         }
-        
+
         $nivel->delete();
-        
+
         return $this->successResponse(
             null,
             'Nivel eliminado correctamente'

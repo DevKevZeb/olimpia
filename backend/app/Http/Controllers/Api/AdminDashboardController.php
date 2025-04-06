@@ -27,12 +27,12 @@ class AdminDashboardController extends ApiController
         $totalInscripciones = Inscripcion::count();
         $totalIngresosPendientes = OrdenPago::where('estado', 'pendiente')->sum('monto_total');
         $totalIngresosPagados = OrdenPago::where('estado', 'pagada')->sum('monto_total');
-        
+
         // Convocatorias activas
         $convocatoriasActivas = Convocatoria::whereIn('estado', ['abierta', 'planificada'])
             ->with(['areas.area'])
             ->get();
-            
+
         // Inscripciones por área
         $inscripcionesPorArea = DB::table('inscripciones')
             ->join('convocatoria_areas', 'inscripciones.id_convocatoria_area', '=', 'convocatoria_areas.id_convocatoria_area')
@@ -40,7 +40,7 @@ class AdminDashboardController extends ApiController
             ->select('areas_competencia.nombre_area', DB::raw('count(*) as total'))
             ->groupBy('areas_competencia.nombre_area')
             ->get();
-            
+
         // Inscripciones por mes (últimos 6 meses)
         $inscripcionesPorMes = DB::table('inscripciones')
             ->select(DB::raw('YEAR(fecha_inscripcion) as anio'), DB::raw('MONTH(fecha_inscripcion) as mes'), DB::raw('count(*) as total'))
@@ -49,19 +49,19 @@ class AdminDashboardController extends ApiController
             ->orderBy('anio')
             ->orderBy('mes')
             ->get()
-            ->map(function($item) {
+            ->map(function ($item) {
                 $fechaMes = \Carbon\Carbon::createFromDate($item->anio, $item->mes, 1);
                 return [
                     'mes' => $fechaMes->format('M Y'),
                     'total' => $item->total
                 ];
             });
-            
+
         // Catálogos para formularios
         $areas = AreaCompetencia::all();
         $grados = Grado::orderBy('orden')->get();
-        $niveles = NivelCategoria::with(['area', 'gradoMin', 'gradoMax'])->get();
-            
+        $niveles = NivelCategoria::all();
+
         return $this->successResponse([
             'estadisticas' => [
                 'total_estudiantes' => $totalEstudiantes,

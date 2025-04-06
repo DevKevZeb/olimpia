@@ -14,25 +14,7 @@ class NivelCategoria extends Model
 
     protected $fillable = [
         'nombre_nivel',
-        'id_area',
-        'id_grado_min',
-        'id_grado_max',
     ];
-
-    public function area()
-    {
-        return $this->belongsTo(AreaCompetencia::class, 'id_area');
-    }
-
-    public function gradoMin()
-    {
-        return $this->belongsTo(Grado::class, 'id_grado_min');
-    }
-
-    public function gradoMax()
-    {
-        return $this->belongsTo(Grado::class, 'id_grado_max');
-    }
 
     public function convocatoriaNiveles()
     {

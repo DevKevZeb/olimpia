@@ -18,22 +18,22 @@ class InscripcionController extends ApiController
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Inscripcion::with(['estudiante', 'convocatoriaArea.area', 'convocatoriaNivel.nivel', 'tutorAcademico']);
-        
+        $query = Inscripcion::with(['estudiante', 'convocatoriaNivel.nivel', 'convocatoriaNivel.convocatoriaArea.area', 'tutorAcademico']);
+
         // Filter by convocatoria if provided
         if ($request->has('convocatoria_id')) {
-            $query->whereHas('convocatoriaArea', function($q) use ($request) {
+            $query->whereHas('convocatoriaNivel.convocatoriaArea', function ($q) use ($request) {
                 $q->where('id_convocatoria', $request->convocatoria_id);
             });
         }
-        
+
         // Filter by estado if provided
         if ($request->has('estado')) {
             $query->where('estado', $request->estado);
         }
-        
+
         $inscripciones = $query->paginate(15);
-            
+
         return $this->successResponse(
             [
                 'data' => InscripcionResource::collection($inscripciones),
@@ -55,7 +55,6 @@ class InscripcionController extends ApiController
     {
         $validator = Validator::make($request->all(), [
             'id_estudiante' => 'required|exists:estudiantes,id_estudiante',
-            'id_convocatoria_area' => 'required|exists:convocatoria_areas,id_convocatoria_area',
             'id_convocatoria_nivel' => 'required|exists:convocatoria_niveles,id_convocatoria_nivel',
             'id_tutor_academico' => 'nullable|exists:tutores_academicos,id_tutor_academico',
         ]);
@@ -63,38 +62,37 @@ class InscripcionController extends ApiController
         if ($validator->fails()) {
             return $this->errorResponse($validator->errors()->first(), 422);
         }
-        
-        // Validate that area and nivel belong to the same convocatoria
-        $area = ConvocatoriaArea::find($request->id_convocatoria_area);
-        $nivel = ConvocatoriaNivel::find($request->id_convocatoria_nivel);
-        
-        if (!$area || !$nivel || $area->id_convocatoria != $nivel->id_convocatoria) {
-            return $this->errorResponse('El área y el nivel deben pertenecer a la misma convocatoria', 422);
+
+        // Validar que el nivel exista
+        $nivel = ConvocatoriaNivel::with('convocatoriaArea')->find($request->id_convocatoria_nivel);
+
+        if (!$nivel) {
+            return $this->errorResponse('El nivel de convocatoria no existe', 422);
         }
-        
-        // Check if student is already registered for this area in this convocatoria
+
+        // Check if student is already registered for this nivel in this convocatoria
         $exists = Inscripcion::where('id_estudiante', $request->id_estudiante)
-            ->where('id_convocatoria_area', $request->id_convocatoria_area)
+            ->where('id_convocatoria_nivel', $request->id_convocatoria_nivel)
             ->exists();
-            
+
         if ($exists) {
-            return $this->errorResponse('El estudiante ya está inscrito en esta área', 422);
+            return $this->errorResponse('El estudiante ya está inscrito en este nivel', 422);
         }
 
         try {
             // Use a transaction to ensure the InscripcionObserver fires correctly
             DB::beginTransaction();
-            
+
             $data = $request->all();
             $data['fecha_inscripcion'] = now();
             $data['estado'] = 'pendiente';
-            
+
             $inscripcion = Inscripcion::create($data);
-            
+
             DB::commit();
-            
+
             return $this->successResponse(
-                new InscripcionResource($inscripcion->load(['estudiante', 'convocatoriaArea.area', 'convocatoriaNivel.nivel', 'tutorAcademico'])),
+                new InscripcionResource($inscripcion->load(['estudiante', 'convocatoriaNivel.nivel', 'convocatoriaNivel.convocatoriaArea.area', 'tutorAcademico'])),
                 'Inscripción creada correctamente',
                 201
             );
@@ -109,13 +107,13 @@ class InscripcionController extends ApiController
      */
     public function show(int $id): JsonResponse
     {
-        $inscripcion = Inscripcion::with(['estudiante', 'convocatoriaArea.area', 'convocatoriaNivel.nivel', 'tutorAcademico'])
+        $inscripcion = Inscripcion::with(['estudiante', 'convocatoriaNivel.nivel', 'convocatoriaNivel.convocatoriaArea.area', 'tutorAcademico'])
             ->find($id);
-        
+
         if (!$inscripcion) {
             return $this->errorResponse('Inscripción no encontrada', 404);
         }
-        
+
         return $this->successResponse(
             new InscripcionResource($inscripcion),
             'Inscripción obtenida correctamente'
@@ -128,11 +126,11 @@ class InscripcionController extends ApiController
     public function update(Request $request, int $id): JsonResponse
     {
         $inscripcion = Inscripcion::find($id);
-        
+
         if (!$inscripcion) {
             return $this->errorResponse('Inscripción no encontrada', 404);
         }
-        
+
         $validator = Validator::make($request->all(), [
             'id_tutor_academico' => 'nullable|exists:tutores_academicos,id_tutor_academico',
             'estado' => 'sometimes|in:pendiente,pagada,verificada',
@@ -143,9 +141,9 @@ class InscripcionController extends ApiController
         }
 
         $inscripcion->update($request->all());
-        
+
         return $this->successResponse(
-            new InscripcionResource($inscripcion->fresh(['estudiante', 'convocatoriaArea.area', 'convocatoriaNivel.nivel', 'tutorAcademico'])),
+            new InscripcionResource($inscripcion->fresh(['estudiante', 'convocatoriaNivel.nivel', 'convocatoriaNivel.convocatoriaArea.area', 'tutorAcademico'])),
             'Inscripción actualizada correctamente'
         );
     }
@@ -156,18 +154,18 @@ class InscripcionController extends ApiController
     public function destroy(int $id): JsonResponse
     {
         $inscripcion = Inscripcion::find($id);
-        
+
         if (!$inscripcion) {
             return $this->errorResponse('Inscripción no encontrada', 404);
         }
-        
+
         // Check for related ordenes_pago
         if ($inscripcion->ordenesPago()->exists()) {
             return $this->errorResponse('No se puede eliminar la inscripción porque tiene órdenes de pago asociadas', 409);
         }
-        
+
         $inscripcion->delete();
-        
+
         return $this->successResponse(
             null,
             'Inscripción eliminada correctamente'
