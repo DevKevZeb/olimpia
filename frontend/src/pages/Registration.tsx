@@ -1,13 +1,750 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { Calendar, Check, ChevronRight } from 'lucide-react';
 
 export default function Registration() {
+  const [step, setStep] = useState(1);
+  const [verificationCode, setVerificationCode] = useState('');
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="bg-white rounded-lg shadow-lg p-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Inscripción</h1>
-        <p className="text-gray-600 mb-4">
-          Página de inscripción en construcción. Próximamente podrás registrarte para participar en las olimpiadas.
+        <h1 className="text-3xl font-bold text-center text-gray-900 mb-4">Inscripción</h1>
+        <p className="text-gray-600 text-center mb-8">
+          Completa el proceso de inscripción para participar en las olimpiadas científicas
         </p>
+
+        {/* Active Call Section */}
+        <div className="border rounded-lg p-6 mb-8">
+          <div className="flex items-start">
+            <div className="flex-shrink-0 mr-3">
+              <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">
+                <span className="text-blue-600 text-sm">⏱</span>
+              </div>
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold mb-1">Convocatoria Activa</h2>
+              <p className="text-sm text-gray-600 mb-1">Te estás inscribiendo a: <span className="font-semibold">Olimpiada Científica Estudiantil Plurinacional 2024</span></p>
+              <p className="text-sm text-gray-500">Periodo de inscripción: 01/03/2024 - 30/07/2024</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Verification Code Section */}
+        <div className="border rounded-lg p-6 mb-8">
+          <h2 className="text-xl font-semibold mb-4">Completar Inscripción</h2>
+          <p className="text-sm text-gray-600 mb-6">
+            Si ya ha generado su boleta de pago y realizado el pago en cajas, complete su inscripción aquí
+          </p>
+          
+          <div className="mb-4">
+            <label htmlFor="verificationCode" className="block text-sm font-medium text-gray-700 mb-1">
+              Código de Inscripción
+            </label>
+            <div className="flex">
+              <input
+                type="text"
+                id="verificationCode"
+                className="flex-grow px-4 py-2 border rounded-l-md focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Ingrese su código de inscripción"
+                value={verificationCode}
+                onChange={(e) => setVerificationCode(e.target.value)}
+              />
+              <button
+                className="bg-blue-600 text-white px-4 py-2 rounded-r-md hover:bg-blue-700 flex items-center"
+              >
+                <span className="mr-2">Verificar</span>
+                <Check size={16} />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Registration Process Section */}
+        <div className="border rounded-lg p-6">
+          <h2 className="text-xl font-semibold mb-2">Proceso de Inscripción</h2>
+          <p className="text-sm text-gray-600 mb-6">
+            Sigue los pasos para completar tu inscripción
+          </p>
+
+          {/* Steps */}
+          <div className="flex justify-between mb-8">
+            {/* Step 1 */}
+            <div className="flex flex-col items-center">
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${step === 1 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'}`}>
+                <Check size={20} />
+              </div>
+              <div className="text-center mt-2">
+                <p className="font-medium">Datos Personales</p>
+                <p className="text-xs text-gray-500">Información del estudiante</p>
+              </div>
+            </div>
+
+            {/* Step 2 */}
+            <div className="flex flex-col items-center">
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${step === 2 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'}`}>
+                <Check size={20} />
+              </div>
+              <div className="text-center mt-2">
+                <p className="font-medium">Selección de Áreas</p>
+                <p className="text-xs text-gray-500">Áreas y niveles</p>
+              </div>
+            </div>
+
+            {/* Step 3 */}
+            <div className="flex flex-col items-center">
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${step === 3 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'}`}>
+                <Check size={20} />
+              </div>
+              <div className="text-center mt-2">
+                <p className="font-medium">Tutores</p>
+                <p className="text-xs text-gray-500">Información de tutores</p>
+              </div>
+            </div>
+
+            {/* Step 4 */}
+            <div className="flex flex-col items-center">
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${step === 4 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'}`}>
+                <Check size={20} />
+              </div>
+              <div className="text-center mt-2">
+                <p className="font-medium">Confirmación</p>
+                <p className="text-xs text-gray-500">Revisión y pago</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Form Content based on step */}
+          {step === 1 && (
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Datos Personales</h3>
+              <p className="text-sm text-gray-600 mb-6">Ingrese sus datos personales para la inscripción</p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                {/* Nombres */}
+                <div>
+                  <label htmlFor="nombres" className="block text-sm font-medium text-gray-700 mb-1">
+                    Nombres
+                  </label>
+                  <input
+                    type="text"
+                    id="nombres"
+                    className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Ingrese sus nombres"
+                  />
+                </div>
+
+                {/* Apellidos */}
+                <div>
+                  <label htmlFor="apellidos" className="block text-sm font-medium text-gray-700 mb-1">
+                    Apellidos
+                  </label>
+                  <input
+                    type="text"
+                    id="apellidos"
+                    className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Ingrese sus apellidos"
+                  />
+                </div>
+
+                {/* Cédula de Identidad */}
+                <div>
+                  <label htmlFor="cedula" className="block text-sm font-medium text-gray-700 mb-1">
+                    Cédula de Identidad
+                  </label>
+                  <div className="flex">
+                    <input
+                      type="text"
+                      id="cedula"
+                      className="w-full px-4 py-2 border rounded-l-md focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Número de CI"
+                    />
+                    <select className="px-4 py-2 border-t border-r border-b rounded-r-md bg-white">
+                      <option>Extensión</option>
+                      <option>LP</option>
+                      <option>SC</option>
+                      <option>CB</option>
+                      <option>OR</option>
+                      <option>PT</option>
+                      <option>TJ</option>
+                      <option>BE</option>
+                      <option>PD</option>
+                      <option>CH</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Fecha de Nacimiento */}
+                <div>
+                  <label htmlFor="fechaNacimiento" className="block text-sm font-medium text-gray-700 mb-1">
+                    Fecha de Nacimiento
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      id="fechaNacimiento"
+                      className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Seleccione una fecha"
+                    />
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                      <Calendar size={18} className="text-gray-400" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Correo Electrónico */}
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                    Correo Electrónico
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="ejemplo@email.com"
+                  />
+                </div>
+
+                {/* Teléfono */}
+                <div>
+                  <label htmlFor="telefono" className="block text-sm font-medium text-gray-700 mb-1">
+                    Teléfono
+                  </label>
+                  <input
+                    type="tel"
+                    id="telefono"
+                    className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Número de teléfono"
+                  />
+                </div>
+
+                {/* Unidad Educativa */}
+                <div>
+                  <label htmlFor="unidadEducativa" className="block text-sm font-medium text-gray-700 mb-1">
+                    Unidad Educativa
+                  </label>
+                  <select
+                    id="unidadEducativa"
+                    className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 bg-white"
+                  >
+                    <option>Seleccione su unidad educativa</option>
+                  </select>
+                </div>
+
+                {/* Curso */}
+                <div>
+                  <label htmlFor="curso" className="block text-sm font-medium text-gray-700 mb-1">
+                    Curso
+                  </label>
+                  <select
+                    id="curso"
+                    className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 bg-white"
+                  >
+                    <option>Seleccione su curso</option>
+                  </select>
+                </div>
+
+                {/* Paralelo */}
+                <div>
+                  <label htmlFor="paralelo" className="block text-sm font-medium text-gray-700 mb-1">
+                    Paralelo
+                  </label>
+                  <select
+                    id="paralelo"
+                    className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 bg-white"
+                  >
+                    <option>Seleccione su paralelo</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setStep(2)}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 flex items-center"
+                >
+                  <span className="mr-2">Continuar</span>
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            </div>
+          )}
+
+{step === 2 && (
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Selección de Áreas</h3>
+              <p className="text-sm text-gray-600 mb-6">
+                Selecciona las áreas y niveles en los que deseas participar en Olimpiada Científica Estudiantil Plurinacional 2024
+              </p>
+              
+              <div className="mb-6">
+                <div className="flex justify-between items-center mb-4">
+                  <div className="flex items-center">
+                    <h4 className="text-base font-semibold">Áreas Seleccionadas</h4>
+                    <span className="ml-2 text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">1/3</span>
+                    <div className="ml-2 text-gray-400 cursor-help">
+                      <span>ⓘ</span>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-gray-500">Costo Total</p>
+                    <p className="font-bold">50 Bs.</p>
+                  </div>
+                </div>
+
+                {/* Matemáticas */}
+                <div className="border rounded-lg p-4 mb-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <h5 className="font-semibold">Matemáticas</h5>
+                    <div className="flex items-center">
+                      <span className="text-sm mr-2">50 Bs.</span>
+                      <input type="checkbox" className="h-5 w-5 text-blue-600" defaultChecked />
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-4">Resolución de problemas, razonamiento lógico y pensamiento abstracto</p>
+                  
+                  <div>
+                    <p className="text-sm font-medium mb-2">Selecciona un nivel</p>
+                    <div className="space-y-2">
+                      <div className="flex items-center">
+                        <input 
+                          type="radio" 
+                          id="nivel-basico" 
+                          name="nivel-matematicas" 
+                          className="h-4 w-4 text-blue-600" 
+                          defaultChecked 
+                        />
+                        <label htmlFor="nivel-basico" className="ml-2 text-sm">
+                          Nivel Básico (Grados 1, 2)
+                        </label>
+                      </div>
+                      <div className="flex items-center">
+                        <input 
+                          type="radio" 
+                          id="nivel-intermedio" 
+                          name="nivel-matematicas" 
+                          className="h-4 w-4 text-blue-600" 
+                        />
+                        <label htmlFor="nivel-intermedio" className="ml-2 text-sm">
+                          Nivel Intermedio (Grados 3, 4)
+                        </label>
+                      </div>
+                      <div className="flex items-center">
+                        <input 
+                          type="radio" 
+                          id="nivel-avanzado" 
+                          name="nivel-matematicas" 
+                          className="h-4 w-4 text-blue-600" 
+                        />
+                        <label htmlFor="nivel-avanzado" className="ml-2 text-sm">
+                          Nivel Avanzado (Grados 5, 6)
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Física */}
+                <div className="border rounded-lg p-4 mb-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <h5 className="font-semibold">Física</h5>
+                    <div className="flex items-center">
+                      <span className="text-sm mr-2">50 Bs.</span>
+                      <input type="checkbox" className="h-5 w-5 text-blue-600" />
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-600">Fenómenos naturales, leyes físicas y resolución de problemas experimentales</p>
+                </div>
+
+                {/* Química */}
+                <div className="border rounded-lg p-4 mb-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <h5 className="font-semibold">Química</h5>
+                    <div className="flex items-center">
+                      <span className="text-sm mr-2">50 Bs.</span>
+                      <input type="checkbox" className="h-5 w-5 text-blue-600" />
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-600">Composición, estructura y propiedades de la materia y sus transformaciones</p>
+                </div>
+
+                {/* Biología */}
+                <div className="border rounded-lg p-4 mb-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <h5 className="font-semibold">Biología</h5>
+                    <div className="flex items-center">
+                      <span className="text-sm mr-2">50 Bs.</span>
+                      <input type="checkbox" className="h-5 w-5 text-blue-600" />
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-600">Estudio de los seres vivos, su estructura, función, evolución y reacciones</p>
+                </div>
+
+                {/* Informática */}
+                <div className="border rounded-lg p-4 mb-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <h5 className="font-semibold">Informática</h5>
+                    <div className="flex items-center">
+                      <span className="text-sm mr-2">50 Bs.</span>
+                      <input type="checkbox" className="h-5 w-5 text-blue-600" />
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-600">Programación, algoritmos y resolución de problemas computacionales</p>
+                </div>
+
+                {/* Astronomía */}
+                <div className="border rounded-lg p-4 mb-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <h5 className="font-semibold">Astronomía</h5>
+                    <div className="flex items-center">
+                      <span className="text-sm mr-2">50 Bs.</span>
+                      <input type="checkbox" className="h-5 w-5 text-blue-600" />
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-600">Estudio de los cuerpos celestes, sus movimientos y fenómenos asociados</p>
+                </div>
+              </div>
+              
+              <div className="flex justify-between mt-6">
+                <button
+                  onClick={() => setStep(1)}
+                  className="border border-gray-300 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-50 flex items-center"
+                >
+                  <span>Atrás</span>
+                </button>
+                <button
+                  onClick={() => setStep(3)}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 flex items-center"
+                >
+                  <span className="mr-2">Continuar</span>
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            </div>
+          )}
+
+{step === 3 && (
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Gestión de Tutores</h3>
+              <p className="text-sm text-gray-600 mb-6">
+                Ingresa la información de tus tutores legal y académicos
+              </p>
+              
+              {/* Tutor Legal Section */}
+              <div className="border rounded-lg p-6 mb-6">
+                <h4 className="text-base font-semibold mb-1">Tutor Legal</h4>
+                <p className="text-xs text-gray-500 mb-4">Información del tutor legal (obligatorio)</p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                  {/* Nombres */}
+                  <div>
+                    <label htmlFor="nombresTutorLegal" className="block text-sm font-medium text-gray-700 mb-1">
+                      Nombres
+                    </label>
+                    <input
+                      type="text"
+                      id="nombresTutorLegal"
+                      className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Nombres del tutor"
+                    />
+                  </div>
+
+                  {/* Apellidos */}
+                  <div>
+                    <label htmlFor="apellidosTutorLegal" className="block text-sm font-medium text-gray-700 mb-1">
+                      Apellidos
+                    </label>
+                    <input
+                      type="text"
+                      id="apellidosTutorLegal"
+                      className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Apellidos del tutor"
+                    />
+                  </div>
+
+                  {/* Cédula de Identidad */}
+                  <div>
+                    <label htmlFor="cedulaTutorLegal" className="block text-sm font-medium text-gray-700 mb-1">
+                      Cédula de Identidad
+                    </label>
+                    <div className="flex">
+                      <input
+                        type="text"
+                        id="cedulaTutorLegal"
+                        className="w-full px-4 py-2 border rounded-l-md focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Número de CI"
+                      />
+                      <select className="px-4 py-2 border-t border-r border-b rounded-r-md bg-white">
+                        <option>Extensión</option>
+                        <option>LP</option>
+                        <option>SC</option>
+                        <option>CB</option>
+                        <option>OR</option>
+                        <option>PT</option>
+                        <option>TJ</option>
+                        <option>BE</option>
+                        <option>PD</option>
+                        <option>CH</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Parentesco */}
+                  <div>
+                    <label htmlFor="parentesco" className="block text-sm font-medium text-gray-700 mb-1">
+                      Parentesco
+                    </label>
+                    <select
+                      id="parentesco"
+                      className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 bg-white"
+                    >
+                      <option>Selecciona el parentesco</option>
+                      <option>Padre</option>
+                      <option>Madre</option>
+                      <option>Abuelo/a</option>
+                      <option>Tío/a</option>
+                      <option>Hermano/a</option>
+                      <option>Otro</option>
+                    </select>
+                  </div>
+
+                  {/* Correo Electrónico */}
+                  <div>
+                    <label htmlFor="emailTutorLegal" className="block text-sm font-medium text-gray-700 mb-1">
+                      Correo Electrónico
+                    </label>
+                    <input
+                      type="email"
+                      id="emailTutorLegal"
+                      className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="correo@ejemplo.com"
+                    />
+                  </div>
+
+                  {/* Teléfono */}
+                  <div>
+                    <label htmlFor="telefonoTutorLegal" className="block text-sm font-medium text-gray-700 mb-1">
+                      Teléfono
+                    </label>
+                    <input
+                      type="tel"
+                      id="telefonoTutorLegal"
+                      className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Número de teléfono"
+                    />
+                  </div>
+                </div>
+
+                {/* Dirección */}
+                <div className="mb-4">
+                  <label htmlFor="direccionTutorLegal" className="block text-sm font-medium text-gray-700 mb-1">
+                    Dirección
+                  </label>
+                  <input
+                    type="text"
+                    id="direccionTutorLegal"
+                    className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Dirección completa"
+                  />
+                </div>
+              </div>
+
+              {/* Tutores Académicos Tab */}
+              <div className="flex mb-4">
+                <button className="flex-1 text-center py-2 border-b-2 border-blue-600 text-blue-600 font-medium">
+                  Tutores Académicos
+                </button>
+                <button className="flex-1 text-center py-2 border-b border-gray-200 text-gray-500 bg-gray-50">
+                  Reutilizar Datos
+                </button>
+              </div>
+
+              {/* Tutor para Matemáticas */}
+              <div className="border rounded-lg p-6 mb-6">
+                <h4 className="text-base font-semibold mb-1">Tutor para Matemáticas</h4>
+                <p className="text-xs text-gray-500 mb-4">Información del tutor académico para esta área (opcional)</p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                  {/* Nombres */}
+                  <div>
+                    <label htmlFor="nombresTutorMat" className="block text-sm font-medium text-gray-700 mb-1">
+                      Nombres
+                    </label>
+                    <input
+                      type="text"
+                      id="nombresTutorMat"
+                      className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Nombres del tutor"
+                    />
+                  </div>
+
+                  {/* Apellidos */}
+                  <div>
+                    <label htmlFor="apellidosTutorMat" className="block text-sm font-medium text-gray-700 mb-1">
+                      Apellidos
+                    </label>
+                    <input
+                      type="text"
+                      id="apellidosTutorMat"
+                      className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Apellidos del tutor"
+                    />
+                  </div>
+
+                  {/* Correo Electrónico */}
+                  <div>
+                    <label htmlFor="emailTutorMat" className="block text-sm font-medium text-gray-700 mb-1">
+                      Correo Electrónico
+                    </label>
+                    <input
+                      type="email"
+                      id="emailTutorMat"
+                      className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="correo@ejemplo.com"
+                    />
+                  </div>
+
+                  {/* Teléfono */}
+                  <div>
+                    <label htmlFor="telefonoTutorMat" className="block text-sm font-medium text-gray-700 mb-1">
+                      Teléfono
+                    </label>
+                    <input
+                      type="tel"
+                      id="telefonoTutorMat"
+                      className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Número de teléfono"
+                    />
+                  </div>
+                </div>
+
+                {/* Institución */}
+                <div>
+                  <label htmlFor="institucionTutorMat" className="block text-sm font-medium text-gray-700 mb-1">
+                    Institución
+                  </label>
+                  <input
+                    type="text"
+                    id="institucionTutorMat"
+                    className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Institución educativa"
+                  />
+                </div>
+              </div>
+
+              {/* Tutor para Física */}
+              <div className="border rounded-lg p-6 mb-6">
+                <h4 className="text-base font-semibold mb-1">Tutor para Física</h4>
+                <p className="text-xs text-gray-500 mb-4">Información del tutor académico para esta área (opcional)</p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                  {/* Nombres */}
+                  <div>
+                    <label htmlFor="nombresTutorFis" className="block text-sm font-medium text-gray-700 mb-1">
+                      Nombres
+                    </label>
+                    <input
+                      type="text"
+                      id="nombresTutorFis"
+                      className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Nombres del tutor"
+                    />
+                  </div>
+
+                  {/* Apellidos */}
+                  <div>
+                    <label htmlFor="apellidosTutorFis" className="block text-sm font-medium text-gray-700 mb-1">
+                      Apellidos
+                    </label>
+                    <input
+                      type="text"
+                      id="apellidosTutorFis"
+                      className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Apellidos del tutor"
+                    />
+                  </div>
+
+                  {/* Correo Electrónico */}
+                  <div>
+                    <label htmlFor="emailTutorFis" className="block text-sm font-medium text-gray-700 mb-1">
+                      Correo Electrónico
+                    </label>
+                    <input
+                      type="email"
+                      id="emailTutorFis"
+                      className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="correo@ejemplo.com"
+                    />
+                  </div>
+
+                  {/* Teléfono */}
+                  <div>
+                    <label htmlFor="telefonoTutorFis" className="block text-sm font-medium text-gray-700 mb-1">
+                      Teléfono
+                    </label>
+                    <input
+                      type="tel"
+                      id="telefonoTutorFis"
+                      className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Número de teléfono"
+                    />
+                  </div>
+                </div>
+
+                {/* Institución */}
+                <div>
+                  <label htmlFor="institucionTutorFis" className="block text-sm font-medium text-gray-700 mb-1">
+                    Institución
+                  </label>
+                  <input
+                    type="text"
+                    id="institucionTutorFis"
+                    className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Institución educativa"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex justify-between mt-6">
+                <button
+                  onClick={() => setStep(2)}
+                  className="border border-gray-300 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-50 flex items-center"
+                >
+                  <span>Atrás</span>
+                </button>
+                <button
+                  onClick={() => setStep(4)}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 flex items-center"
+                >
+                  <span className="mr-2">Continuar</span>
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {step === 4 && (
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Confirmación</h3>
+              <p className="text-sm text-gray-600 mb-6">Revise su información y complete el pago</p>
+              
+              {/* Confirmation and payment form would go here */}
+              
+              <div className="flex justify-between mt-6">
+                <button
+                  onClick={() => setStep(3)}
+                  className="border border-gray-300 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-50"
+                >
+                  Atrás
+                </button>
+                <button
+                  className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700"
+                >
+                  Completar Inscripción
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
