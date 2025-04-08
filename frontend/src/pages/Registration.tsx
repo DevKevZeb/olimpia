@@ -722,12 +722,204 @@ export default function Registration() {
             </div>
           )}
 
-          {step === 4 && (
+{step === 4 && (
             <div>
-              <h3 className="text-lg font-semibold mb-2">Confirmación</h3>
-              <p className="text-sm text-gray-600 mb-6">Revise su información y complete el pago</p>
+              <h3 className="text-lg font-semibold mb-2">Confirmación y Boleta de Pago</h3>
+              <p className="text-sm text-gray-600 mb-6">
+                Revisa los datos de tu inscripción y descarga tu boleta de pago
+              </p>
               
-              {/* Confirmation and payment form would go here */}
+              {/* Información de la Convocatoria */}
+              <div className="border-b pb-4 mb-4">
+                <div className="flex justify-between items-center mb-2">
+                  <h4 className="text-base font-semibold">Información de la Convocatoria</h4>
+                  <button className="text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              
+              {/* Datos Personales */}
+              <div className="border-b pb-4 mb-4">
+                <div className="flex justify-between items-center mb-2">
+                  <h4 className="text-base font-semibold">Datos Personales</h4>
+                  <button className="text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <p className="text-sm text-gray-500">Nombres</p>
+                    <p className="font-medium">Juan Carlos</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Apellidos</p>
+                    <p className="font-medium">Pérez Gómez</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">CI</p>
+                    <p className="font-medium">12345678</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Fecha Nacimiento</p>
+                    <p className="font-medium">15/05/2006</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Email</p>
+                    <p className="font-medium">juan.perez@gmail.com</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Teléfono</p>
+                    <p className="font-medium">70123456</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Unidad Educativa</p>
+                    <p className="font-medium">Colegio San Agustín</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Curso</p>
+                    <p className="font-medium">4° de Secundaria</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Paralelo</p>
+                    <p className="font-medium">B</p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Áreas Seleccionadas */}
+              <div className="border-b pb-4 mb-4">
+                <div className="flex justify-between items-center mb-2">
+                  <h4 className="text-base font-semibold">Áreas Seleccionadas</h4>
+                  <button className="text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="bg-gray-50 p-3 rounded-md">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="font-medium">Matemáticas</p>
+                        <p className="text-sm text-gray-500">Nivel Intermedio</p>
+                      </div>
+                      <p className="font-medium">50 Bs.</p>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gray-50 p-3 rounded-md">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="font-medium">Física</p>
+                        <p className="text-sm text-gray-500">Nivel Intermedio</p>
+                      </div>
+                      <p className="font-medium">50 Bs.</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between items-center p-2">
+                    <p className="font-medium">Total</p>
+                    <p className="font-bold">100 Bs.</p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Información de Tutores */}
+              <div className="border-b pb-4 mb-4">
+                <div className="flex justify-between items-center mb-2">
+                  <h4 className="text-base font-semibold">Información de Tutores</h4>
+                  <button className="text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              
+              {/* Boleta de Pago */}
+              <div className="border rounded-lg p-6 mb-6">
+                <h4 className="text-base font-semibold mb-1">Boleta de Pago</h4>
+                <p className="text-xs text-gray-500 mb-6">
+                  Descarga tu boleta de pago para realizar el pago en cajas de la facultad
+                </p>
+                
+                <div className="bg-gray-50 p-4 rounded-md mb-4">
+                  <div className="flex justify-between items-center mb-4">
+                    <div>
+                      <p className="text-sm text-gray-500">Código de Inscripción</p>
+                      <p className="font-medium">OCEP-2024-12345</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-gray-500">Fecha</p>
+                      <p className="font-medium">4/6/2025</p>
+                    </div>
+                  </div>
+                  
+                  <div className="mb-4">
+                    <p className="text-sm text-gray-500">Estudiante</p>
+                    <p className="font-medium">Juan Carlos Pérez Gómez</p>
+                    <p className="text-sm text-gray-500">CI: 12345678</p>
+                  </div>
+                  
+                  <div className="mb-4">
+                    <p className="text-sm font-medium mb-2">Detalle</p>
+                    <div className="border-t border-b py-2">
+                      <div className="grid grid-cols-3 gap-2 mb-1 text-sm font-medium">
+                        <div>Área</div>
+                        <div>Nivel</div>
+                        <div className="text-right">Costo</div>
+                      </div>
+                      
+                      <div className="grid grid-cols-3 gap-2 mb-1 text-sm">
+                        <div>Matemáticas</div>
+                        <div>Nivel Intermedio</div>
+                        <div className="text-right">50 Bs.</div>
+                      </div>
+                      
+                      <div className="grid grid-cols-3 gap-2 text-sm">
+                        <div>Física</div>
+                        <div>Nivel Intermedio</div>
+                        <div className="text-right">50 Bs.</div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-between items-center py-2 text-sm">
+                      <p className="font-medium">Subtotal</p>
+                      <p className="font-medium">100 Bs.</p>
+                    </div>
+                    
+                    <div className="flex justify-between items-center py-2 text-sm font-bold">
+                      <p>TOTAL A PAGAR</p>
+                      <p>100 Bs.</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-md mb-6">
+                  <p className="font-medium text-yellow-800 mb-1">Importante: Su inscripción no está completa</p>
+                  <p className="text-sm text-yellow-700 mb-2">Para completar su inscripción, siga estos pasos:</p>
+                  <ol className="text-sm text-yellow-700 list-decimal pl-5 space-y-1">
+                    <li>Descargue la boleta de pago</li>
+                    <li>Realice el pago en las cajas de la facultad</li>
+                    <li>Regrese a la página de inscripción e introduzca su código de inscripción</li>
+                    <li>Suba el comprobante de pago para finalizar su inscripción</li>
+                  </ol>
+                </div>
+                
+                <button className="w-full bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                  Descargar Boleta de Pago
+                </button>
+              </div>
               
               <div className="flex justify-between mt-6">
                 <button
