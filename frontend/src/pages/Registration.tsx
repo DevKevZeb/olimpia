@@ -1,9 +1,72 @@
 import React, { useState } from 'react';
-import { Calendar, Check, ChevronRight } from 'lucide-react';
+import { Calendar, Check, ChevronRight, Upload, X } from 'lucide-react';
 
 export default function Registration() {
   const [step, setStep] = useState(1);
   const [verificationCode, setVerificationCode] = useState('');
+  const [isVerified, setIsVerified] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false); 
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadComplete, setUploadComplete] = useState(false);
+
+  // Función para manejar la verificación del código
+  const handleVerification = () => {
+    if (!verificationCode.trim()) {
+      alert('Por favor ingrese un código de verificación');
+      return;
+    }
+
+    setIsVerifying(true);
+    
+    // Simulamos una verificación con cualquier código
+    setTimeout(() => {
+      setIsVerified(true);
+      setIsVerifying(false);
+    }, 1500);
+  };
+
+  // Función para manejar la selección de archivo
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedFile(e.target.files[0]);
+    }
+  };
+
+  // Función para manejar la carga del archivo
+  const handleUpload = () => {
+    if (!selectedFile) {
+      alert('Por favor seleccione un archivo para cargar');
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadProgress(0);
+
+    // Simulamos una carga de archivo
+    const interval = setInterval(() => {
+      setUploadProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          setIsUploading(false);
+          setUploadComplete(true);
+          return 100;
+        }
+        return prev + 10;
+      });
+    }, 300);
+  };
+
+  // Función para reiniciar el proceso
+  const resetVerification = () => {
+    setVerificationCode('');
+    setIsVerified(false);
+    setSelectedFile(null);
+    setUploadProgress(0);
+    setIsUploading(false);
+    setUploadComplete(false);
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -36,27 +99,140 @@ export default function Registration() {
             Si ya ha generado su boleta de pago y realizado el pago en cajas, complete su inscripción aquí
           </p>
           
-          <div className="mb-4">
-            <label htmlFor="verificationCode" className="block text-sm font-medium text-gray-700 mb-1">
-              Código de Inscripción
-            </label>
-            <div className="flex">
-              <input
-                type="text"
-                id="verificationCode"
-                className="flex-grow px-4 py-2 border rounded-l-md focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Ingrese su código de inscripción"
-                value={verificationCode}
-                onChange={(e) => setVerificationCode(e.target.value)}
-              />
-              <button
-                className="bg-blue-600 text-white px-4 py-2 rounded-r-md hover:bg-blue-700 flex items-center"
-              >
-                <span className="mr-2">Verificar</span>
-                <Check size={16} />
-              </button>
+          {!isVerified ? (
+            <div className="mb-4">
+              <label htmlFor="verificationCode" className="block text-sm font-medium text-gray-700 mb-1">
+                Código de Inscripción
+              </label>
+              <div className="flex">
+                <input
+                  type="text"
+                  id="verificationCode"
+                  className="flex-grow px-4 py-2 border rounded-l-md focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Ingrese su código de inscripción"
+                  value={verificationCode}
+                  onChange={(e) => setVerificationCode(e.target.value)}
+                  disabled={isVerifying}
+                />
+                <button
+                  className={`${isVerifying ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700'} text-white px-4 py-2 rounded-r-md flex items-center transition-colors`}
+                  onClick={handleVerification}
+                  disabled={isVerifying}
+                >
+                  <span className="mr-2">{isVerifying ? 'Verificando...' : 'Verificar'}</span>
+                  {isVerifying ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white"></div>
+                  ) : (
+                    <Check size={16} />
+                  )}
+                </button>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="space-y-6">
+              <div className="bg-green-50 border border-green-200 rounded-md p-4 flex items-start">
+                <div className="flex-shrink-0 mr-3">
+                  <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
+                    <Check className="h-5 w-5 text-green-600" />
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-green-800 font-medium">Código verificado correctamente</h3>
+                  <p className="text-green-700 text-sm mt-1">Su inscripción está registrada. Por favor suba su comprobante de pago para completar el proceso.</p>
+                </div>
+              </div>
+              
+              {!uploadComplete ? (
+                <div className="border border-gray-200 rounded-md p-4">
+                  <h3 className="font-medium mb-3">Subir comprobante de pago</h3>
+                  
+                  {!selectedFile ? (
+                    <div className="border-2 border-dashed border-gray-300 rounded-md p-6 text-center cursor-pointer hover:bg-gray-50 transition-colors"
+                        onClick={() => document.getElementById('fileInput').click()}>
+                      <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                      <p className="text-gray-500 mb-1">Haga clic para seleccionar un archivo</p>
+                      <p className="text-xs text-gray-400">Formatos aceptados: JPG, PNG, PDF (máx. 5MB)</p>
+                      <input 
+                        type="file" 
+                        id="fileInput" 
+                        accept=".jpg,.jpeg,.png,.pdf" 
+                        className="hidden" 
+                        onChange={handleFileChange}
+                      />
+                    </div>
+                  ) : (
+                    <div>
+                      <div className="flex items-center justify-between bg-gray-50 p-3 rounded-md mb-4">
+                        <div className="flex items-center">
+                          <div className="h-10 w-10 bg-blue-100 rounded-md flex items-center justify-center mr-3">
+                            <span className="text-blue-600 font-medium text-sm">
+                              {selectedFile.name.split('.').pop().toUpperCase()}
+                            </span>
+                          </div>
+                          <div className="overflow-hidden">
+                            <p className="font-medium text-sm truncate" title={selectedFile.name}>
+                              {selectedFile.name}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {(selectedFile.size / 1024).toFixed(1)} KB
+                            </p>
+                          </div>
+                        </div>
+                        <button className="text-gray-500 hover:text-gray-700" onClick={() => setSelectedFile(null)}>
+                          <X size={16} />
+                        </button>
+                      </div>
+                      
+                      {isUploading ? (
+                        <div className="space-y-2">
+                          <div className="w-full bg-gray-200 rounded-full h-2.5">
+                            <div 
+                              className="bg-blue-600 h-2.5 rounded-full transition-all duration-300" 
+                              style={{ width: `${uploadProgress}%` }}>
+                            </div>
+                          </div>
+                          <p className="text-xs text-gray-500 text-right">{uploadProgress}% completado</p>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={handleUpload}
+                          className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 flex items-center justify-center"
+                        >
+                          <Upload size={16} className="mr-2" />
+                          Subir comprobante
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+                  <div className="flex items-center space-x-3 mb-3">
+                    <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+                      <Check className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <h3 className="text-blue-800 font-medium">¡Inscripción completada con éxito!</h3>
+                  </div>
+                  <p className="text-blue-700 text-sm mb-4">
+                    Su comprobante de pago ha sido recibido y su inscripción ha sido completada. Recibirá un correo electrónico con todos los detalles de su inscripción.
+                  </p>
+                  <div className="flex justify-between">
+                    <button
+                      onClick={resetVerification}
+                      className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                    >
+                      Realizar otra inscripción
+                    </button>
+                    <button
+                      className="bg-blue-600 text-white px-4 py-1 text-sm rounded hover:bg-blue-700"
+                    >
+                      Ver detalles
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Registration Process Section */}
