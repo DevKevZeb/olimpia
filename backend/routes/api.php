@@ -86,6 +86,8 @@ Route::prefix('v1')->group(function () {
     // Comprobantes de Pago
     Route::apiResource('comprobantes-pago', ComprobantePagoController::class);
     Route::get('comprobantes-pago/{id}/download', [ComprobantePagoController::class, 'downloadPdf']);
+    Route::post('comprobantes-pago/por-codigo', [ComprobantePagoController::class, 'storeByCodigoOrden']);
+    Route::post('comprobantes-pago/verificar-codigo', [ComprobantePagoController::class, 'verificarCodigoOrden']);
     
     // Nuevos endpoints orientados a páginas/casos de uso
     

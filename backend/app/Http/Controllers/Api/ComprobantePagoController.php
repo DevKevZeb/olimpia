@@ -123,6 +123,168 @@ class ComprobantePagoController extends ApiController
     }
 
     /**
+     * Sube un comprobante para una orden usando su código único
+     * 
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function storeByCodigoOrden(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'codigo_orden' => 'required|string|exists:ordenes_pago,codigo_unico',
+            'numero_comprobante' => 'required|string|max:50',
+            'nombre_pagador' => 'required|string|max:100',
+            'fecha_pago' => 'required|date',
+            'monto_pagado' => 'required|numeric|min:0',
+            'pdf_comprobante' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->errorResponse($validator->errors()->first(), 422);
+        }
+
+        try {
+            DB::beginTransaction();
+            
+            // Buscar la orden por su código único
+            $orden = OrdenPago::where('codigo_unico', $request->codigo_orden)->first();
+            
+            if (!$orden) {
+                return $this->errorResponse('Orden de pago no encontrada', 404);
+            }
+            
+            // Check if the order is already paid
+            if ($orden->estado === 'pagada') {
+                return $this->errorResponse('Esta orden de pago ya ha sido pagada', 422);
+            }
+            
+            // Check if the order is expired
+            if ($orden->estado === 'vencida') {
+                return $this->errorResponse('Esta orden de pago está vencida', 422);
+            }
+            
+            // Check if the amount paid matches the total amount
+            if ((float) $request->monto_pagado < (float) $orden->monto_total) {
+                return $this->errorResponse('El monto pagado debe ser igual o mayor al monto total de la orden', 422);
+            }
+            
+            // Check if order already has a pending receipt
+            if ($orden->comprobantes()->where('estado_verificacion', 'pendiente')->exists()) {
+                return $this->errorResponse('Esta orden ya tiene un comprobante pendiente de verificación', 422);
+            }
+            
+            // Store the file
+            $filePath = $request->file('pdf_comprobante')->store('comprobantes', 'public');
+            
+            // Create the comprobante
+            $comprobante = ComprobantePago::create([
+                'id_orden' => $orden->id_orden,
+                'numero_comprobante' => $request->numero_comprobante,
+                'nombre_pagador' => $request->nombre_pagador,
+                'fecha_pago' => $request->fecha_pago,
+                'monto_pagado' => $request->monto_pagado,
+                'pdf_comprobante' => $filePath,
+                'datos_ocr' => null,
+                'estado_verificacion' => 'pendiente',
+            ]);
+            
+            // Update the orden status
+            $orden->update(['estado' => 'pagada']);
+            
+            // If the payment is for an individual registration, update the registration status
+            if ($orden->tipo_origen === 'individual' && $orden->inscripcion) {
+                $orden->inscripcion->update(['estado' => 'pagada']);
+            }
+            
+            DB::commit();
+            
+            return $this->successResponse(
+                new ComprobantePagoResource($comprobante->load('orden')),
+                'Comprobante de pago registrado correctamente',
+                201
+            );
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->errorResponse('Error al registrar el comprobante de pago: ' . $e->getMessage(), 500);
+        }
+    }
+    
+    /**
+     * Verifica si existe una orden de pago con el código especificado
+     * 
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function verificarCodigoOrden(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'codigo_orden' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->errorResponse($validator->errors()->first(), 422);
+        }
+        
+        try {
+            $orden = OrdenPago::where('codigo_unico', $request->codigo_orden)
+                ->with(['inscripcion.estudiante', 'lista.unidadEducativa'])
+                ->first();
+                
+            if (!$orden) {
+                return $this->errorResponse('No se encontró una orden de pago con ese código', 404);
+            }
+            
+            // Check if the order already has a payment receipt - More defensive coding
+            $tieneComprobante = false;
+            if (method_exists($orden, 'comprobantes')) {
+                $tieneComprobante = $orden->comprobantes()->exists();
+            }
+            
+            // Estructura de respuesta básica
+            $response = [
+                'orden' => [
+                    'id' => $orden->id_orden,
+                    'codigo_unico' => $orden->codigo_unico,
+                    'monto_total' => $orden->monto_total,
+                    'fecha_emision' => $orden->fecha_emision,
+                    'fecha_vencimiento' => $orden->fecha_vencimiento,
+                    'estado' => $orden->estado,
+                    'tipo_origen' => $orden->tipo_origen,
+                ],
+                'tiene_comprobante' => $tieneComprobante,
+            ];
+            
+            // Añadir información específica según el tipo de origen
+            if ($orden->tipo_origen === 'individual' && $orden->inscripcion) {
+                $estudiante = $orden->inscripcion->estudiante;
+                if ($estudiante) {
+                    $response['estudiante'] = [
+                        'nombre_completo' => $estudiante->nombres . ' ' . $estudiante->apellidos,
+                        'ci' => $estudiante->ci,
+                    ];
+                }
+            } elseif ($orden->tipo_origen === 'lista' && $orden->lista) {
+                if ($orden->lista->unidadEducativa) {
+                    $response['unidad_educativa'] = $orden->lista->unidadEducativa->nombre;
+                }
+                
+                // Count students safely
+                $response['estudiantes_count'] = 0;
+                if ($orden->lista->detalles) {
+                    $response['estudiantes_count'] = $orden->lista->detalles->count();
+                }
+            }
+            
+            return $this->successResponse(
+                $response,
+                'Orden de pago encontrada'
+            );
+        } catch (\Exception $e) {
+            return $this->errorResponse('Error al verificar el código: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
      * Display the specified resource.
      */
     public function show(int $id): JsonResponse

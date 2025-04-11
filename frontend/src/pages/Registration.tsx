@@ -1,71 +1,150 @@
 import React, { useState } from 'react';
-import { Calendar, Check, ChevronRight, Upload, X } from 'lucide-react';
+import { Calendar, Check, ChevronRight, Upload, X, AlertCircle } from 'lucide-react';
+import { verificarCodigoOrden, subirComprobantePago } from '../api/comprobantePagoApi';
 
 export default function Registration() {
   const [step, setStep] = useState(1);
   const [verificationCode, setVerificationCode] = useState('');
   const [isVerified, setIsVerified] = useState(false);
-  const [isVerifying, setIsVerifying] = useState(false); 
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [ordenInfo, setOrdenInfo] = useState(null); 
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadComplete, setUploadComplete] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   // Función para manejar la verificación del código
-  const handleVerification = () => {
+  const handleVerification = async () => {
     if (!verificationCode.trim()) {
-      alert('Por favor ingrese un código de verificación');
+      setErrorMessage('Por favor ingrese un código de verificación');
       return;
     }
 
     setIsVerifying(true);
+    setErrorMessage('');
     
-    // Simulamos una verificación con cualquier código
-    setTimeout(() => {
+    try {
+      // Llamar a la API para verificar el código
+      const response = await verificarCodigoOrden(verificationCode);
+      
+      // Verificar el estado de la orden
+      if (response.orden.estado === 'pagada') {
+        setErrorMessage('Esta orden de pago ya ha sido pagada. No es necesario subir un comprobante.');
+        setIsVerifying(false);
+        return;
+      }
+      
+      if (response.orden.estado === 'vencida') {
+        setErrorMessage('Esta orden de pago está vencida. Por favor genere una nueva orden.');
+        setIsVerifying(false);
+        return;
+      }
+      
+      // Verificar si ya tiene comprobante asociado
+      if (response.tiene_comprobante) {
+        setErrorMessage('Esta orden ya tiene un comprobante de pago en proceso de verificación.');
+        setIsVerifying(false);
+        return;
+      }
+      
+      // Almacenar la información de la orden
+      setOrdenInfo(response);
       setIsVerified(true);
+    } catch (error) {
+      let message = 'Error al verificar el código';
+      
+      if (error.response) {
+        // Error con respuesta del servidor
+        if (error.response.status === 404) {
+          message = 'No se encontró una orden con ese código';
+        } else if (error.response.data?.message) {
+          message = error.response.data.message;
+        }
+      }
+      
+      setErrorMessage(message);
+    } finally {
       setIsVerifying(false);
-    }, 1500);
+    }
   };
 
   // Función para manejar la selección de archivo
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
       setSelectedFile(e.target.files[0]);
-    }
+    } 
   };
 
   // Función para manejar la carga del archivo
-  const handleUpload = () => {
+  const handleUpload = async () => {
     if (!selectedFile) {
-      alert('Por favor seleccione un archivo para cargar');
+      setErrorMessage('Por favor seleccione un archivo para cargar');
+      return;
+    }
+      
+    if (!ordenInfo) {
+      setErrorMessage('No hay información de la orden para proceder');
       return;
     }
 
     setIsUploading(true);
     setUploadProgress(0);
+    setErrorMessage('');
 
-    // Simulamos una carga de archivo
-    const interval = setInterval(() => {
-      setUploadProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setIsUploading(false);
-          setUploadComplete(true);
-          return 100;
-        }
-        return prev + 10;
-      });
-    }, 300);
+    // Crear FormData para enviar el archivo
+    const formData = new FormData();
+    formData.append('codigo_orden', ordenInfo.orden.codigo_unico);
+    formData.append('numero_comprobante', `COMP-${Math.floor(Math.random() * 10000)}`); // Ejemplo, idealmente se pediría este dato
+    formData.append('nombre_pagador', ordenInfo.orden.tipo_origen === 'individual' ? 
+      (ordenInfo.estudiante?.nombre_completo || 'Pagador') : 
+      (ordenInfo.unidad_educativa || 'Institución'));
+    formData.append('fecha_pago', new Date().toISOString().split('T')[0]);
+    formData.append('monto_pagado', ordenInfo.orden.monto_total);
+    formData.append('pdf_comprobante', selectedFile);
+
+    try {
+      // Simular progreso de carga
+      const interval = setInterval(() => {
+        setUploadProgress(prev => {
+          const newProgress = prev + 10;
+          if (newProgress >= 90) {
+            clearInterval(interval);
+            return 90; // Dejamos en 90% hasta que termine la solicitud real
+          }
+          return newProgress;
+        });
+      }, 300);
+
+      // Llamar a la API para subir el comprobante
+      await subirComprobantePago(formData);
+
+      // Completar la carga
+      setUploadProgress(100);
+      setUploadComplete(true);
+      
+      clearInterval(interval);
+    } catch (error) {
+      let message = 'Error al subir el comprobante';
+      if (error.response && error.response.data?.message) {
+        message = error.response.data.message;
+      }
+      setErrorMessage(message);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   // Función para reiniciar el proceso
   const resetVerification = () => {
     setVerificationCode('');
     setIsVerified(false);
+    setOrdenInfo(null);
     setSelectedFile(null);
     setUploadProgress(0);
     setIsUploading(false);
     setUploadComplete(false);
+    setErrorMessage('');
   };
 
   return (
@@ -98,7 +177,15 @@ export default function Registration() {
           <p className="text-sm text-gray-600 mb-6">
             Si ya ha generado su boleta de pago y realizado el pago en cajas, complete su inscripción aquí
           </p>
-          
+
+          {/* Mensaje de error */}
+          {errorMessage && (
+            <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-4 flex items-start">
+              <AlertCircle className="h-5 w-5 text-red-600 mr-2 flex-shrink-0" />
+              <p className="text-red-700 text-sm">{errorMessage}</p>
+            </div>
+          )}
+
           {!isVerified ? (
             <div className="mb-4">
               <label htmlFor="verificationCode" className="block text-sm font-medium text-gray-700 mb-1">
@@ -136,16 +223,24 @@ export default function Registration() {
                     <Check className="h-5 w-5 text-green-600" />
                   </div>
                 </div>
-                <div>
+                <div className="w-full">
                   <h3 className="text-green-800 font-medium">Código verificado correctamente</h3>
-                  <p className="text-green-700 text-sm mt-1">Su inscripción está registrada. Por favor suba su comprobante de pago para completar el proceso.</p>
+                  <p className="text-green-700 text-sm mt-1">
+                    {ordenInfo?.orden.tipo_origen === 'individual' 
+                      ? `Inscripción para ${ordenInfo?.estudiante?.nombre_completo}` 
+                      : `Inscripción para ${ordenInfo?.unidad_educativa} (${ordenInfo?.estudiantes_count} estudiantes)`}
+                  </p>
+                  <div className="text-green-700 text-sm mt-2 flex flex-wrap justify-between">
+                    <span>Monto total: <b>{ordenInfo?.orden.monto_total} Bs.</b></span>
+                    <span>Estado: <span className="font-bold uppercase">{ordenInfo?.orden.estado}</span></span>
+                    <span>Vence el: {new Date(ordenInfo?.orden.fecha_vencimiento).toLocaleDateString()}</span>
+                  </div>
                 </div>
               </div>
-              
+
               {!uploadComplete ? (
                 <div className="border border-gray-200 rounded-md p-4">
                   <h3 className="font-medium mb-3">Subir comprobante de pago</h3>
-                  
                   {!selectedFile ? (
                     <div className="border-2 border-dashed border-gray-300 rounded-md p-6 text-center cursor-pointer hover:bg-gray-50 transition-colors"
                         onClick={() => document.getElementById('fileInput').click()}>
@@ -178,11 +273,15 @@ export default function Registration() {
                             </p>
                           </div>
                         </div>
-                        <button className="text-gray-500 hover:text-gray-700" onClick={() => setSelectedFile(null)}>
+                        <button 
+                          className="text-gray-500 hover:text-gray-700" 
+                          onClick={() => setSelectedFile(null)}
+                          type="button"
+                        >
                           <X size={16} />
                         </button>
                       </div>
-                      
+
                       {isUploading ? (
                         <div className="space-y-2">
                           <div className="w-full bg-gray-200 rounded-full h-2.5">
@@ -194,8 +293,9 @@ export default function Registration() {
                           <p className="text-xs text-gray-500 text-right">{uploadProgress}% completado</p>
                         </div>
                       ) : (
-                        <button
-                          onClick={handleUpload}
+                        <button 
+                          onClick={handleUpload} 
+                          type="button"
                           className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 flex items-center justify-center"
                         >
                           <Upload size={16} className="mr-2" />
@@ -219,11 +319,13 @@ export default function Registration() {
                   <div className="flex justify-between">
                     <button
                       onClick={resetVerification}
+                      type="button"
                       className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                     >
                       Realizar otra inscripción
                     </button>
                     <button
+                      type="button"
                       className="bg-blue-600 text-white px-4 py-1 text-sm rounded hover:bg-blue-700"
                     >
                       Ver detalles
@@ -294,7 +396,6 @@ export default function Registration() {
             <div>
               <h3 className="text-lg font-semibold mb-2">Datos Personales</h3>
               <p className="text-sm text-gray-600 mb-6">Ingrese sus datos personales para la inscripción</p>
-              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 {/* Nombres */}
                 <div>
@@ -445,13 +546,13 @@ export default function Registration() {
             </div>
           )}
 
-{step === 2 && (
+          {step === 2 && (
             <div>
               <h3 className="text-lg font-semibold mb-2">Selección de Áreas</h3>
               <p className="text-sm text-gray-600 mb-6">
                 Selecciona las áreas y niveles en los que deseas participar en Olimpiada Científica Estudiantil Plurinacional 2024
               </p>
-              
+
               <div className="mb-6">
                 <div className="flex justify-between items-center mb-4">
                   <div className="flex items-center">
@@ -477,7 +578,6 @@ export default function Registration() {
                     </div>
                   </div>
                   <p className="text-sm text-gray-600 mb-4">Resolución de problemas, razonamiento lógico y pensamiento abstracto</p>
-                  
                   <div>
                     <p className="text-sm font-medium mb-2">Selecciona un nivel</p>
                     <div className="space-y-2">
@@ -579,7 +679,7 @@ export default function Registration() {
                   <p className="text-sm text-gray-600">Estudio de los cuerpos celestes, sus movimientos y fenómenos asociados</p>
                 </div>
               </div>
-              
+
               <div className="flex justify-between mt-6">
                 <button
                   onClick={() => setStep(1)}
@@ -598,18 +698,17 @@ export default function Registration() {
             </div>
           )}
 
-{step === 3 && (
+          {step === 3 && (
             <div>
               <h3 className="text-lg font-semibold mb-2">Gestión de Tutores</h3>
               <p className="text-sm text-gray-600 mb-6">
                 Ingresa la información de tus tutores legal y académicos
               </p>
-              
+
               {/* Tutor Legal Section */}
               <div className="border rounded-lg p-6 mb-6">
                 <h4 className="text-base font-semibold mb-1">Tutor Legal</h4>
                 <p className="text-xs text-gray-500 mb-4">Información del tutor legal (obligatorio)</p>
-                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
                   {/* Nombres */}
                   <div>
@@ -682,32 +781,32 @@ export default function Registration() {
                       <option>Otro</option>
                     </select>
                   </div>
+                </div>
 
-                  {/* Correo Electrónico */}
-                  <div>
-                    <label htmlFor="emailTutorLegal" className="block text-sm font-medium text-gray-700 mb-1">
-                      Correo Electrónico
-                    </label>
-                    <input
-                      type="email"
-                      id="emailTutorLegal"
-                      className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="correo@ejemplo.com"
-                    />
-                  </div>
+                {/* Correo Electrónico */}
+                <div>
+                  <label htmlFor="emailTutorLegal" className="block text-sm font-medium text-gray-700 mb-1">
+                    Correo Electrónico
+                  </label>
+                  <input
+                    type="email"
+                    id="emailTutorLegal"
+                    className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="correo@ejemplo.com"
+                  />
+                </div>
 
-                  {/* Teléfono */}
-                  <div>
-                    <label htmlFor="telefonoTutorLegal" className="block text-sm font-medium text-gray-700 mb-1">
-                      Teléfono
-                    </label>
-                    <input
-                      type="tel"
-                      id="telefonoTutorLegal"
-                      className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Número de teléfono"
-                    />
-                  </div>
+                {/* Teléfono */}
+                <div>
+                  <label htmlFor="telefonoTutorLegal" className="block text-sm font-medium text-gray-700 mb-1">
+                    Teléfono
+                  </label>
+                  <input
+                    type="tel"
+                    id="telefonoTutorLegal"
+                    className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Número de teléfono"
+                  />
                 </div>
 
                 {/* Dirección */}
@@ -738,7 +837,6 @@ export default function Registration() {
               <div className="border rounded-lg p-6 mb-6">
                 <h4 className="text-base font-semibold mb-1">Tutor para Matemáticas</h4>
                 <p className="text-xs text-gray-500 mb-4">Información del tutor académico para esta área (opcional)</p>
-                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
                   {/* Nombres */}
                   <div>
@@ -811,7 +909,6 @@ export default function Registration() {
               <div className="border rounded-lg p-6 mb-6">
                 <h4 className="text-base font-semibold mb-1">Tutor para Física</h4>
                 <p className="text-xs text-gray-500 mb-4">Información del tutor académico para esta área (opcional)</p>
-                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
                   {/* Nombres */}
                   <div>
@@ -879,7 +976,7 @@ export default function Registration() {
                   />
                 </div>
               </div>
-              
+
               <div className="flex justify-between mt-6">
                 <button
                   onClick={() => setStep(2)}
@@ -898,13 +995,13 @@ export default function Registration() {
             </div>
           )}
 
-{step === 4 && (
+          {step === 4 && (
             <div>
               <h3 className="text-lg font-semibold mb-2">Confirmación y Boleta de Pago</h3>
               <p className="text-sm text-gray-600 mb-6">
                 Revisa los datos de tu inscripción y descarga tu boleta de pago
               </p>
-              
+
               {/* Información de la Convocatoria */}
               <div className="border-b pb-4 mb-4">
                 <div className="flex justify-between items-center mb-2">
@@ -927,7 +1024,6 @@ export default function Registration() {
                     </svg>
                   </button>
                 </div>
-                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div>
                     <p className="text-sm text-gray-500">Nombres</p>
@@ -967,7 +1063,7 @@ export default function Registration() {
                   </div>
                 </div>
               </div>
-              
+
               {/* Áreas Seleccionadas */}
               <div className="border-b pb-4 mb-4">
                 <div className="flex justify-between items-center mb-2">
@@ -978,7 +1074,6 @@ export default function Registration() {
                     </svg>
                   </button>
                 </div>
-                
                 <div className="space-y-3">
                   <div className="bg-gray-50 p-3 rounded-md">
                     <div className="flex justify-between items-center">
@@ -989,7 +1084,6 @@ export default function Registration() {
                       <p className="font-medium">50 Bs.</p>
                     </div>
                   </div>
-                  
                   <div className="bg-gray-50 p-3 rounded-md">
                     <div className="flex justify-between items-center">
                       <div>
@@ -999,14 +1093,13 @@ export default function Registration() {
                       <p className="font-medium">50 Bs.</p>
                     </div>
                   </div>
-                  
                   <div className="flex justify-between items-center p-2">
                     <p className="font-medium">Total</p>
                     <p className="font-bold">100 Bs.</p>
                   </div>
                 </div>
               </div>
-              
+
               {/* Información de Tutores */}
               <div className="border-b pb-4 mb-4">
                 <div className="flex justify-between items-center mb-2">
@@ -1018,14 +1111,13 @@ export default function Registration() {
                   </button>
                 </div>
               </div>
-              
+
               {/* Boleta de Pago */}
               <div className="border rounded-lg p-6 mb-6">
                 <h4 className="text-base font-semibold mb-1">Boleta de Pago</h4>
                 <p className="text-xs text-gray-500 mb-6">
                   Descarga tu boleta de pago para realizar el pago en cajas de la facultad
                 </p>
-                
                 <div className="bg-gray-50 p-4 rounded-md mb-4">
                   <div className="flex justify-between items-center mb-4">
                     <div>
@@ -1037,13 +1129,11 @@ export default function Registration() {
                       <p className="font-medium">4/6/2025</p>
                     </div>
                   </div>
-                  
                   <div className="mb-4">
                     <p className="text-sm text-gray-500">Estudiante</p>
                     <p className="font-medium">Juan Carlos Pérez Gómez</p>
                     <p className="text-sm text-gray-500">CI: 12345678</p>
                   </div>
-                  
                   <div className="mb-4">
                     <p className="text-sm font-medium mb-2">Detalle</p>
                     <div className="border-t border-b py-2">
@@ -1052,32 +1142,27 @@ export default function Registration() {
                         <div>Nivel</div>
                         <div className="text-right">Costo</div>
                       </div>
-                      
                       <div className="grid grid-cols-3 gap-2 mb-1 text-sm">
                         <div>Matemáticas</div>
                         <div>Nivel Intermedio</div>
                         <div className="text-right">50 Bs.</div>
                       </div>
-                      
                       <div className="grid grid-cols-3 gap-2 text-sm">
                         <div>Física</div>
                         <div>Nivel Intermedio</div>
                         <div className="text-right">50 Bs.</div>
                       </div>
                     </div>
-                    
                     <div className="flex justify-between items-center py-2 text-sm">
                       <p className="font-medium">Subtotal</p>
                       <p className="font-medium">100 Bs.</p>
                     </div>
-                    
                     <div className="flex justify-between items-center py-2 text-sm font-bold">
                       <p>TOTAL A PAGAR</p>
                       <p>100 Bs.</p>
                     </div>
                   </div>
                 </div>
-                
                 <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-md mb-6">
                   <p className="font-medium text-yellow-800 mb-1">Importante: Su inscripción no está completa</p>
                   <p className="text-sm text-yellow-700 mb-2">Para completar su inscripción, siga estos pasos:</p>
@@ -1088,7 +1173,6 @@ export default function Registration() {
                     <li>Suba el comprobante de pago para finalizar su inscripción</li>
                   </ol>
                 </div>
-                
                 <button className="w-full bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 flex items-center justify-center">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -1096,7 +1180,7 @@ export default function Registration() {
                   Descargar Boleta de Pago
                 </button>
               </div>
-              
+
               <div className="flex justify-between mt-6">
                 <button
                   onClick={() => setStep(3)}
