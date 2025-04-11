@@ -428,26 +428,12 @@ export default function Registration() {
                   <label htmlFor="cedula" className="block text-sm font-medium text-gray-700 mb-1">
                     Cédula de Identidad
                   </label>
-                  <div className="flex">
-                    <input
-                      type="text"
-                      id="cedula"
-                      className="w-full px-4 py-2 border rounded-l-md focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Número de CI"
-                    />
-                    <select className="px-4 py-2 border-t border-r border-b rounded-r-md bg-white">
-                      <option>Extensión</option>
-                      <option>LP</option>
-                      <option>SC</option>
-                      <option>CB</option>
-                      <option>OR</option>
-                      <option>PT</option>
-                      <option>TJ</option>
-                      <option>BE</option>
-                      <option>PD</option>
-                      <option>CH</option>
-                    </select>
-                  </div>
+                  <input
+                    type="text"
+                    id="cedula"
+                    className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Número de CI"
+                  />
                 </div>
 
                 {/* Fecha de Nacimiento */}
@@ -520,17 +506,143 @@ export default function Registration() {
                   </select>
                 </div>
 
-                {/* Paralelo */}
+                {/* Departamento */}
                 <div>
-                  <label htmlFor="paralelo" className="block text-sm font-medium text-gray-700 mb-1">
-                    Paralelo
+                  <label htmlFor="departamento" className="block text-sm font-medium text-gray-700 mb-1">
+                    Departamento
                   </label>
                   <select
-                    id="paralelo"
+                    id="departamento"
                     className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 bg-white"
                   >
-                    <option>Seleccione su paralelo</option>
+                    <option>Seleccione su departamento</option>
+                    <option>La Paz</option>
+                    <option>Santa Cruz</option>
+                    <option>Cochabamba</option>
+                    <option>Oruro</option>
+                    <option>Potosí</option>
+                    <option>Tarija</option>
+                    <option>Beni</option>
+                    <option>Pando</option>
+                    <option>Chuquisaca</option>
                   </select>
+                </div>
+                
+                {/* Provincia */}
+                <div>
+                  <label htmlFor="provincia" className="block text-sm font-medium text-gray-700 mb-1">
+                    Provincia
+                  </label>
+                  <input
+                    type="text"
+                    id="provincia"
+                    className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Ingrese su provincia"
+                  />
+                </div>
+              </div>
+
+              {/* Tutor Legal Section */}
+              <div className="border rounded-lg p-6 mb-6 mt-6">
+                <h4 className="text-base font-semibold mb-1">Tutor Legal</h4>
+                <p className="text-xs text-gray-500 mb-4">Información del tutor legal (obligatorio)</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                  {/* Nombres */}
+                  <div>
+                    <label htmlFor="nombresTutorLegal" className="block text-sm font-medium text-gray-700 mb-1">
+                      Nombres
+                    </label>
+                    <input
+                      type="text"
+                      id="nombresTutorLegal"
+                      className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Nombres del tutor"
+                    />
+                  </div>
+
+                  {/* Apellidos */}
+                  <div>
+                    <label htmlFor="apellidosTutorLegal" className="block text-sm font-medium text-gray-700 mb-1">
+                      Apellidos
+                    </label>
+                    <input
+                      type="text"
+                      id="apellidosTutorLegal"
+                      className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Apellidos del tutor"
+                    />
+                  </div>
+
+                  {/* Cédula de Identidad */}
+                  <div>
+                    <label htmlFor="cedulaTutorLegal" className="block text-sm font-medium text-gray-700 mb-1">
+                      Cédula de Identidad
+                    </label>
+                    <input
+                      type="text"
+                      id="cedulaTutorLegal"
+                      className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Número de CI"
+                    />
+                  </div>
+
+                  {/* Parentesco */}
+                  <div>
+                    <label htmlFor="parentesco" className="block text-sm font-medium text-gray-700 mb-1">
+                      Parentesco
+                    </label>
+                    <select
+                      id="parentesco"
+                      className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 bg-white"
+                    >
+                      <option>Selecciona el parentesco</option>
+                      <option>Padre</option>
+                      <option>Madre</option>
+                      <option>Abuelo/a</option>
+                      <option>Tío/a</option>
+                      <option>Hermano/a</option>
+                      <option>Otro</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Correo Electrónico */}
+                <div className="mb-4">
+                  <label htmlFor="emailTutorLegal" className="block text-sm font-medium text-gray-700 mb-1">
+                    Correo Electrónico
+                  </label>
+                  <input
+                    type="email"
+                    id="emailTutorLegal"
+                    className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="correo@ejemplo.com"
+                  />
+                </div>
+
+                {/* Teléfono */}
+                <div className="mb-4">
+                  <label htmlFor="telefonoTutorLegal" className="block text-sm font-medium text-gray-700 mb-1">
+                    Teléfono
+                  </label>
+                  <input
+                    type="tel"
+                    id="telefonoTutorLegal"
+                    className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Número de teléfono"
+                  />
+                </div>
+
+                {/* Dirección */}
+                <div>
+                  <label htmlFor="direccionTutorLegal" className="block text-sm font-medium text-gray-700 mb-1">
+                    Dirección
+                  </label>
+                  <input
+                    type="text"
+                    id="direccionTutorLegal"
+                    className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Dirección completa"
+                  />
                 </div>
               </div>
 
@@ -700,128 +812,10 @@ export default function Registration() {
 
           {step === 3 && (
             <div>
-              <h3 className="text-lg font-semibold mb-2">Gestión de Tutores</h3>
+              <h3 className="text-lg font-semibold mb-2">Tutores Académicos</h3>
               <p className="text-sm text-gray-600 mb-6">
-                Ingresa la información de tus tutores legal y académicos
+                Ingresa la información de tus tutores académicos para cada área seleccionada
               </p>
-
-              {/* Tutor Legal Section */}
-              <div className="border rounded-lg p-6 mb-6">
-                <h4 className="text-base font-semibold mb-1">Tutor Legal</h4>
-                <p className="text-xs text-gray-500 mb-4">Información del tutor legal (obligatorio)</p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-                  {/* Nombres */}
-                  <div>
-                    <label htmlFor="nombresTutorLegal" className="block text-sm font-medium text-gray-700 mb-1">
-                      Nombres
-                    </label>
-                    <input
-                      type="text"
-                      id="nombresTutorLegal"
-                      className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Nombres del tutor"
-                    />
-                  </div>
-
-                  {/* Apellidos */}
-                  <div>
-                    <label htmlFor="apellidosTutorLegal" className="block text-sm font-medium text-gray-700 mb-1">
-                      Apellidos
-                    </label>
-                    <input
-                      type="text"
-                      id="apellidosTutorLegal"
-                      className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Apellidos del tutor"
-                    />
-                  </div>
-
-                  {/* Cédula de Identidad */}
-                  <div>
-                    <label htmlFor="cedulaTutorLegal" className="block text-sm font-medium text-gray-700 mb-1">
-                      Cédula de Identidad
-                    </label>
-                    <div className="flex">
-                      <input
-                        type="text"
-                        id="cedulaTutorLegal"
-                        className="w-full px-4 py-2 border rounded-l-md focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Número de CI"
-                      />
-                      <select className="px-4 py-2 border-t border-r border-b rounded-r-md bg-white">
-                        <option>Extensión</option>
-                        <option>LP</option>
-                        <option>SC</option>
-                        <option>CB</option>
-                        <option>OR</option>
-                        <option>PT</option>
-                        <option>TJ</option>
-                        <option>BE</option>
-                        <option>PD</option>
-                        <option>CH</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Parentesco */}
-                  <div>
-                    <label htmlFor="parentesco" className="block text-sm font-medium text-gray-700 mb-1">
-                      Parentesco
-                    </label>
-                    <select
-                      id="parentesco"
-                      className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 bg-white"
-                    >
-                      <option>Selecciona el parentesco</option>
-                      <option>Padre</option>
-                      <option>Madre</option>
-                      <option>Abuelo/a</option>
-                      <option>Tío/a</option>
-                      <option>Hermano/a</option>
-                      <option>Otro</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Correo Electrónico */}
-                <div>
-                  <label htmlFor="emailTutorLegal" className="block text-sm font-medium text-gray-700 mb-1">
-                    Correo Electrónico
-                  </label>
-                  <input
-                    type="email"
-                    id="emailTutorLegal"
-                    className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="correo@ejemplo.com"
-                  />
-                </div>
-
-                {/* Teléfono */}
-                <div>
-                  <label htmlFor="telefonoTutorLegal" className="block text-sm font-medium text-gray-700 mb-1">
-                    Teléfono
-                  </label>
-                  <input
-                    type="tel"
-                    id="telefonoTutorLegal"
-                    className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Número de teléfono"
-                  />
-                </div>
-
-                {/* Dirección */}
-                <div className="mb-4">
-                  <label htmlFor="direccionTutorLegal" className="block text-sm font-medium text-gray-700 mb-1">
-                    Dirección
-                  </label>
-                  <input
-                    type="text"
-                    id="direccionTutorLegal"
-                    className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Dirección completa"
-                  />
-                </div>
-              </div>
 
               {/* Tutores Académicos Tab */}
               <div className="flex mb-4">
@@ -1058,8 +1052,12 @@ export default function Registration() {
                     <p className="font-medium">4° de Secundaria</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Paralelo</p>
-                    <p className="font-medium">B</p>
+                    <p className="text-sm text-gray-500">Departamento</p>
+                    <p className="font-medium">La Paz</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Provincia</p>
+                    <p className="font-medium">Murillo</p>
                   </div>
                 </div>
               </div>
