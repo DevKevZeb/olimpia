@@ -247,9 +247,12 @@ export default function Registration() {
     
     // Verificar límite de áreas si estamos añadiendo una nueva
     if (!isSelected && convocatoria && selectedAreas.length >= convocatoria.max_areas) {
-      setErrorMessage(`No puede seleccionar más de ${convocatoria.max_areas} áreas`);
+      setFormErrorMessage(`No puede seleccionar más de ${convocatoria.max_areas} áreas`);
       return;
     }
+    
+    // Asegurar que el costo sea un número
+    const costo = parseFloat(areaNivel.costo) || 0;
     
     // Actualizar las áreas seleccionadas
     if (isSelected) {
@@ -265,13 +268,17 @@ export default function Registration() {
         )
       }));
       // Actualizar el costo total
-      setCostoTotal(prevTotal => prevTotal - areaNivel.costo);
+      setCostoTotal(prevTotal => {
+        const nuevoTotal = prevTotal - costo;
+        console.log(`Quitando área: ${areaNivel.area.nombre}, costo: ${costo}, nuevo total: ${nuevoTotal}`);
+        return nuevoTotal;
+      });
     } else {
       const newArea = {
         id_convocatoria_nivel: areaNivel.id_convocatoria_nivel,
         area_nombre: areaNivel.area.nombre,
         nivel_nombre: areaNivel.nivel.nombre,
-        costo: areaNivel.costo
+        costo: costo
       };
       setSelectedAreas([...selectedAreas, newArea]);
       
@@ -295,7 +302,11 @@ export default function Registration() {
         ]
       }));
       // Actualizar el costo total
-      setCostoTotal(prevTotal => prevTotal + areaNivel.costo);
+      setCostoTotal(prevTotal => {
+        const nuevoTotal = prevTotal + costo;
+        console.log(`Añadiendo área: ${areaNivel.area.nombre}, costo: ${costo}, nuevo total: ${nuevoTotal}`);
+        return nuevoTotal;
+      });
     }
   };
 
@@ -1300,7 +1311,7 @@ export default function Registration() {
                   <h4 className="text-base font-semibold">Información de la Convocatoria</h4>
                   <button className="text-gray-400">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l-3.293-3.293a1 1 011.414-1.414l-4 4a1 1 01-1.414 0l-4-4a1 1 010-1.414z" clipRule="evenodd" />
+                      <path fillRule="evenodd" d="M5.293 7.293a1 1 011.414 0L10 10.586l-3.293-3.293a1 1 011.414-1.414l-4 4a1 1 01-1.414 0l-4-4a1 1 010-1.414z" clipRule="evenodd" />
                     </svg>
                   </button>
                 </div>
@@ -1471,7 +1482,7 @@ export default function Registration() {
                 </div>
                 <button className="w-full bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 flex items-center justify-center">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 112 0v7.586l1.293-1.293a1 1 011.414 1.414l-3 3a1 1 01-1.414 0l-3-3a1 1 010-1.414z" clipRule="evenodd" />
+                    <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 01-1-1zm3.293-7.707a1 1 011.414 0L9 10.586V3a1 1 112 0v7.586l1.293-1.293a1 1 011.414 1.414l-3 3a1 1 01-1.414 0l-3-3a1 1 010-1.414z" clipRule="evenodd" />
                   </svg>
                   Descargar Boleta de Pago
                 </button>
