@@ -42,68 +42,69 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::prefix('v1')->group(function () {
     // Areas de Competencia
     Route::apiResource('areas', AreasCompetenciaController::class);
-    
+
     // Convocatorias
     Route::apiResource('convocatorias', ConvocatoriaController::class);
-    
+
     // Áreas de Convocatoria
     Route::apiResource('convocatoria-areas', ConvocatoriaAreaController::class);
-    
+
     // Niveles de Convocatoria
     Route::apiResource('convocatoria-niveles', ConvocatoriaNivelController::class);
-    
+
     // Estudiantes
     Route::apiResource('estudiantes', EstudianteController::class);
     Route::get('estudiantes/search', [EstudianteController::class, 'search']);
-    
+
     // Inscripciones
     Route::apiResource('inscripciones', InscripcionController::class);
-    
+
     // Unidades Educativas
     Route::apiResource('unidades-educativas', UnidadEducativaController::class);
-    
+
     // Grados
     Route::apiResource('grados', GradoController::class);
-    
+
     // Niveles de Categoría
     Route::apiResource('niveles', NivelCategoriaController::class);
-    
+
     // Tutores Legales
     Route::apiResource('tutores-legales', TutorLegalController::class);
-    
+
     // Tutores Académicos
     Route::apiResource('tutores-academicos', TutorAcademicoController::class);
-    
+
     // Listas de Inscripción
     Route::apiResource('listas-inscripcion', ListaInscripcionController::class);
     Route::post('listas-inscripcion/{id}/detalles', [ListaInscripcionController::class, 'addDetail']);
     Route::delete('listas-inscripcion/{id}/detalles/{detalleId}', [ListaInscripcionController::class, 'removeDetail']);
-    
+
     // Órdenes de Pago
     Route::apiResource('ordenes-pago', OrdenPagoController::class);
     Route::get('ordenes-pago/buscar-por-codigo', [OrdenPagoController::class, 'getByCode']);
-    
+
     // Comprobantes de Pago
     Route::apiResource('comprobantes-pago', ComprobantePagoController::class);
     Route::get('comprobantes-pago/{id}/download', [ComprobantePagoController::class, 'downloadPdf']);
     Route::post('comprobantes-pago/por-codigo', [ComprobantePagoController::class, 'storeByCodigoOrden']);
     Route::post('comprobantes-pago/verificar-codigo', [ComprobantePagoController::class, 'verificarCodigoOrden']);
-    
+
     // Nuevos endpoints orientados a páginas/casos de uso
-    
+
     // Endpoint para página Home
     Route::get('/public/convocatoria-actual', [PublicConvocatoriaController::class, 'getConvocatoriaActual']);
-    
+
     // Endpoints para página de Inscripción
-    Route::get('/public/datos-inscripcion', [InscripcionDatosController::class, 'getDatosInscripcion']);
-    Route::get('/public/unidades-educativas/buscar', [InscripcionDatosController::class, 'buscarUnidadesEducativas']);
+    Route::get('/public/datos-inscripcion', [InscripcionCompletaController::class, 'getDatosInscripcion']);
+    Route::get('/public/unidades-educativas/buscar', [InscripcionCompletaController::class, 'buscarUnidadesEducativas']);
+    Route::post('/public/areas-por-grado', [InscripcionCompletaController::class, 'getAreasPorGrado']);
     Route::post('/public/inscripcion-completa', [InscripcionCompletaController::class, 'inscribirEstudiante']);
-    
+
     // Endpoints para página de Administración
     Route::get('/admin/dashboard-data', [AdminDashboardController::class, 'getDashboardData']);
     Route::post('/admin/convocatorias/completa', [ConvocatoriaCompletaController::class, 'crearConvocatoriaCompleta']);
     Route::get('/admin/convocatorias/{id}/completa', [ConvocatoriaCompletaController::class, 'getConvocatoriaCompleta']);
-    
+
     // Endpoints para el panel de administración de convocatorias
     Route::get('/admin/convocatorias-activas', [AdminConvocatoriaController::class, 'getConvocatoriasActivas']);
     Route::get('/admin/areas-competencia', [AdminConvocatoriaController::class, 'getAreasCompetencia']);
