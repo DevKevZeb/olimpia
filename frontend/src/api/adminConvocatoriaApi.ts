@@ -57,8 +57,8 @@ export const getGrados = async () => {
 };
 
 /**
- * Crea una nueva convocatoria
- * @param data Datos de la convocatoria
+ * Crea una nueva convocatoria (solo datos básicos)
+ * @param data Datos básicos de la convocatoria
  */
 export const crearConvocatoria = async (data) => {
   try {
@@ -82,19 +82,51 @@ export const crearConvocatoria = async (data) => {
 };
 
 /**
- * Asocia áreas y niveles a una convocatoria
- * @param data Datos de asociación
+ * Asocia áreas a una convocatoria existente
+ * @param data Datos de asociación de áreas
  */
 export const asociarAreas = async (data) => {
   try {
-    console.log('Enviando datos al servidor:', data);
+    console.log('Enviando datos de áreas al servidor:', data);
     const response = await axiosInstance.post('/v1/admin/convocatorias/asociar-areas', data);
     return response.data;
   } catch (error) {
-    console.error('Error completo al asociar áreas y niveles:', error);
+    console.error('Error al asociar áreas:', error);
     if (error.response) {
       console.error('Respuesta del servidor:', error.response.data);
     }
+    throw error;
+  }
+};
+
+/**
+ * Asocia niveles y grados a las áreas de una convocatoria
+ * @param data Datos de asociación de niveles y grados
+ */
+export const asociarNivelesGrados = async (data) => {
+  try {
+    console.log('Enviando datos de niveles y grados al servidor:', data);
+    const response = await axiosInstance.post('/v1/admin/convocatorias/asociar-niveles-grados', data);
+    return response.data;
+  } catch (error) {
+    console.error('Error al asociar niveles y grados:', error);
+    if (error.response) {
+      console.error('Respuesta del servidor:', error.response.data);
+    }
+    throw error;
+  }
+};
+
+/**
+ * Obtiene las áreas asociadas a una convocatoria específica
+ * @param idConvocatoria ID de la convocatoria
+ */
+export const getAreasPorConvocatoria = async (idConvocatoria) => {
+  try {
+    const response = await axiosInstance.get(`/v1/admin/convocatorias/${idConvocatoria}/areas`);
+    return response.data?.data || response.data;
+  } catch (error) {
+    console.error(`Error al obtener áreas para la convocatoria ${idConvocatoria}:`, error);
     throw error;
   }
 };
