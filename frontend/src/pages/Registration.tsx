@@ -1126,6 +1126,14 @@ export default function Registration() {
                 Ingresa la información de tus tutores académicos para cada área seleccionada
               </p>
 
+              {/* Mensaje de error del formulario */}
+              {formErrorMessage && (
+                <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-4 flex items-start">
+                  <AlertCircle className="h-5 w-5 text-red-600 mr-2 flex-shrink-0" />
+                  <p className="text-red-700 text-sm">{formErrorMessage}</p>
+                </div>
+              )}
+
               {/* Tutores Académicos Tab */}
               <div className="flex mb-4">
                 <button className="flex-1 text-center py-2 border-b-2 border-blue-600 text-blue-600 font-medium">
@@ -1136,149 +1144,152 @@ export default function Registration() {
                 </button>
               </div>
 
-              {/* Tutor para Matemáticas */}
-              <div className="border rounded-lg p-6 mb-6">
-                <h4 className="text-base font-semibold mb-1">Tutor para Matemáticas</h4>
-                <p className="text-xs text-gray-500 mb-4">Información del tutor académico para esta área (opcional)</p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-                  {/* Nombres */}
-                  <div>
-                    <label htmlFor="nombresTutorMat" className="block text-sm font-medium text-gray-700 mb-1">
-                      Nombres
-                    </label>
-                    <input
-                      type="text"
-                      id="nombresTutorMat"
-                      className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Nombres del tutor"
-                    />
-                  </div>
-
-                  {/* Apellidos */}
-                  <div>
-                    <label htmlFor="apellidosTutorMat" className="block text-sm font-medium text-gray-700 mb-1">
-                      Apellidos
-                    </label>
-                    <input
-                      type="text"
-                      id="apellidosTutorMat"
-                      className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Apellidos del tutor"
-                    />
-                  </div>
-
-                  {/* Correo Electrónico */}
-                  <div>
-                    <label htmlFor="emailTutorMat" className="block text-sm font-medium text-gray-700 mb-1">
-                      Correo Electrónico
-                    </label>
-                    <input
-                      type="email"
-                      id="emailTutorMat"
-                      className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="correo@ejemplo.com"
-                    />
-                  </div>
-
-                  {/* Teléfono */}
-                  <div>
-                    <label htmlFor="telefonoTutorMat" className="block text-sm font-medium text-gray-700 mb-1">
-                      Teléfono
-                    </label>
-                    <input
-                      type="tel"
-                      id="telefonoTutorMat"
-                      className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Número de teléfono"
-                    />
-                  </div>
+              {selectedAreas.length === 0 ? (
+                <div className="text-center p-8 border rounded-lg">
+                  <p className="text-gray-600 mb-2">No has seleccionado áreas en el paso anterior</p>
+                  <p className="text-sm text-gray-500">Por favor, regresa al paso anterior y selecciona al menos un área.</p>
                 </div>
+              ) : (
+                <>
+                  {/* Tutores académicos para cada área seleccionada */}
+                  {selectedAreas.map((area, index) => {
+                    // Encontrar el índice del tutor académico correspondiente
+                    const tutorIndex = formData.tutores_academicos.findIndex(
+                      tutor => tutor.id_convocatoria_nivel === area.id_convocatoria_nivel
+                    );
 
-                {/* Institución */}
-                <div>
-                  <label htmlFor="institucionTutorMat" className="block text-sm font-medium text-gray-700 mb-1">
-                    Institución
-                  </label>
-                  <input
-                    type="text"
-                    id="institucionTutorMat"
-                    className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Institución educativa"
-                  />
-                </div>
-              </div>
+                    return (
+                      <div key={area.id_convocatoria_nivel} className="border rounded-lg p-6 mb-6">
+                        <h4 className="text-base font-semibold mb-1">Tutor para {area.area_nombre}</h4>
+                        <p className="text-xs text-gray-500 mb-4">
+                          Información del tutor académico para {area.area_nombre} - {area.nivel_nombre} (opcional)
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                          {/* Nombres */}
+                          <div>
+                            <label htmlFor={`nombres_${area.id_convocatoria_nivel}`} className="block text-sm font-medium text-gray-700 mb-1">
+                              Nombres
+                            </label>
+                            <input
+                              type="text"
+                              id={`nombres_${area.id_convocatoria_nivel}`}
+                              className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="Nombres del tutor"
+                              value={tutorIndex >= 0 ? formData.tutores_academicos[tutorIndex].nombres : ''}
+                              onChange={(e) => {
+                                const newTutores = [...formData.tutores_academicos];
+                                if (tutorIndex >= 0) {
+                                  newTutores[tutorIndex] = { 
+                                    ...newTutores[tutorIndex], 
+                                    nombres: e.target.value 
+                                  };
+                                  setFormData({...formData, tutores_academicos: newTutores});
+                                }
+                              }}
+                            />
+                          </div>
 
-              {/* Tutor para Física */}
-              <div className="border rounded-lg p-6 mb-6">
-                <h4 className="text-base font-semibold mb-1">Tutor para Física</h4>
-                <p className="text-xs text-gray-500 mb-4">Información del tutor académico para esta área (opcional)</p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-                  {/* Nombres */}
-                  <div>
-                    <label htmlFor="nombresTutorFis" className="block text-sm font-medium text-gray-700 mb-1">
-                      Nombres
-                    </label>
-                    <input
-                      type="text"
-                      id="nombresTutorFis"
-                      className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Nombres del tutor"
-                    />
-                  </div>
+                          {/* Apellidos */}
+                          <div>
+                            <label htmlFor={`apellidos_${area.id_convocatoria_nivel}`} className="block text-sm font-medium text-gray-700 mb-1">
+                              Apellidos
+                            </label>
+                            <input
+                              type="text"
+                              id={`apellidos_${area.id_convocatoria_nivel}`}
+                              className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="Apellidos del tutor"
+                              value={tutorIndex >= 0 ? formData.tutores_academicos[tutorIndex].apellidos : ''}
+                              onChange={(e) => {
+                                const newTutores = [...formData.tutores_academicos];
+                                if (tutorIndex >= 0) {
+                                  newTutores[tutorIndex] = { 
+                                    ...newTutores[tutorIndex], 
+                                    apellidos: e.target.value 
+                                  };
+                                  setFormData({...formData, tutores_academicos: newTutores});
+                                }
+                              }}
+                            />
+                          </div>
 
-                  {/* Apellidos */}
-                  <div>
-                    <label htmlFor="apellidosTutorFis" className="block text-sm font-medium text-gray-700 mb-1">
-                      Apellidos
-                    </label>
-                    <input
-                      type="text"
-                      id="apellidosTutorFis"
-                      className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Apellidos del tutor"
-                    />
-                  </div>
+                          {/* Correo Electrónico */}
+                          <div>
+                            <label htmlFor={`email_${area.id_convocatoria_nivel}`} className="block text-sm font-medium text-gray-700 mb-1">
+                              Correo Electrónico
+                            </label>
+                            <input
+                              type="email"
+                              id={`email_${area.id_convocatoria_nivel}`}
+                              className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="correo@ejemplo.com"
+                              value={tutorIndex >= 0 ? formData.tutores_academicos[tutorIndex].email : ''}
+                              onChange={(e) => {
+                                const newTutores = [...formData.tutores_academicos];
+                                if (tutorIndex >= 0) {
+                                  newTutores[tutorIndex] = { 
+                                    ...newTutores[tutorIndex], 
+                                    email: e.target.value 
+                                  };
+                                  setFormData({...formData, tutores_academicos: newTutores});
+                                }
+                              }}
+                            />
+                          </div>
 
-                  {/* Correo Electrónico */}
-                  <div>
-                    <label htmlFor="emailTutorFis" className="block text-sm font-medium text-gray-700 mb-1">
-                      Correo Electrónico
-                    </label>
-                    <input
-                      type="email"
-                      id="emailTutorFis"
-                      className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="correo@ejemplo.com"
-                    />
-                  </div>
+                          {/* Teléfono */}
+                          <div>
+                            <label htmlFor={`telefono_${area.id_convocatoria_nivel}`} className="block text-sm font-medium text-gray-700 mb-1">
+                              Teléfono
+                            </label>
+                            <input
+                              type="tel"
+                              id={`telefono_${area.id_convocatoria_nivel}`}
+                              className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="Número de teléfono"
+                              value={tutorIndex >= 0 ? formData.tutores_academicos[tutorIndex].telefono : ''}
+                              onChange={(e) => {
+                                const newTutores = [...formData.tutores_academicos];
+                                if (tutorIndex >= 0) {
+                                  newTutores[tutorIndex] = { 
+                                    ...newTutores[tutorIndex], 
+                                    telefono: e.target.value 
+                                  };
+                                  setFormData({...formData, tutores_academicos: newTutores});
+                                }
+                              }}
+                            />
+                          </div>
+                        </div>
 
-                  {/* Teléfono */}
-                  <div>
-                    <label htmlFor="telefonoTutorFis" className="block text-sm font-medium text-gray-700 mb-1">
-                      Teléfono
-                    </label>
-                    <input
-                      type="tel"
-                      id="telefonoTutorFis"
-                      className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Número de teléfono"
-                    />
-                  </div>
-                </div>
-
-                {/* Institución */}
-                <div>
-                  <label htmlFor="institucionTutorFis" className="block text-sm font-medium text-gray-700 mb-1">
-                    Institución
-                  </label>
-                  <input
-                    type="text"
-                    id="institucionTutorFis"
-                    className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Institución educativa"
-                  />
-                </div>
-              </div>
+                        {/* Institución */}
+                        <div>
+                          <label htmlFor={`institucion_${area.id_convocatoria_nivel}`} className="block text-sm font-medium text-gray-700 mb-1">
+                            Institución
+                          </label>
+                          <input
+                            type="text"
+                            id={`institucion_${area.id_convocatoria_nivel}`}
+                            className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Institución educativa"
+                            value={tutorIndex >= 0 && formData.tutores_academicos[tutorIndex].institucion ? formData.tutores_academicos[tutorIndex].institucion : ''}
+                            onChange={(e) => {
+                              const newTutores = [...formData.tutores_academicos];
+                              if (tutorIndex >= 0) {
+                                newTutores[tutorIndex] = { 
+                                  ...newTutores[tutorIndex], 
+                                  institucion: e.target.value 
+                                };
+                                setFormData({...formData, tutores_academicos: newTutores});
+                              }
+                            }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </>
+              )}
 
               <div className="flex justify-between mt-6">
                 <button
