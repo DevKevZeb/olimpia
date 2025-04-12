@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar, Check, ChevronRight, Upload, X, AlertCircle } from 'lucide-react';
 import { verificarCodigoOrden, subirComprobantePago } from '../api/comprobantePagoApi';
+import { getDatosInscripcion, getAreasPorGrado, inscribirEstudiante, buscarUnidadesEducativas } from '../api/inscripcionCompletaApi';
 
 export default function Registration() {
+  // Estados originales para verificación de código
   const [step, setStep] = useState(1);
   const [verificationCode, setVerificationCode] = useState('');
   const [isVerified, setIsVerified] = useState(false);
@@ -13,6 +15,96 @@ export default function Registration() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadComplete, setUploadComplete] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  
+  // Estados para la inscripción
+  const [isLoading, setIsLoading] = useState(false);
+  const [convocatoria, setConvocatoria] = useState(null);
+  const [grados, setGrados] = useState([]);
+  const [areasNiveles, setAreasNiveles] = useState([]);
+  const [unidadesEducativas, setUnidadesEducativas] = useState([]);
+  const [buscandoUnidades, setBuscandoUnidades] = useState(false);
+  
+  // Estados para almacenar los datos del formulario
+  const [formData, setFormData] = useState({
+    nombres: '',
+    apellidos: '',
+    ci: '',
+    fecha_nacimiento: '',
+    email: '',
+    id_grado: '',
+    unidad_educativa: {
+      id_unidad_educativa: null,
+      nombre: '',
+      departamento: '',
+      provincia: '',
+    },
+    tutor_legal: {
+      nombres: '',
+      apellidos: '',
+      ci: '',
+      telefono: '',
+      email: '',
+      parentesco: '',
+      es_el_mismo_estudiante: false,
+    },
+    id_convocatoria: '',
+    areas_seleccionadas: [],
+    tutores_academicos: [],
+  });
+  
+  // Estado para rastrear las áreas seleccionadas con sus niveles y costos
+  const [selectedAreas, setSelectedAreas] = useState([]);
+  
+  // Estado para almacenar el costo total
+  const [costoTotal, setCostoTotal] = useState(0);
+
+  // Cargar datos iniciales cuando se monta el componente
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      setIsLoading(true);
+      try {
+        const data = await getDatosInscripcion();
+        console.log('Datos iniciales recibidos:', data);
+        console.log('Grados recibidos:', data.grados);
+        setConvocatoria(data.convocatoria);
+        setGrados(data.grados);
+        setFormData(prev => ({
+          ...prev,
+          id_convocatoria: data.convocatoria.id,
+        }));
+      } catch (error) {
+        console.error('Error al obtener datos iniciales:', error);
+        setErrorMessage('No se pudieron cargar los datos iniciales. Por favor, intente de nuevo más tarde.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchInitialData();
+  }, []);
+  
+  // Cargar áreas disponibles cuando se selecciona un grado
+  useEffect(() => {
+    if (formData.id_grado && formData.id_convocatoria) {
+      const fetchAreasPorGrado = async () => {
+        setIsLoading(true);
+        try {
+          const data = await getAreasPorGrado(parseInt(formData.id_grado), parseInt(formData.id_convocatoria));
+          setAreasNiveles(data.areas_niveles);
+          // Resetear áreas seleccionadas cuando cambia el grado
+          setSelectedAreas([]);
+          setCostoTotal(0);
+        } catch (error) {
+          console.error('Error al obtener áreas por grado:', error);
+          setErrorMessage('No se pudieron cargar las áreas disponibles para el grado seleccionado.');
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      
+      fetchAreasPorGrado();
+    }
+  }, [formData.id_grado, formData.id_convocatoria]);
 
   // Función para manejar la verificación del código
   const handleVerification = async () => {
@@ -147,6 +239,65 @@ export default function Registration() {
     setErrorMessage('');
   };
 
+  // Función para manejar la selección de áreas
+  const handleAreaSelect = (areaNivel) => {
+    // Verificar si ya está seleccionada
+    const isSelected = selectedAreas.some(item => item.id_convocatoria_nivel === areaNivel.id_convocatoria_nivel);
+    
+    // Verificar límite de áreas si estamos añadiendo una nueva
+    if (!isSelected && convocatoria && selectedAreas.length >= convocatoria.max_areas) {
+      setErrorMessage(`No puede seleccionar más de ${convocatoria.max_areas} áreas`);
+      return;
+    }
+    
+    // Actualizar las áreas seleccionadas
+    if (isSelected) {
+      setSelectedAreas(selectedAreas.filter(item => item.id_convocatoria_nivel !== areaNivel.id_convocatoria_nivel));
+      // Actualizar formData para eliminar esta área
+      setFormData(prevState => ({
+        ...prevState,
+        areas_seleccionadas: prevState.areas_seleccionadas.filter(
+          area => area.id_convocatoria_nivel !== areaNivel.id_convocatoria_nivel
+        ),
+        tutores_academicos: prevState.tutores_academicos.filter(
+          tutor => tutor.id_convocatoria_nivel !== areaNivel.id_convocatoria_nivel
+        )
+      }));
+      // Actualizar el costo total
+      setCostoTotal(prevTotal => prevTotal - areaNivel.costo);
+    } else {
+      const newArea = {
+        id_convocatoria_nivel: areaNivel.id_convocatoria_nivel,
+        area_nombre: areaNivel.area.nombre,
+        nivel_nombre: areaNivel.nivel.nombre,
+        costo: areaNivel.costo
+      };
+      setSelectedAreas([...selectedAreas, newArea]);
+      
+      // Actualizar formData para añadir esta área
+      setFormData(prevState => ({
+        ...prevState,
+        areas_seleccionadas: [
+          ...prevState.areas_seleccionadas,
+          { id_convocatoria_nivel: areaNivel.id_convocatoria_nivel }
+        ],
+        tutores_academicos: [
+          ...prevState.tutores_academicos,
+          {
+            id_convocatoria_nivel: areaNivel.id_convocatoria_nivel,
+            nombres: '',
+            apellidos: '',
+            ci: '',
+            telefono: '',
+            email: ''
+          }
+        ]
+      }));
+      // Actualizar el costo total
+      setCostoTotal(prevTotal => prevTotal + areaNivel.costo);
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="bg-white rounded-lg shadow-lg p-8">
@@ -165,8 +316,21 @@ export default function Registration() {
             </div>
             <div>
               <h2 className="text-lg font-semibold mb-1">Convocatoria Activa</h2>
-              <p className="text-sm text-gray-600 mb-1">Te estás inscribiendo a: <span className="font-semibold">Olimpiada Científica Estudiantil Plurinacional 2024</span></p>
-              <p className="text-sm text-gray-500">Periodo de inscripción: 01/03/2024 - 30/07/2024</p>
+              {isLoading ? (
+                <p className="text-sm text-gray-600 mb-1">Cargando información de convocatoria...</p>
+              ) : convocatoria ? (
+                <>
+                  <p className="text-sm text-gray-600 mb-1">Te estás inscribiendo a: <span className="font-semibold">{convocatoria.nombre}</span></p>
+                  <p className="text-sm text-gray-500">
+                    Periodo de inscripción: {new Date(convocatoria.fecha_inicio).toLocaleDateString()} - {new Date(convocatoria.fecha_fin).toLocaleDateString()}
+                  </p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Puedes inscribirte hasta en <span className="font-semibold">{convocatoria.max_areas}</span> áreas
+                  </p>
+                </>
+              ) : (
+                <p className="text-sm text-red-600 mb-1">No hay convocatorias activas en este momento</p>
+              )}
             </div>
           </div>
         </div>
@@ -495,15 +659,35 @@ export default function Registration() {
 
                 {/* Curso */}
                 <div>
-                  <label htmlFor="curso" className="block text-sm font-medium text-gray-700 mb-1">
-                    Curso
+                  <label htmlFor="id_grado" className="block text-sm font-medium text-gray-700 mb-1">
+                    Grado
                   </label>
                   <select
-                    id="curso"
-                    className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 bg-white"
+                    id="id_grado"
+                    name="id_grado"
+                    className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-800"
+                    value={formData.id_grado}
+                    onChange={(e) => {
+                      console.log("Grado seleccionado:", e.target.value);
+                      setFormData({...formData, id_grado: e.target.value});
+                    }}
                   >
-                    <option>Seleccione su curso</option>
+                    <option value="" className="text-gray-800">Seleccione su grado</option>
+                    {isLoading ? (
+                      <option disabled className="text-gray-800">Cargando grados...</option>
+                    ) : (
+                      grados.map((grado) => (
+                        <option key={grado.id} value={grado.id} className="text-gray-800">
+                          {grado.nombre || grado.nombre_grado}
+                        </option>
+                      ))
+                    )}
                   </select>
+                  {formData.id_grado && (
+                    <p className="text-xs text-green-600 mt-1">
+                      Los grados determinan las áreas y niveles disponibles en la siguiente sección.
+                    </p>
+                  )}
                 </div>
 
                 {/* Departamento */}
@@ -604,45 +788,32 @@ export default function Registration() {
                       <option>Otro</option>
                     </select>
                   </div>
-                </div>
 
-                {/* Correo Electrónico */}
-                <div className="mb-4">
-                  <label htmlFor="emailTutorLegal" className="block text-sm font-medium text-gray-700 mb-1">
-                    Correo Electrónico
-                  </label>
-                  <input
-                    type="email"
-                    id="emailTutorLegal"
-                    className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="correo@ejemplo.com"
-                  />
-                </div>
+                  {/* Correo Electrónico */}
+                  <div>
+                    <label htmlFor="emailTutorLegal" className="block text-sm font-medium text-gray-700 mb-1">
+                      Correo Electrónico
+                    </label>
+                    <input
+                      type="email"
+                      id="emailTutorLegal"
+                      className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="correo@ejemplo.com"
+                    />
+                  </div>
 
-                {/* Teléfono */}
-                <div className="mb-4">
-                  <label htmlFor="telefonoTutorLegal" className="block text-sm font-medium text-gray-700 mb-1">
-                    Teléfono
-                  </label>
-                  <input
-                    type="tel"
-                    id="telefonoTutorLegal"
-                    className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Número de teléfono"
-                  />
-                </div>
-
-                {/* Dirección */}
-                <div>
-                  <label htmlFor="direccionTutorLegal" className="block text-sm font-medium text-gray-700 mb-1">
-                    Dirección
-                  </label>
-                  <input
-                    type="text"
-                    id="direccionTutorLegal"
-                    className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Dirección completa"
-                  />
+                  {/* Teléfono */}
+                  <div>
+                    <label htmlFor="telefonoTutorLegal" className="block text-sm font-medium text-gray-700 mb-1">
+                      Teléfono
+                    </label>
+                    <input
+                      type="tel"
+                      id="telefonoTutorLegal"
+                      className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Número de teléfono"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -662,135 +833,81 @@ export default function Registration() {
             <div>
               <h3 className="text-lg font-semibold mb-2">Selección de Áreas</h3>
               <p className="text-sm text-gray-600 mb-6">
-                Selecciona las áreas y niveles en los que deseas participar en Olimpiada Científica Estudiantil Plurinacional 2024
+                Selecciona las áreas y niveles en los que deseas participar
+                {convocatoria && ` en ${convocatoria.nombre}`}
               </p>
 
-              <div className="mb-6">
-                <div className="flex justify-between items-center mb-4">
-                  <div className="flex items-center">
-                    <h4 className="text-base font-semibold">Áreas Seleccionadas</h4>
-                    <span className="ml-2 text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">1/3</span>
-                    <div className="ml-2 text-gray-400 cursor-help">
-                      <span>ⓘ</span>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs text-gray-500">Costo Total</p>
-                    <p className="font-bold">50 Bs.</p>
-                  </div>
+              {isLoading ? (
+                <div className="flex justify-center items-center h-60">
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
                 </div>
-
-                {/* Matemáticas */}
-                <div className="border rounded-lg p-4 mb-4">
-                  <div className="flex justify-between items-center mb-2">
-                    <h5 className="font-semibold">Matemáticas</h5>
+              ) : areasNiveles.length === 0 ? (
+                <div className="text-center p-8 border rounded-lg">
+                  <p className="text-gray-600 mb-2">No hay áreas disponibles para el grado seleccionado</p>
+                  <p className="text-sm text-gray-500">Por favor, selecciona otro grado o contacta con el administrador.</p>
+                </div>
+              ) : (
+                <div className="mb-6">
+                  <div className="flex justify-between items-center mb-4">
                     <div className="flex items-center">
-                      <span className="text-sm mr-2">50 Bs.</span>
-                      <input type="checkbox" className="h-5 w-5 text-blue-600" defaultChecked />
-                    </div>
-                  </div>
-                  <p className="text-sm text-gray-600 mb-4">Resolución de problemas, razonamiento lógico y pensamiento abstracto</p>
-                  <div>
-                    <p className="text-sm font-medium mb-2">Selecciona un nivel</p>
-                    <div className="space-y-2">
-                      <div className="flex items-center">
-                        <input 
-                          type="radio" 
-                          id="nivel-basico" 
-                          name="nivel-matematicas" 
-                          className="h-4 w-4 text-blue-600" 
-                          defaultChecked 
-                        />
-                        <label htmlFor="nivel-basico" className="ml-2 text-sm">
-                          Nivel Básico (Grados 1, 2)
-                        </label>
-                      </div>
-                      <div className="flex items-center">
-                        <input 
-                          type="radio" 
-                          id="nivel-intermedio" 
-                          name="nivel-matematicas" 
-                          className="h-4 w-4 text-blue-600" 
-                        />
-                        <label htmlFor="nivel-intermedio" className="ml-2 text-sm">
-                          Nivel Intermedio (Grados 3, 4)
-                        </label>
-                      </div>
-                      <div className="flex items-center">
-                        <input 
-                          type="radio" 
-                          id="nivel-avanzado" 
-                          name="nivel-matematicas" 
-                          className="h-4 w-4 text-blue-600" 
-                        />
-                        <label htmlFor="nivel-avanzado" className="ml-2 text-sm">
-                          Nivel Avanzado (Grados 5, 6)
-                        </label>
+                      <h4 className="text-base font-semibold">Áreas Disponibles</h4>
+                      {convocatoria && (
+                        <span className="ml-2 text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
+                          {selectedAreas.length}/{convocatoria.max_areas}
+                        </span>
+                      )}
+                      <div className="ml-2 text-gray-400 cursor-help" title="Puedes seleccionar hasta el máximo de áreas permitidas">
+                        <span>ⓘ</span>
                       </div>
                     </div>
-                  </div>
-                </div>
-
-                {/* Física */}
-                <div className="border rounded-lg p-4 mb-4">
-                  <div className="flex justify-between items-center mb-2">
-                    <h5 className="font-semibold">Física</h5>
-                    <div className="flex items-center">
-                      <span className="text-sm mr-2">50 Bs.</span>
-                      <input type="checkbox" className="h-5 w-5 text-blue-600" />
+                    <div className="text-right">
+                      <p className="text-xs text-gray-500">Costo Total</p>
+                      <p className="font-bold">{costoTotal} Bs.</p>
                     </div>
                   </div>
-                  <p className="text-sm text-gray-600">Fenómenos naturales, leyes físicas y resolución de problemas experimentales</p>
-                </div>
-
-                {/* Química */}
-                <div className="border rounded-lg p-4 mb-4">
-                  <div className="flex justify-between items-center mb-2">
-                    <h5 className="font-semibold">Química</h5>
-                    <div className="flex items-center">
-                      <span className="text-sm mr-2">50 Bs.</span>
-                      <input type="checkbox" className="h-5 w-5 text-blue-600" />
+                  
+                  {/* Mensaje de error */}
+                  {errorMessage && (
+                    <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-4 flex items-start">
+                      <AlertCircle className="h-5 w-5 text-red-600 mr-2 flex-shrink-0" />
+                      <p className="text-red-700 text-sm">{errorMessage}</p>
                     </div>
-                  </div>
-                  <p className="text-sm text-gray-600">Composición, estructura y propiedades de la materia y sus transformaciones</p>
-                </div>
+                  )}
 
-                {/* Biología */}
-                <div className="border rounded-lg p-4 mb-4">
-                  <div className="flex justify-between items-center mb-2">
-                    <h5 className="font-semibold">Biología</h5>
-                    <div className="flex items-center">
-                      <span className="text-sm mr-2">50 Bs.</span>
-                      <input type="checkbox" className="h-5 w-5 text-blue-600" />
+                  {/* Lista de áreas disponibles */}
+                  {areasNiveles.map((areaNivel) => (
+                    <div key={areaNivel.id_convocatoria_nivel} className="border rounded-lg p-4 mb-4">
+                      <div className="flex justify-between items-center mb-2">
+                        <h5 className="font-semibold">{areaNivel.area.nombre}</h5>
+                        <div className="flex items-center">
+                          <span className="text-sm mr-2">{areaNivel.costo} Bs.</span>
+                          <input 
+                            type="checkbox" 
+                            className="h-5 w-5 text-blue-600" 
+                            checked={selectedAreas.some(area => area.id_convocatoria_nivel === areaNivel.id_convocatoria_nivel)}
+                            onChange={() => handleAreaSelect(areaNivel)}
+                          />
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <p className="text-sm text-gray-600">Nivel: <strong>{areaNivel.nivel.nombre}</strong></p>
+                      </div>
+                      {selectedAreas.some(area => area.id_convocatoria_nivel === areaNivel.id_convocatoria_nivel) && (
+                        <div className="mt-3 pt-3 border-t">
+                          <p className="text-xs text-green-600">✓ Área seleccionada. En el siguiente paso deberás ingresar la información del tutor académico.</p>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                  <p className="text-sm text-gray-600">Estudio de los seres vivos, su estructura, función, evolución y reacciones</p>
-                </div>
-
-                {/* Informática */}
-                <div className="border rounded-lg p-4 mb-4">
-                  <div className="flex justify-between items-center mb-2">
-                    <h5 className="font-semibold">Informática</h5>
-                    <div className="flex items-center">
-                      <span className="text-sm mr-2">50 Bs.</span>
-                      <input type="checkbox" className="h-5 w-5 text-blue-600" />
+                  ))}
+                  
+                  {/* Mensaje para seleccionar al menos un área */}
+                  {selectedAreas.length === 0 && (
+                    <div className="text-center p-4 bg-yellow-50 border border-yellow-200 rounded-md mt-4">
+                      <p className="text-yellow-700 text-sm">Debes seleccionar al menos un área para continuar</p>
                     </div>
-                  </div>
-                  <p className="text-sm text-gray-600">Programación, algoritmos y resolución de problemas computacionales</p>
+                  )}
                 </div>
-
-                {/* Astronomía */}
-                <div className="border rounded-lg p-4 mb-4">
-                  <div className="flex justify-between items-center mb-2">
-                    <h5 className="font-semibold">Astronomía</h5>
-                    <div className="flex items-center">
-                      <span className="text-sm mr-2">50 Bs.</span>
-                      <input type="checkbox" className="h-5 w-5 text-blue-600" />
-                    </div>
-                  </div>
-                  <p className="text-sm text-gray-600">Estudio de los cuerpos celestes, sus movimientos y fenómenos asociados</p>
-                </div>
-              </div>
+              )}
 
               <div className="flex justify-between mt-6">
                 <button
@@ -800,8 +917,16 @@ export default function Registration() {
                   <span>Atrás</span>
                 </button>
                 <button
-                  onClick={() => setStep(3)}
+                  onClick={() => {
+                    if (selectedAreas.length === 0) {
+                      setErrorMessage('Debes seleccionar al menos un área para continuar');
+                      return;
+                    }
+                    setErrorMessage('');
+                    setStep(3);
+                  }}
                   className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 flex items-center"
+                  disabled={selectedAreas.length === 0}
                 >
                   <span className="mr-2">Continuar</span>
                   <ChevronRight size={16} />
@@ -1068,7 +1193,7 @@ export default function Registration() {
                   <h4 className="text-base font-semibold">Áreas Seleccionadas</h4>
                   <button className="text-gray-400">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clipRule="evenodd" />
+                      <path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293-3.293a1 1 0 01-1.414-1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
                     </svg>
                   </button>
                 </div>
