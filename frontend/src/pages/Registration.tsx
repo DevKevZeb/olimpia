@@ -14,7 +14,8 @@ export default function Registration() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadComplete, setUploadComplete] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState(''); // Error para sección "Completar Inscripción"
+  const [formErrorMessage, setFormErrorMessage] = useState(''); // Error para sección "Proceso de Inscripción"
   
   // Estados para la inscripción
   const [isLoading, setIsLoading] = useState(false);
@@ -298,6 +299,79 @@ export default function Registration() {
     }
   };
 
+  // Función para validar campos obligatorios del paso 1
+  const validateStep1 = () => {
+    // Lista de campos obligatorios del estudiante
+    const requiredFields = [
+      { field: formData.nombres, name: 'Nombres' },
+      { field: formData.apellidos, name: 'Apellidos' },
+      { field: formData.ci, name: 'Cédula de Identidad' },
+      { field: formData.fecha_nacimiento, name: 'Fecha de Nacimiento' },
+      { field: formData.email, name: 'Correo Electrónico' },
+      { field: formData.id_grado, name: 'Grado' },
+      { field: formData.unidad_educativa.nombre, name: 'Unidad Educativa' },
+    ];
+    
+    // Campos obligatorios del tutor legal
+    const requiredTutorFields = [
+      { field: formData.tutor_legal.nombres, name: 'Nombres del Tutor Legal' },
+      { field: formData.tutor_legal.apellidos, name: 'Apellidos del Tutor Legal' },
+      { field: formData.tutor_legal.ci, name: 'CI del Tutor Legal' },
+      { field: formData.tutor_legal.email, name: 'Email del Tutor Legal' },
+      { field: formData.tutor_legal.telefono, name: 'Teléfono del Tutor Legal' },
+      { field: formData.tutor_legal.parentesco, name: 'Parentesco del Tutor Legal' },
+    ];
+    
+    // Verificar campos del estudiante
+    for (const { field, name } of requiredFields) {
+      if (!field || field.trim() === '') {
+        setFormErrorMessage(`El campo ${name} es obligatorio`);
+        return false;
+      }
+    }
+    
+    // Verificar campos del tutor legal
+    for (const { field, name } of requiredTutorFields) {
+      if (!field || field.trim() === '') {
+        setFormErrorMessage(`El campo ${name} es obligatorio`);
+        return false;
+      }
+    }
+    
+    // Validar formato de email del estudiante
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setFormErrorMessage('El formato del correo electrónico no es válido');
+      return false;
+    }
+    
+    // Validar formato de email del tutor legal
+    if (!emailRegex.test(formData.tutor_legal.email)) {
+      setFormErrorMessage('El formato del correo electrónico del tutor legal no es válido');
+      return false;
+    }
+    
+    // Si todo es válido
+    setFormErrorMessage('');
+    return true;
+  };
+  
+  // Función para manejar el cambio al siguiente paso
+  const handleNextStep = () => {
+    if (step === 1 && validateStep1()) {
+      setStep(2);
+    } else if (step === 2) {
+      if (selectedAreas.length === 0) {
+        setFormErrorMessage('Debes seleccionar al menos un área para continuar');
+        return;
+      }
+      setFormErrorMessage('');
+      setStep(3);
+    } else if (step === 3) {
+      setStep(4);
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="bg-white rounded-lg shadow-lg p-8">
@@ -560,57 +634,78 @@ export default function Registration() {
             <div>
               <h3 className="text-lg font-semibold mb-2">Datos Personales</h3>
               <p className="text-sm text-gray-600 mb-6">Ingrese sus datos personales para la inscripción</p>
+              
+              {/* Mensaje de error del formulario */}
+              {formErrorMessage && (
+                <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-4 flex items-start">
+                  <AlertCircle className="h-5 w-5 text-red-600 mr-2 flex-shrink-0" />
+                  <p className="text-red-700 text-sm">{formErrorMessage}</p>
+                </div>
+              )}
+              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 {/* Nombres */}
                 <div>
                   <label htmlFor="nombres" className="block text-sm font-medium text-gray-700 mb-1">
-                    Nombres
+                    Nombres<span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     id="nombres"
                     className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Ingrese sus nombres"
+                    value={formData.nombres}
+                    onChange={(e) => setFormData({...formData, nombres: e.target.value})}
+                    required
                   />
                 </div>
 
                 {/* Apellidos */}
                 <div>
                   <label htmlFor="apellidos" className="block text-sm font-medium text-gray-700 mb-1">
-                    Apellidos
+                    Apellidos<span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     id="apellidos"
                     className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Ingrese sus apellidos"
+                    value={formData.apellidos}
+                    onChange={(e) => setFormData({...formData, apellidos: e.target.value})}
+                    required
                   />
                 </div>
 
                 {/* Cédula de Identidad */}
                 <div>
                   <label htmlFor="cedula" className="block text-sm font-medium text-gray-700 mb-1">
-                    Cédula de Identidad
+                    Cédula de Identidad<span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     id="cedula"
                     className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Número de CI"
+                    value={formData.ci}
+                    onChange={(e) => setFormData({...formData, ci: e.target.value})}
+                    required
                   />
                 </div>
 
                 {/* Fecha de Nacimiento */}
                 <div>
                   <label htmlFor="fechaNacimiento" className="block text-sm font-medium text-gray-700 mb-1">
-                    Fecha de Nacimiento
+                    Fecha de Nacimiento<span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <input
-                      type="text"
+                      type="date"
                       id="fechaNacimiento"
                       className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Seleccione una fecha"
+                      value={formData.fecha_nacimiento}
+                      onChange={(e) => setFormData({...formData, fecha_nacimiento: e.target.value})}
+                      required
                     />
                     <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                       <Calendar size={18} className="text-gray-400" />
@@ -621,13 +716,16 @@ export default function Registration() {
                 {/* Correo Electrónico */}
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                    Correo Electrónico
+                    Correo Electrónico<span className="text-red-500">*</span>
                   </label>
                   <input
                     type="email"
                     id="email"
                     className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
                     placeholder="ejemplo@email.com"
+                    value={formData.email}
+                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    required
                   />
                 </div>
 
@@ -644,23 +742,32 @@ export default function Registration() {
                   />
                 </div>
 
-                {/* Unidad Educativa */}
+                {/* Unidad Educativa - Cambiado de dropdown a campo de texto */}
                 <div>
                   <label htmlFor="unidadEducativa" className="block text-sm font-medium text-gray-700 mb-1">
-                    Unidad Educativa
+                    Unidad Educativa<span className="text-red-500">*</span>
                   </label>
-                  <select
+                  <input
+                    type="text"
                     id="unidadEducativa"
-                    className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 bg-white"
-                  >
-                    <option>Seleccione su unidad educativa</option>
-                  </select>
+                    className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Ingrese su unidad educativa"
+                    value={formData.unidad_educativa.nombre}
+                    onChange={(e) => setFormData({
+                      ...formData, 
+                      unidad_educativa: {
+                        ...formData.unidad_educativa,
+                        nombre: e.target.value
+                      }
+                    })}
+                    required
+                  />
                 </div>
 
                 {/* Curso */}
                 <div>
                   <label htmlFor="id_grado" className="block text-sm font-medium text-gray-700 mb-1">
-                    Grado
+                    Grado<span className="text-red-500">*</span>
                   </label>
                   <select
                     id="id_grado"
@@ -671,6 +778,7 @@ export default function Registration() {
                       console.log("Grado seleccionado:", e.target.value);
                       setFormData({...formData, id_grado: e.target.value});
                     }}
+                    required
                   >
                     <option value="" className="text-gray-800">Seleccione su grado</option>
                     {isLoading ? (
@@ -693,35 +801,53 @@ export default function Registration() {
                 {/* Departamento */}
                 <div>
                   <label htmlFor="departamento" className="block text-sm font-medium text-gray-700 mb-1">
-                    Departamento
+                    Departamento<span className="text-red-500">*</span>
                   </label>
                   <select
                     id="departamento"
                     className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 bg-white"
+                    value={formData.unidad_educativa.departamento}
+                    onChange={(e) => setFormData({
+                      ...formData, 
+                      unidad_educativa: {
+                        ...formData.unidad_educativa,
+                        departamento: e.target.value
+                      }
+                    })}
+                    required
                   >
-                    <option>Seleccione su departamento</option>
-                    <option>La Paz</option>
-                    <option>Santa Cruz</option>
-                    <option>Cochabamba</option>
-                    <option>Oruro</option>
-                    <option>Potosí</option>
-                    <option>Tarija</option>
-                    <option>Beni</option>
-                    <option>Pando</option>
-                    <option>Chuquisaca</option>
+                    <option value="">Seleccione su departamento</option>
+                    <option value="La Paz">La Paz</option>
+                    <option value="Santa Cruz">Santa Cruz</option>
+                    <option value="Cochabamba">Cochabamba</option>
+                    <option value="Oruro">Oruro</option>
+                    <option value="Potosí">Potosí</option>
+                    <option value="Tarija">Tarija</option>
+                    <option value="Beni">Beni</option>
+                    <option value="Pando">Pando</option>
+                    <option value="Chuquisaca">Chuquisaca</option>
                   </select>
                 </div>
                 
                 {/* Provincia */}
                 <div>
                   <label htmlFor="provincia" className="block text-sm font-medium text-gray-700 mb-1">
-                    Provincia
+                    Provincia<span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     id="provincia"
                     className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Ingrese su provincia"
+                    value={formData.unidad_educativa.provincia}
+                    onChange={(e) => setFormData({
+                      ...formData, 
+                      unidad_educativa: {
+                        ...formData.unidad_educativa,
+                        provincia: e.target.value
+                      }
+                    })}
+                    required
                   />
                 </div>
               </div>
@@ -734,84 +860,138 @@ export default function Registration() {
                   {/* Nombres */}
                   <div>
                     <label htmlFor="nombresTutorLegal" className="block text-sm font-medium text-gray-700 mb-1">
-                      Nombres
+                      Nombres<span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       id="nombresTutorLegal"
                       className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Nombres del tutor"
+                      value={formData.tutor_legal.nombres}
+                      onChange={(e) => setFormData({
+                        ...formData, 
+                        tutor_legal: {
+                          ...formData.tutor_legal,
+                          nombres: e.target.value
+                        }
+                      })}
+                      required
                     />
                   </div>
 
                   {/* Apellidos */}
                   <div>
                     <label htmlFor="apellidosTutorLegal" className="block text-sm font-medium text-gray-700 mb-1">
-                      Apellidos
+                      Apellidos<span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       id="apellidosTutorLegal"
                       className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Apellidos del tutor"
+                      value={formData.tutor_legal.apellidos}
+                      onChange={(e) => setFormData({
+                        ...formData, 
+                        tutor_legal: {
+                          ...formData.tutor_legal,
+                          apellidos: e.target.value
+                        }
+                      })}
+                      required
                     />
                   </div>
 
                   {/* Cédula de Identidad */}
                   <div>
                     <label htmlFor="cedulaTutorLegal" className="block text-sm font-medium text-gray-700 mb-1">
-                      Cédula de Identidad
+                      Cédula de Identidad<span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       id="cedulaTutorLegal"
                       className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Número de CI"
+                      value={formData.tutor_legal.ci}
+                      onChange={(e) => setFormData({
+                        ...formData, 
+                        tutor_legal: {
+                          ...formData.tutor_legal,
+                          ci: e.target.value
+                        }
+                      })}
+                      required
                     />
                   </div>
 
                   {/* Parentesco */}
                   <div>
                     <label htmlFor="parentesco" className="block text-sm font-medium text-gray-700 mb-1">
-                      Parentesco
+                      Parentesco<span className="text-red-500">*</span>
                     </label>
                     <select
                       id="parentesco"
                       className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 bg-white"
+                      value={formData.tutor_legal.parentesco}
+                      onChange={(e) => setFormData({
+                        ...formData, 
+                        tutor_legal: {
+                          ...formData.tutor_legal,
+                          parentesco: e.target.value
+                        }
+                      })}
+                      required
                     >
-                      <option>Selecciona el parentesco</option>
-                      <option>Padre</option>
-                      <option>Madre</option>
-                      <option>Abuelo/a</option>
-                      <option>Tío/a</option>
-                      <option>Hermano/a</option>
-                      <option>Otro</option>
+                      <option value="">Selecciona el parentesco</option>
+                      <option value="Padre">Padre</option>
+                      <option value="Madre">Madre</option>
+                      <option value="Abuelo/a">Abuelo/a</option>
+                      <option value="Tío/a">Tío/a</option>
+                      <option value="Hermano/a">Hermano/a</option>
+                      <option value="Otro">Otro</option>
                     </select>
                   </div>
 
                   {/* Correo Electrónico */}
                   <div>
                     <label htmlFor="emailTutorLegal" className="block text-sm font-medium text-gray-700 mb-1">
-                      Correo Electrónico
+                      Correo Electrónico<span className="text-red-500">*</span>
                     </label>
                     <input
                       type="email"
                       id="emailTutorLegal"
                       className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
                       placeholder="correo@ejemplo.com"
+                      value={formData.tutor_legal.email}
+                      onChange={(e) => setFormData({
+                        ...formData, 
+                        tutor_legal: {
+                          ...formData.tutor_legal,
+                          email: e.target.value
+                        }
+                      })}
+                      required
                     />
                   </div>
 
                   {/* Teléfono */}
                   <div>
                     <label htmlFor="telefonoTutorLegal" className="block text-sm font-medium text-gray-700 mb-1">
-                      Teléfono
+                      Teléfono<span className="text-red-500">*</span>
                     </label>
                     <input
                       type="tel"
                       id="telefonoTutorLegal"
                       className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Número de teléfono"
+                      value={formData.tutor_legal.telefono}
+                      onChange={(e) => setFormData({
+                        ...formData, 
+                        tutor_legal: {
+                          ...formData.tutor_legal,
+                          telefono: e.target.value
+                        }
+                      })}
+                      required
                     />
                   </div>
                 </div>
@@ -819,7 +999,7 @@ export default function Registration() {
 
               <div className="flex justify-end">
                 <button
-                  onClick={() => setStep(2)}
+                  onClick={handleNextStep}
                   className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 flex items-center"
                 >
                   <span className="mr-2">Continuar</span>
@@ -867,10 +1047,10 @@ export default function Registration() {
                   </div>
                   
                   {/* Mensaje de error */}
-                  {errorMessage && (
+                  {formErrorMessage && (
                     <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-4 flex items-start">
                       <AlertCircle className="h-5 w-5 text-red-600 mr-2 flex-shrink-0" />
-                      <p className="text-red-700 text-sm">{errorMessage}</p>
+                      <p className="text-red-700 text-sm">{formErrorMessage}</p>
                     </div>
                   )}
 
@@ -917,14 +1097,7 @@ export default function Registration() {
                   <span>Atrás</span>
                 </button>
                 <button
-                  onClick={() => {
-                    if (selectedAreas.length === 0) {
-                      setErrorMessage('Debes seleccionar al menos un área para continuar');
-                      return;
-                    }
-                    setErrorMessage('');
-                    setStep(3);
-                  }}
+                  onClick={handleNextStep}
                   className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 flex items-center"
                   disabled={selectedAreas.length === 0}
                 >
@@ -1104,7 +1277,7 @@ export default function Registration() {
                   <span>Atrás</span>
                 </button>
                 <button
-                  onClick={() => setStep(4)}
+                  onClick={handleNextStep}
                   className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 flex items-center"
                 >
                   <span className="mr-2">Continuar</span>
@@ -1127,7 +1300,7 @@ export default function Registration() {
                   <h4 className="text-base font-semibold">Información de la Convocatoria</h4>
                   <button className="text-gray-400">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l-3.293-3.293a1 1 011.414-1.414l-4 4a1 1 01-1.414 0l-4-4a1 1 010-1.414z" clipRule="evenodd" />
                     </svg>
                   </button>
                 </div>
@@ -1139,7 +1312,7 @@ export default function Registration() {
                   <h4 className="text-base font-semibold">Datos Personales</h4>
                   <button className="text-gray-400">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                      <path fillRule="evenodd" d="M5.293 7.293a1 1 011.414 0L10 10.586l-3.293-3.293a1 1 011.414-1.414l-4 4a1 1 01-1.414 0l-4-4a1 1 010-1.414z" clipRule="evenodd" />
                     </svg>
                   </button>
                 </div>
@@ -1193,7 +1366,7 @@ export default function Registration() {
                   <h4 className="text-base font-semibold">Áreas Seleccionadas</h4>
                   <button className="text-gray-400">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293-3.293a1 1 0 01-1.414-1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                      <path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293-3.293a1 1 011.414-1.414l-4 4a1 1 01-1.414 0l-4-4a1 1 010-1.414z" clipRule="evenodd" />
                     </svg>
                   </button>
                 </div>
@@ -1229,7 +1402,7 @@ export default function Registration() {
                   <h4 className="text-base font-semibold">Información de Tutores</h4>
                   <button className="text-gray-400">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                      <path fillRule="evenodd" d="M5.293 7.293a1 1 011.414 0L10 10.586l-3.293-3.293a1 1 011.414-1.414l-4 4a1 1 01-1.414 0l-4-4a1 1 010-1.414z" clipRule="evenodd" />
                     </svg>
                   </button>
                 </div>
@@ -1298,7 +1471,7 @@ export default function Registration() {
                 </div>
                 <button className="w-full bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 flex items-center justify-center">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+                    <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 112 0v7.586l1.293-1.293a1 1 011.414 1.414l-3 3a1 1 01-1.414 0l-3-3a1 1 010-1.414z" clipRule="evenodd" />
                   </svg>
                   Descargar Boleta de Pago
                 </button>
