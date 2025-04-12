@@ -1262,23 +1262,25 @@ export default function Registration() {
                           </div>
                         </div>
 
-                        {/* Institución */}
+                        {/* Cédula de Identidad */}
                         <div>
-                          <label htmlFor={`institucion_${area.id_convocatoria_nivel}`} className="block text-sm font-medium text-gray-700 mb-1">
-                            Institución
+                          <label htmlFor={`ci_${area.id_convocatoria_nivel}`} className="block text-sm font-medium text-gray-700 mb-1">
+                            Cédula de Identidad
                           </label>
                           <input
                             type="text"
-                            id={`institucion_${area.id_convocatoria_nivel}`}
+                            id={`ci_${area.id_convocatoria_nivel}`}
                             className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="Institución educativa"
-                            value={tutorIndex >= 0 && formData.tutores_academicos[tutorIndex].institucion ? formData.tutores_academicos[tutorIndex].institucion : ''}
+                            placeholder="Ingrese solo números"
+                            value={tutorIndex >= 0 && formData.tutores_academicos[tutorIndex].ci ? formData.tutores_academicos[tutorIndex].ci : ''}
                             onChange={(e) => {
+                              // Validar que solo se ingresen números
+                              const value = e.target.value.replace(/[^0-9]/g, '');
                               const newTutores = [...formData.tutores_academicos];
                               if (tutorIndex >= 0) {
                                 newTutores[tutorIndex] = { 
                                   ...newTutores[tutorIndex], 
-                                  institucion: e.target.value 
+                                  ci: value 
                                 };
                                 setFormData({...formData, tutores_academicos: newTutores});
                               }
@@ -1326,6 +1328,24 @@ export default function Registration() {
                     </svg>
                   </button>
                 </div>
+                {convocatoria && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <p className="text-sm text-gray-500">Nombre</p>
+                      <p className="font-medium">{convocatoria.nombre}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Período de Inscripción</p>
+                      <p className="font-medium">
+                        {new Date(convocatoria.fecha_inicio).toLocaleDateString()} - {new Date(convocatoria.fecha_fin).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Áreas máximas</p>
+                      <p className="font-medium">{convocatoria.max_areas}</p>
+                    </div>
+                  </div>
+                )}
               </div>
               
               {/* Datos Personales */}
@@ -1341,43 +1361,71 @@ export default function Registration() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div>
                     <p className="text-sm text-gray-500">Nombres</p>
-                    <p className="font-medium">Juan Carlos</p>
+                    <p className="font-medium">{formData.nombres}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Apellidos</p>
-                    <p className="font-medium">Pérez Gómez</p>
+                    <p className="font-medium">{formData.apellidos}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">CI</p>
-                    <p className="font-medium">12345678</p>
+                    <p className="font-medium">{formData.ci}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Fecha Nacimiento</p>
-                    <p className="font-medium">15/05/2006</p>
+                    <p className="font-medium">{formData.fecha_nacimiento}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Email</p>
-                    <p className="font-medium">juan.perez@gmail.com</p>
+                    <p className="font-medium">{formData.email}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Teléfono</p>
-                    <p className="font-medium">70123456</p>
+                    <p className="text-sm text-gray-500">Grado</p>
+                    <p className="font-medium">
+                      {grados.find(grado => grado.id.toString() === formData.id_grado.toString())?.nombre || ''}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Unidad Educativa</p>
-                    <p className="font-medium">Colegio San Agustín</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Curso</p>
-                    <p className="font-medium">4° de Secundaria</p>
+                    <p className="font-medium">{formData.unidad_educativa.nombre}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Departamento</p>
-                    <p className="font-medium">La Paz</p>
+                    <p className="font-medium">{formData.unidad_educativa.departamento}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Provincia</p>
-                    <p className="font-medium">Murillo</p>
+                    <p className="font-medium">{formData.unidad_educativa.provincia}</p>
+                  </div>
+                </div>
+
+                <div className="mt-4 pt-4 border-t">
+                  <h5 className="font-medium mb-2">Información del Tutor Legal</h5>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-500">Nombres</p>
+                      <p className="font-medium">{formData.tutor_legal.nombres}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Apellidos</p>
+                      <p className="font-medium">{formData.tutor_legal.apellidos}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">CI</p>
+                      <p className="font-medium">{formData.tutor_legal.ci}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Parentesco</p>
+                      <p className="font-medium">{formData.tutor_legal.parentesco}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Email</p>
+                      <p className="font-medium">{formData.tutor_legal.email}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Teléfono</p>
+                      <p className="font-medium">{formData.tutor_legal.telefono}</p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1392,42 +1440,105 @@ export default function Registration() {
                     </svg>
                   </button>
                 </div>
-                <div className="space-y-3">
-                  <div className="bg-gray-50 p-3 rounded-md">
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <p className="font-medium">Matemáticas</p>
-                        <p className="text-sm text-gray-500">Nivel Intermedio</p>
+                {selectedAreas.length === 0 ? (
+                  <p className="text-center text-gray-500 py-4">No se han seleccionado áreas</p>
+                ) : (
+                  <div className="space-y-3">
+                    {selectedAreas.map(area => (
+                      <div key={area.id_convocatoria_nivel} className="bg-gray-50 p-3 rounded-md">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <p className="font-medium">{area.area_nombre}</p>
+                            <p className="text-sm text-gray-500">Nivel: {area.nivel_nombre}</p>
+                          </div>
+                          <p className="font-medium">{area.costo} Bs.</p>
+                        </div>
                       </div>
-                      <p className="font-medium">50 Bs.</p>
+                    ))}
+                    <div className="flex justify-between items-center p-2">
+                      <p className="font-medium">Total</p>
+                      <p className="font-bold">{costoTotal} Bs.</p>
                     </div>
                   </div>
-                  <div className="bg-gray-50 p-3 rounded-md">
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <p className="font-medium">Física</p>
-                        <p className="text-sm text-gray-500">Nivel Intermedio</p>
-                      </div>
-                      <p className="font-medium">50 Bs.</p>
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-center p-2">
-                    <p className="font-medium">Total</p>
-                    <p className="font-bold">100 Bs.</p>
-                  </div>
-                </div>
+                )}
               </div>
 
-              {/* Información de Tutores */}
+              {/* Información de Tutores Académicos */}
               <div className="border-b pb-4 mb-4">
                 <div className="flex justify-between items-center mb-2">
-                  <h4 className="text-base font-semibold">Información de Tutores</h4>
+                  <h4 className="text-base font-semibold">Información de Tutores Académicos</h4>
                   <button className="text-gray-400">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M5.293 7.293a1 1 011.414 0L10 10.586l-3.293-3.293a1 1 011.414-1.414l-4 4a1 1 01-1.414 0l-4-4a1 1 010-1.414z" clipRule="evenodd" />
                     </svg>
                   </button>
                 </div>
+                
+                {selectedAreas.length === 0 ? (
+                  <p className="text-center text-gray-500 py-4">No hay información de tutores académicos</p>
+                ) : (
+                  <div className="space-y-4">
+                    {selectedAreas.map(area => {
+                      const tutor = formData.tutores_academicos.find(
+                        t => t.id_convocatoria_nivel === area.id_convocatoria_nivel
+                      );
+                      
+                      if (!tutor) return null;
+                      
+                      // Verificar si el tutor tiene al menos un campo con datos
+                      const hasTutorData = tutor.nombres || tutor.apellidos || tutor.email || tutor.telefono || tutor.ci;
+                      
+                      return (
+                        <div key={area.id_convocatoria_nivel} className="p-3 border border-gray-200 rounded-md">
+                          <h5 className="font-medium mb-2">Tutor para {area.area_nombre}</h5>
+                          
+                          {hasTutorData ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                              {tutor.nombres && (
+                                <div>
+                                  <p className="text-sm text-gray-500">Nombres</p>
+                                  <p className="text-sm">{tutor.nombres}</p>
+                                </div>
+                              )}
+                              {tutor.apellidos && (
+                                <div>
+                                  <p className="text-sm text-gray-500">Apellidos</p>
+                                  <p className="text-sm">{tutor.apellidos}</p>
+                                </div>
+                              )}
+                              {tutor.ci && (
+                                <div>
+                                  <p className="text-sm text-gray-500">Cédula de Identidad</p>
+                                  <p className="text-sm">{tutor.ci}</p>
+                                </div>
+                              )}
+                              {tutor.email && (
+                                <div>
+                                  <p className="text-sm text-gray-500">Email</p>
+                                  <p className="text-sm">{tutor.email}</p>
+                                </div>
+                              )}
+                              {tutor.telefono && (
+                                <div>
+                                  <p className="text-sm text-gray-500">Teléfono</p>
+                                  <p className="text-sm">{tutor.telefono}</p>
+                                </div>
+                              )}
+                              {tutor.institucion && (
+                                <div className="col-span-2">
+                                  <p className="text-sm text-gray-500">Institución</p>
+                                  <p className="text-sm">{tutor.institucion}</p>
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <p className="text-sm text-gray-500">No se ingresó información del tutor</p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* Boleta de Pago */}
@@ -1440,17 +1551,17 @@ export default function Registration() {
                   <div className="flex justify-between items-center mb-4">
                     <div>
                       <p className="text-sm text-gray-500">Código de Inscripción</p>
-                      <p className="font-medium">OCEP-2024-12345</p>
+                      <p className="font-medium">OCEP-{new Date().getFullYear()}-{Math.floor(10000 + Math.random() * 90000)}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-sm text-gray-500">Fecha</p>
-                      <p className="font-medium">4/6/2025</p>
+                      <p className="font-medium">{new Date().toLocaleDateString()}</p>
                     </div>
                   </div>
                   <div className="mb-4">
                     <p className="text-sm text-gray-500">Estudiante</p>
-                    <p className="font-medium">Juan Carlos Pérez Gómez</p>
-                    <p className="text-sm text-gray-500">CI: 12345678</p>
+                    <p className="font-medium">{formData.nombres} {formData.apellidos}</p>
+                    <p className="text-sm text-gray-500">CI: {formData.ci}</p>
                   </div>
                   <div className="mb-4">
                     <p className="text-sm font-medium mb-2">Detalle</p>
@@ -1460,24 +1571,23 @@ export default function Registration() {
                         <div>Nivel</div>
                         <div className="text-right">Costo</div>
                       </div>
-                      <div className="grid grid-cols-3 gap-2 mb-1 text-sm">
-                        <div>Matemáticas</div>
-                        <div>Nivel Intermedio</div>
-                        <div className="text-right">50 Bs.</div>
-                      </div>
-                      <div className="grid grid-cols-3 gap-2 text-sm">
-                        <div>Física</div>
-                        <div>Nivel Intermedio</div>
-                        <div className="text-right">50 Bs.</div>
-                      </div>
+                      
+                      {selectedAreas.map(area => (
+                        <div key={area.id_convocatoria_nivel} className="grid grid-cols-3 gap-2 mb-1 text-sm">
+                          <div>{area.area_nombre}</div>
+                          <div>{area.nivel_nombre}</div>
+                          <div className="text-right">{area.costo} Bs.</div>
+                        </div>
+                      ))}
                     </div>
+                    
                     <div className="flex justify-between items-center py-2 text-sm">
                       <p className="font-medium">Subtotal</p>
-                      <p className="font-medium">100 Bs.</p>
+                      <p className="font-medium">{costoTotal} Bs.</p>
                     </div>
                     <div className="flex justify-between items-center py-2 text-sm font-bold">
                       <p>TOTAL A PAGAR</p>
-                      <p>100 Bs.</p>
+                      <p>{costoTotal} Bs.</p>
                     </div>
                   </div>
                 </div>
@@ -1491,7 +1601,13 @@ export default function Registration() {
                     <li>Suba el comprobante de pago para finalizar su inscripción</li>
                   </ol>
                 </div>
-                <button className="w-full bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 flex items-center justify-center">
+                <button
+                  className="w-full bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 flex items-center justify-center"
+                  onClick={() => {
+                    // Aquí iría la lógica para generar y descargar la boleta
+                    alert('Generando boleta de pago...');
+                  }}
+                >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 01-1-1zm3.293-7.707a1 1 011.414 0L9 10.586V3a1 1 112 0v7.586l1.293-1.293a1 1 011.414 1.414l-3 3a1 1 01-1.414 0l-3-3a1 1 010-1.414z" clipRule="evenodd" />
                   </svg>
@@ -1507,6 +1623,10 @@ export default function Registration() {
                   Atrás
                 </button>
                 <button
+                  onClick={() => {
+                    // Aquí iría la lógica para finalizar la inscripción
+                    alert('Inscripción en proceso de finalización. Se generará su boleta de pago.');
+                  }}
                   className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700"
                 >
                   Completar Inscripción
