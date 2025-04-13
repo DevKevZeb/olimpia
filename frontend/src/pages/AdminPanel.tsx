@@ -47,12 +47,19 @@ export default function AdminPanel() {
     fetchData();
   }, []);
 
-  // Cargar las áreas de una convocatoria cuando cambia la selección
+  // Cargar las áreas de una convocatoria cuando cambia la selección en "Asignar Áreas"
   useEffect(() => {
     if (selectedConvocatoria) {
       fetchAreasPorConvocatoria(selectedConvocatoria);
     }
   }, [selectedConvocatoria]);
+
+  // Cargar las áreas de una convocatoria cuando cambia la selección en "Configurar Niveles"
+  useEffect(() => {
+    if (selectedConvocatoriaNiveles) {
+      fetchAreasPorConvocatoria(selectedConvocatoriaNiveles);
+    }
+  }, [selectedConvocatoriaNiveles]);
 
   // Función para cargar datos generales
   const fetchData = async () => {
@@ -796,8 +803,26 @@ export default function AdminPanel() {
                           {convocatoria.estado.charAt(0).toUpperCase() + convocatoria.estado.slice(1)}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {convocatoria.areas_count || '0'} áreas
+                      <td className="px-6 py-4">
+                        {convocatoria.areas && convocatoria.areas.length > 0 ? (
+                          <div>
+                            <div className="text-xs font-medium text-gray-700 mb-1">
+                              {convocatoria.areas.length} {convocatoria.areas.length === 1 ? 'área' : 'áreas'}:
+                            </div>
+                            <div className="flex flex-wrap gap-1">
+                              {convocatoria.areas.map((areaItem) => (
+                                <span 
+                                  key={`area-${convocatoria.id_convocatoria}-${areaItem.id_area}`}
+                                  className="inline-block bg-blue-50 text-blue-700 px-2 py-1 rounded-full text-xs"
+                                >
+                                  {areaItem.area ? areaItem.area.nombre_area : `Área ${areaItem.id_area}`}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-xs text-gray-500">Sin áreas asignadas</div>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button 
