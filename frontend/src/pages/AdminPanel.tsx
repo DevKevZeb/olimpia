@@ -24,6 +24,10 @@ export default function AdminPanel() {
   const [areasConvocatoria, setAreasConvocatoria] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   
+  // Estado nuevo para áreas ya asignadas a la convocatoria seleccionada
+  const [areasAsignadas, setAreasAsignadas] = useState([]);
+  const [areasDisponibles, setAreasDisponibles] = useState([]);
+  
   // Estados para formulario de Crear Convocatoria
   const [formDataConvocatoria, setFormDataConvocatoria] = useState({
     nombre: '',
@@ -58,9 +62,31 @@ export default function AdminPanel() {
   // Cargar las áreas de una convocatoria cuando cambia la selección en "Asignar Áreas"
   useEffect(() => {
     if (selectedConvocatoria) {
-      fetchAreasPorConvocatoria(selectedConvocatoria);
+      setIsLoading(true);
+      
+      // Obtener áreas asignadas a la convocatoria seleccionada
+      getAreasPorConvocatoria(selectedConvocatoria)
+        .then(areasAsignadas => {
+          // Guardar las áreas ya asignadas
+          setAreasAsignadas(areasAsignadas);
+          
+          // Filtrar las áreas disponibles (todas las áreas menos las ya asignadas)
+          const idsAreasAsignadas = areasAsignadas.map(area => area.id_area);
+          const disponibles = areas.filter(area => !idsAreasAsignadas.includes(area.id_area));
+          
+          setAreasDisponibles(disponibles);
+          setIsLoading(false);
+        })
+        .catch(error => {
+          console.error('Error al cargar áreas asignadas:', error);
+          setIsLoading(false);
+        });
+    } else {
+      // Si no hay convocatoria seleccionada, resetear estados
+      setAreasAsignadas([]);
+      setAreasDisponibles(areas);
     }
-  }, [selectedConvocatoria]);
+  }, [selectedConvocatoria, areas]);
 
   // Cargar las áreas de una convocatoria cuando cambia la selección en "Configurar Niveles"
   useEffect(() => {
@@ -300,6 +326,7 @@ export default function AdminPanel() {
       alert('Áreas asignadas exitosamente');
       setSelectedAreas([]);
       setShowAsignarAreasForm(false);
+      fetchData(); // Actualizar los datos después de asignar áreas
     } catch (error) {
       console.error('Error al asignar áreas:', error);
       alert('Error al asignar áreas. Por favor, inténtelo de nuevo.');
@@ -658,7 +685,10 @@ export default function AdminPanel() {
               <label className="block text-gray-700 font-medium mb-2">Seleccionar Convocatoria</label>
               <select
                 value={selectedConvocatoria}
-                onChange={(e) => setSelectedConvocatoria(e.target.value)}
+                onChange={(e) => {
+                  setSelectedConvocatoria(e.target.value);
+                  setSelectedAreas([]);  // Resetear áreas seleccionadas al cambiar de convocatoria
+                }}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2"
                 required
               >
@@ -671,52 +701,98 @@ export default function AdminPanel() {
               </select>
             </div>
             
-            {/* Selector de Áreas */}
-            {selectedConvocatoria && (
-              <div className="mb-8">
-                <h3 className="text-xl font-bold mb-4">Áreas disponibles</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {areas.map((area) => (
+            {/* Mostrar áreas ya asignadas si hay alguna */}
+            {selectedConvocatoria && areasAsignadas.length > 0 && (
+              <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-700 mb-3">Áreas ya asignadas</h3>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {areasAsignadas.map(area => (
                     <div 
-                      key={area.id_area} 
-                      className={`border rounded-lg p-4 cursor-pointer transition-all ${
-                        selectedAreas.some(a => a.id_area === area.id_area) 
-                          ? 'border-blue-500 bg-blue-50' 
-                          : 'hover:border-gray-400'
-                      }`}
-                      onClick={() => handleAreaSelect(area.id_area)}
+                      key={`assigned-${area.id_area}`} 
+                      className="px-3 py-2 bg-blue-100 text-blue-800 rounded-md flex items-center"
                     >
-                      <div className="flex items-center mb-2">
-                        <input
-                          type="checkbox"
-                          checked={selectedAreas.some(a => a.id_area === area.id_area)}
-                          onChange={() => {}}
-                          className="mr-3 h-4 w-4 text-blue-600"
-                        />
-                        <label className="font-medium text-gray-700">
-                          {area.nombre_area}
-                        </label>
-                      </div>
-                      
-                      {selectedAreas.some(a => a.id_area === area.id_area) && (
-                        <div className="mt-3 pt-3 border-t border-gray-200">
-                          <label className="block text-sm text-gray-600 mb-1">Costo de Inscripción (Bs.)</label>
-                          <input
-                            type="number"
-                            min="1"
-                            step="1"
-                            value={selectedAreas.find(a => a.id_area === area.id_area)?.costo_inscripcion || ''}
-                            onChange={(e) => handleAreaCostChange(area.id_area, e.target.value)}
-                            className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
-                            placeholder="Ingrese costo"
-                            onClick={(e) => e.stopPropagation()}
-                            required
-                          />
-                        </div>
-                      )}
+                      <span className="text-sm font-medium">{area.nombre_area}</span>
+                      <span className="ml-2 text-xs bg-blue-200 px-2 py-1 rounded-full">
+                        {area.costo_inscripcion} Bs.
+                      </span>
                     </div>
                   ))}
                 </div>
+                <p className="text-sm text-gray-500 mt-2">
+                  Estas áreas ya están asignadas a la convocatoria y no pueden seleccionarse nuevamente.
+                </p>
+              </div>
+            )}
+            
+            {/* Selector de Áreas Disponibles */}
+            {selectedConvocatoria && (
+              <div className="mb-8">
+                <h3 className="text-xl font-bold mb-4">
+                  Áreas disponibles para asignar
+                  {areasDisponibles.length === 0 && (
+                    <span className="text-sm font-normal ml-2 text-orange-600">
+                      (No hay áreas disponibles para asignar)
+                    </span>
+                  )}
+                </h3>
+                
+                {isLoading ? (
+                  <div className="flex justify-center py-8">
+                    <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
+                  </div>
+                ) : areasDisponibles.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {areasDisponibles.map((area) => (
+                      <div 
+                        key={area.id_area} 
+                        className={`border rounded-lg p-4 cursor-pointer transition-all ${
+                          selectedAreas.some(a => a.id_area === area.id_area) 
+                            ? 'border-blue-500 bg-blue-50' 
+                            : 'hover:border-gray-400'
+                        }`}
+                        onClick={() => handleAreaSelect(area.id_area)}
+                      >
+                        <div className="flex items-center mb-2">
+                          <input
+                            type="checkbox"
+                            checked={selectedAreas.some(a => a.id_area === area.id_area)}
+                            onChange={() => {}}
+                            className="mr-3 h-4 w-4 text-blue-600"
+                          />
+                          <label className="font-medium text-gray-700">
+                            {area.nombre_area}
+                          </label>
+                        </div>
+                        
+                        {selectedAreas.some(a => a.id_area === area.id_area) && (
+                          <div className="mt-3 pt-3 border-t border-gray-200">
+                            <label className="block text-sm text-gray-600 mb-1">Costo de Inscripción (Bs.)</label>
+                            <input
+                              type="number"
+                              min="1"
+                              step="1"
+                              value={selectedAreas.find(a => a.id_area === area.id_area)?.costo_inscripcion || ''}
+                              onChange={(e) => handleAreaCostChange(area.id_area, e.target.value)}
+                              className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
+                              placeholder="Ingrese costo"
+                              onClick={(e) => e.stopPropagation()}
+                              required
+                            />
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-8 text-center border border-dashed border-gray-300 rounded-lg">
+                    <p className="text-gray-500">
+                      {selectedConvocatoria ? 
+                        "Todas las áreas ya han sido asignadas a esta convocatoria." : 
+                        "Seleccione una convocatoria para ver las áreas disponibles."
+                      }
+                    </p>
+                  </div>
+                )}
               </div>
             )}
             
@@ -746,9 +822,9 @@ export default function AdminPanel() {
             <div className="flex justify-end mt-8">
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={isLoading || selectedAreas.length === 0}
                 className={`px-6 py-3 rounded-md font-medium transition ${
-                  isLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 text-white'
+                  isLoading || selectedAreas.length === 0 ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 text-white'
                 }`}
               >
                 {isLoading ? 'Asignando...' : 'Asignar Áreas'}

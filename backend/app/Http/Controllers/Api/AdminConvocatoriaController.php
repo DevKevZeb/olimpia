@@ -302,6 +302,50 @@ class AdminConvocatoriaController extends ApiController
     }
 
     /**
+     * Obtiene los niveles ya asociados a las áreas de una convocatoria
+     * 
+     * @param int $id ID de la convocatoria
+     * @return JsonResponse
+     */
+    public function getNivelesPorConvocatoria(int $id): JsonResponse
+    {
+        try {
+            // Verificar que la convocatoria exista
+            $convocatoria = Convocatoria::findOrFail($id);
+            
+            // Obtener las áreas de la convocatoria
+            $areasConvocatoria = ConvocatoriaArea::where('id_convocatoria', $id)->get();
+            $idAreasConvocatoria = $areasConvocatoria->pluck('id_convocatoria_area')->toArray();
+            
+            // Obtener los niveles asignados a esas áreas
+            $nivelesAsignados = ConvocatoriaNivel::whereIn('id_convocatoria_area', $idAreasConvocatoria)
+                ->with(['nivel', 'convocatoriaArea.area', 'gradoMinimo', 'gradoMaximo'])
+                ->get()
+                ->map(function($convocatoriaNivel) {
+                    return [
+                        'id_convocatoria_nivel' => $convocatoriaNivel->id_convocatoria_nivel,
+                        'id_convocatoria_area' => $convocatoriaNivel->id_convocatoria_area,
+                        'id_area' => $convocatoriaNivel->convocatoriaArea->id_area,
+                        'nombre_area' => $convocatoriaNivel->convocatoriaArea->area->nombre_area,
+                        'id_nivel' => $convocatoriaNivel->id_nivel,
+                        'nombre_nivel' => $convocatoriaNivel->nivel->nombre_nivel,
+                        'id_grado_min' => $convocatoriaNivel->id_grado_min,
+                        'nombre_grado_min' => $convocatoriaNivel->gradoMinimo->nombre_grado,
+                        'id_grado_max' => $convocatoriaNivel->id_grado_max,
+                        'nombre_grado_max' => $convocatoriaNivel->gradoMaximo->nombre_grado,
+                    ];
+                });
+            
+            return $this->successResponse(
+                $nivelesAsignados,
+                'Niveles asignados a la convocatoria obtenidos correctamente'
+            );
+        } catch (\Exception $e) {
+            return $this->errorResponse('Error al obtener niveles de la convocatoria: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
      * Procesa las áreas para una convocatoria
      */
     private function procesarAreas(int $idConvocatoria, array $areas): void
