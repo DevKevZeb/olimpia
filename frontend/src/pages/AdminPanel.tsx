@@ -7,7 +7,8 @@ import {
   crearConvocatoria,
   asociarAreas,
   asociarNivelesGrados,
-  getAreasPorConvocatoria
+  getAreasPorConvocatoria,
+  getNivelesPorConvocatoria
 } from '../api/adminConvocatoriaApi';
 
 export default function AdminPanel() {
@@ -27,6 +28,10 @@ export default function AdminPanel() {
   // Estado nuevo para áreas ya asignadas a la convocatoria seleccionada
   const [areasAsignadas, setAreasAsignadas] = useState([]);
   const [areasDisponibles, setAreasDisponibles] = useState([]);
+  
+  // Estado nuevo para niveles ya asignados a la convocatoria seleccionada
+  const [nivelesAsignados, setNivelesAsignados] = useState([]);
+  const [nivelesDisponiblesPorArea, setNivelesDisponiblesPorArea] = useState({});
   
   // Estados para formulario de Crear Convocatoria
   const [formDataConvocatoria, setFormDataConvocatoria] = useState({
@@ -53,6 +58,7 @@ export default function AdminPanel() {
   const [selectedConvocatoriaNiveles, setSelectedConvocatoriaNiveles] = useState('');
   const [selectedNiveles, setSelectedNiveles] = useState([]);
   const [nivelGrados, setNivelGrados] = useState({});
+  const [loadingNiveles, setLoadingNiveles] = useState(false); // Nuevo estado para control específico de carga de niveles
 
   // Cargar datos iniciales
   useEffect(() => {
@@ -88,10 +94,116 @@ export default function AdminPanel() {
     }
   }, [selectedConvocatoria, areas]);
 
-  // Cargar las áreas de una convocatoria cuando cambia la selección en "Configurar Niveles"
+  // Cargar las áreas y niveles de una convocatoria cuando cambia la selección en "Configurar Niveles"
   useEffect(() => {
     if (selectedConvocatoriaNiveles) {
-      fetchAreasPorConvocatoria(selectedConvocatoriaNiveles);
+      setIsLoading(true);
+      setLoadingNiveles(true);
+      
+      // Limpiar estados previos completamente
+      setAreasConvocatoria([]);
+      setNivelesAsignados([]);
+      setNivelesDisponiblesPorArea({});
+      setSelectedNiveles([]);
+      setNivelGrados({});
+      
+      console.log(`Cargando datos para convocatoria ID: ${selectedConvocatoriaNiveles}`);
+      
+      // Cargar todo lo necesario de una vez para evitar problemas con estados desactualizados
+      Promise.all([
+        getAreasPorConvocatoria(selectedConvocatoriaNiveles),
+        getNivelesPorConvocatoria(selectedConvocatoriaNiveles), 
+        getNivelesCategoria()
+      ])
+        .then(([areasData, nivelesData, todosLosNiveles]) => {
+          console.log('Áreas recibidas:', areasData);
+          console.log('Niveles ya asignados:', nivelesData);
+          console.log('Todos los niveles disponibles:', todosLosNiveles);
+          
+          // Verificar y formatear las respuestas
+          const areasArray = Array.isArray(areasData) ? areasData : [];
+          const nivelesArray = Array.isArray(nivelesData) ? nivelesData : [];
+          const todosLosNivelesArray = Array.isArray(todosLosNiveles) ? todosLosNiveles : [];
+          
+          // Actualizar áreas y niveles asignados
+          setAreasConvocatoria(areasArray);
+          setNivelesAsignados(nivelesArray);
+          
+          if (areasArray.length === 0) {
+            console.log('No hay áreas asignadas a esta convocatoria');
+            setIsLoading(false);
+            setLoadingNiveles(false);
+            return;
+          }
+          
+          // Crear un nuevo objeto para los niveles disponibles por área
+          const nivelesDisponibles = {};
+          
+          // Para cada área asignada a la convocatoria
+          areasArray.forEach(area => {
+            const areaId = area.id_area;
+            
+            // Filtrar los niveles ya asignados a esta área específica
+            const nivelesAsignadosAEstaArea = nivelesArray.filter(
+              nivel => nivel.id_area === areaId
+            );
+            
+            // Obtener IDs de niveles ya asignados a esta área específica
+            const idsNivelesAsignados = nivelesAsignadosAEstaArea.map(n => n.id_nivel);
+            console.log(`Área ${areaId} (${area.nombre_area}): Niveles ya asignados:`, idsNivelesAsignados);
+            
+            // Todos los niveles que no están ya asignados a esta área específica están disponibles
+            const nivelesDisponiblesParaEstaArea = todosLosNivelesArray.filter(
+              nivel => !idsNivelesAsignados.includes(nivel.id_nivel)
+            );
+            
+            // Guardar los niveles disponibles para esta área
+            nivelesDisponibles[areaId] = nivelesDisponiblesParaEstaArea;
+            
+            console.log(`Área ${areaId} (${area.nombre_area}): Niveles disponibles:`, 
+              nivelesDisponiblesParaEstaArea.map(n => `${n.id_nivel}-${n.nombre_nivel}`));
+          });
+          
+          // Actualizar el estado con los niveles disponibles por área
+          setNivelesDisponiblesPorArea(nivelesDisponibles);
+          setIsLoading(false);
+          setLoadingNiveles(false);
+        })
+        .catch(error => {
+          console.error('Error al cargar datos para configurar niveles:', error);
+          
+          // Mostrar mensaje de error más específico
+          let errorMessage = 'Error al cargar datos.';
+          
+          if (error.response) {
+            errorMessage += ` Respuesta del servidor: ${
+              error.response.data?.message || 
+              error.response.statusText || 
+              `Error ${error.response.status}`
+            }`;
+            console.error('Datos del error:', error.response.data);
+          } else if (error.request) {
+            errorMessage += ' No se recibió respuesta del servidor.';
+          } else {
+            errorMessage += ` ${error.message || 'Error desconocido'}`;
+          }
+          
+          alert(errorMessage + ' Por favor, inténtelo de nuevo.');
+          
+          // Resetear los estados relevantes
+          setAreasConvocatoria([]);
+          setNivelesAsignados([]);
+          setNivelesDisponiblesPorArea({});
+          setIsLoading(false);
+          setLoadingNiveles(false);
+        });
+    } else {
+      // Si no hay convocatoria seleccionada, resetear estados
+      setAreasConvocatoria([]);
+      setNivelesAsignados([]);
+      setNivelesDisponiblesPorArea({});
+      setSelectedNiveles([]);
+      setNivelGrados({});
     }
   }, [selectedConvocatoriaNiveles]);
 
@@ -337,20 +449,42 @@ export default function AdminPanel() {
 
   // Manejadores para el formulario de Configurar Niveles
   const handleNivelSelect = (nivelId, areaId) => {
+    // Verificar que el nivel no esté ya asignado a esta área específica
+    const nivelYaAsignado = nivelesAsignados.some(
+      n => n.id_nivel === nivelId && n.id_area === areaId
+    );
+    
+    if (nivelYaAsignado) {
+      // No permitir seleccionar un nivel ya asignado a esta área específica
+      alert('Este nivel ya está asignado a esta área. Seleccione otro nivel o configure otro diferente.');
+      return;
+    }
+    
     const isSelected = selectedNiveles.some(n => n.id_nivel === nivelId && n.id_area === areaId);
+    
+    console.log('Seleccionando nivel:', {nivelId, areaId, isSelected});
+    
     if (isSelected) {
+      // Si ya estaba seleccionado, lo eliminamos
       setSelectedNiveles(selectedNiveles.filter(n => !(n.id_nivel === nivelId && n.id_area === areaId)));
+      
       // Eliminar los grados seleccionados para este nivel
       const updatedGrados = { ...nivelGrados };
       delete updatedGrados[`${areaId}-${nivelId}`];
       setNivelGrados(updatedGrados);
+      
+      console.log('Nivel deseleccionado y grados eliminados');
     } else {
-      setSelectedNiveles([...selectedNiveles, { id_nivel: nivelId, id_area: areaId }]);
+      // Si no estaba seleccionado, lo añadimos
+      setSelectedNiveles(prevSelected => [...prevSelected, { id_nivel: nivelId, id_area: areaId }]);
+      
       // Inicializar un array vacío para los grados de este nivel
-      setNivelGrados({
-        ...nivelGrados,
+      setNivelGrados(prevGrados => ({
+        ...prevGrados,
         [`${areaId}-${nivelId}`]: []
-      });
+      }));
+      
+      console.log('Nivel seleccionado y array de grados inicializado');
     }
   };
 
@@ -433,24 +567,35 @@ export default function AdminPanel() {
     }
   };
 
-  // Renderizado de niveles disponibles
-  const renderNiveles = (selectedArea) => {
+  // Renderizado de niveles disponibles para un área específica
+  const renderNivelesDisponibles = (area) => {
+    // Obtener niveles disponibles para esta área
+    const nivelesDisponibles = nivelesDisponiblesPorArea[area.id_area] || [];
+    
+    if (nivelesDisponibles.length === 0) {
+      return (
+        <div className="text-sm text-orange-600 p-2">
+          No hay niveles disponibles para asignar a esta área.
+        </div>
+      );
+    }
+    
     return (
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
-        {niveles.map(nivel => (
+        {nivelesDisponibles.map(nivel => (
           <div 
-            key={`nivel-${selectedArea.id_area}-${nivel.id_nivel}`}
+            key={`nivel-${area.id_area}-${nivel.id_nivel}`}
             className={`border rounded-lg p-3 cursor-pointer transition-all ${
-              selectedNiveles.some(n => n.id_nivel === nivel.id_nivel && n.id_area === selectedArea.id_area)
+              selectedNiveles.some(n => n.id_nivel === nivel.id_nivel && n.id_area === area.id_area)
                 ? 'border-green-500 bg-green-50'
                 : 'hover:border-gray-400'
             }`}
-            onClick={() => handleNivelSelect(nivel.id_nivel, selectedArea.id_area)}
+            onClick={() => handleNivelSelect(nivel.id_nivel, area.id_area)}
           >
             <div className="flex items-center">
               <input
                 type="checkbox"
-                checked={selectedNiveles.some(n => n.id_nivel === nivel.id_nivel && n.id_area === selectedArea.id_area)}
+                checked={selectedNiveles.some(n => n.id_nivel === nivel.id_nivel && n.id_area === area.id_area)}
                 onChange={() => {}}
                 className="mr-2 h-4 w-4 text-green-600"
               />
@@ -460,6 +605,35 @@ export default function AdminPanel() {
             </div>
           </div>
         ))}
+      </div>
+    );
+  };
+
+  // Renderizado de niveles ya asignados para un área específica
+  const renderNivelesAsignados = (area) => {
+    // Filtrar niveles ya asignados a esta área
+    const nivelesDeEstaArea = nivelesAsignados.filter(nivel => nivel.id_area === area.id_area);
+    
+    if (nivelesDeEstaArea.length === 0) {
+      return null;
+    }
+    
+    return (
+      <div className="mb-4">
+        <h5 className="font-medium text-gray-700 mb-2">Niveles ya asignados</h5>
+        <div className="flex flex-wrap gap-2">
+          {nivelesDeEstaArea.map(nivel => (
+            <div 
+              key={`nivel-asignado-${nivel.id_convocatoria_nivel}`}
+              className="bg-blue-100 text-blue-800 px-3 py-2 rounded-md flex flex-col"
+            >
+              <div className="font-medium">{nivel.nombre_nivel}</div>
+              <div className="text-xs mt-1">
+                Grados: {nivel.nombre_grado_min} a {nivel.nombre_grado_max}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   };
@@ -874,9 +1048,12 @@ export default function AdminPanel() {
                     <div key={`config-${area.id_area}`} className="border rounded-lg p-4">
                       <h4 className="text-lg font-semibold mb-2">{area.nombre_area}</h4>
                       
+                      {/* Mostrar niveles ya asignados */}
+                      {renderNivelesAsignados(area)}
+                      
                       <div className="mt-4">
                         <h5 className="font-medium text-gray-700 mb-3">Selecciona niveles para {area.nombre_area}</h5>
-                        {renderNiveles(area)}
+                        {renderNivelesDisponibles(area)}
                         
                         {/* Si hay niveles seleccionados para esta área, mostrar los grados para cada nivel */}
                         {selectedNiveles.filter(n => n.id_area === area.id_area).length > 0 && (
@@ -908,9 +1085,11 @@ export default function AdminPanel() {
             <div className="flex justify-end mt-8">
               <button
                 type="submit"
-                disabled={isLoading || areasConvocatoria.length === 0}
+                disabled={isLoading || areasConvocatoria.length === 0 || selectedNiveles.length === 0}
                 className={`px-6 py-3 rounded-md font-medium transition ${
-                  isLoading || areasConvocatoria.length === 0 ? 'bg-gray-400 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 text-white'
+                  isLoading || areasConvocatoria.length === 0 || selectedNiveles.length === 0
+                    ? 'bg-gray-400 cursor-not-allowed' 
+                    : 'bg-purple-600 hover:bg-purple-700 text-white'
                 }`}
               >
                 {isLoading ? 'Configurando...' : 'Configurar Niveles y Grados'}
