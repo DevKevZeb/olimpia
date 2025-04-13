@@ -32,6 +32,14 @@ export default function AdminPanel() {
     max_areas_por_estudiante: 2,
     estado: 'planificada',
   });
+  
+  // Estado para mensajes de error
+  const [formErrors, setFormErrors] = useState({
+    nombre: '',
+    fecha_inicio_inscripcion: '',
+    fecha_fin_inscripcion: '',
+    general: ''
+  });
 
   // Estados para formulario de Asignar Áreas
   const [selectedConvocatoria, setSelectedConvocatoria] = useState('');
@@ -105,20 +113,98 @@ export default function AdminPanel() {
   // Manejadores para el formulario de Crear Convocatoria
   const handleInputChangeConvocatoria = (e) => {
     const { name, value } = e.target;
+    
+    // Resetear el error específico al cambiar el valor del campo
+    setFormErrors(prev => ({
+      ...prev,
+      [name]: ''
+    }));
+    
     setFormDataConvocatoria({
       ...formDataConvocatoria,
       [name]: value,
     });
   };
 
+  // Función para validar el formulario de convocatoria
+  const validarFormularioConvocatoria = () => {
+    const errores = {
+      nombre: '',
+      fecha_inicio_inscripcion: '',
+      fecha_fin_inscripcion: '',
+      general: ''
+    };
+    let esValido = true;
+
+    // Validar nombre duplicado
+    const nombreDuplicado = convocatorias.some(
+      convocatoria => convocatoria.nombre.toLowerCase() === formDataConvocatoria.nombre.toLowerCase().trim()
+    );
+    
+    if (nombreDuplicado) {
+      errores.nombre = "Ya existe una convocatoria con este nombre";
+      esValido = false;
+    }
+
+    // Obtener la fecha actual sin la hora (solo la fecha)
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    
+    // Obtener solo la parte de fecha de los inputs
+    const [yearInicio, monthInicio, dayInicio] = formDataConvocatoria.fecha_inicio_inscripcion.split('-').map(Number);
+    const [yearFin, monthFin, dayFin] = formDataConvocatoria.fecha_fin_inscripcion.split('-').map(Number);
+    
+    // Crear objetos Date con la hora establecida a medianoche
+    const fechaInicio = new Date(yearInicio, monthInicio - 1, dayInicio, 0, 0, 0, 0);
+    const fechaFin = new Date(yearFin, monthFin - 1, dayFin, 0, 0, 0, 0);
+
+    // Validar que la fecha de inicio no sea anterior a la fecha actual
+    // Usamos setHours(0,0,0,0) para comparar solo fechas sin hora
+    const hoyString = hoy.toDateString();
+    const inicioString = fechaInicio.toDateString();
+    
+    if (fechaInicio < hoy && inicioString !== hoyString) {
+      errores.fecha_inicio_inscripcion = "La fecha de inicio no puede ser anterior a la fecha actual";
+      esValido = false;
+    }
+    
+    // Validar que la fecha de fin no sea anterior a la fecha actual
+    if (fechaFin < hoy && fechaFin.toDateString() !== hoyString) {
+      errores.fecha_fin_inscripcion = "La fecha de fin no puede ser anterior a la fecha actual";
+      esValido = false;
+    }
+    
+    // Validar que la fecha de inicio sea menor o igual a la fecha de fin
+    if (fechaInicio > fechaFin) {
+      errores.fecha_fin_inscripcion = "La fecha de fin debe ser igual o posterior a la fecha de inicio";
+      esValido = false;
+    }
+
+    setFormErrors(errores);
+    return esValido;
+  };
+
   const handleCrearConvocatoria = async (e) => {
     e.preventDefault();
+    
+    // Resetear errores previos
+    setFormErrors({
+      nombre: '',
+      fecha_inicio_inscripcion: '',
+      fecha_fin_inscripcion: '',
+      general: ''
+    });
     
     // Validaciones básicas
     if (!formDataConvocatoria.nombre || 
         !formDataConvocatoria.fecha_inicio_inscripcion || 
         !formDataConvocatoria.fecha_fin_inscripcion) {
-      alert('Por favor complete todos los campos requeridos');
+      setFormErrors(prev => ({...prev, general: 'Por favor complete todos los campos requeridos'}));
+      return;
+    }
+    
+    // Validar criterios adicionales
+    if (!validarFormularioConvocatoria()) {
       return;
     }
     
@@ -143,7 +229,12 @@ export default function AdminPanel() {
       fetchData();
     } catch (error) {
       console.error('Error al crear la convocatoria:', error);
-      alert('Error al crear la convocatoria. Por favor, inténtelo de nuevo.');
+      // Mostrar mensaje de error del servidor si está disponible
+      if (error.response && error.response.data && error.response.data.message) {
+        setFormErrors(prev => ({...prev, general: `Error: ${error.response.data.message}`}));
+      } else {
+        setFormErrors(prev => ({...prev, general: 'Error al crear la convocatoria. Por favor, inténtelo de nuevo.'}));
+      }
     } finally {
       setIsLoading(false);
     }
@@ -461,6 +552,12 @@ export default function AdminPanel() {
           <h2 className="text-2xl font-bold mb-6">Nueva Convocatoria</h2>
           <p className="text-gray-600 mb-6">Crea una nueva convocatoria para olimpiadas científicas</p>
           
+          {formErrors.general && (
+            <div className="p-3 mb-4 bg-red-50 border border-red-200 text-red-700 rounded-md">
+              {formErrors.general}
+            </div>
+          )}
+          
           <form onSubmit={handleCrearConvocatoria} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               <div>
@@ -470,9 +567,12 @@ export default function AdminPanel() {
                   name="nombre"
                   value={formDataConvocatoria.nombre}
                   onChange={handleInputChangeConvocatoria}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2"
+                  className={`w-full border rounded-lg px-4 py-2 ${formErrors.nombre ? 'border-red-500' : 'border-gray-300'}`}
                   required
                 />
+                {formErrors.nombre && (
+                  <p className="mt-1 text-sm text-red-600">{formErrors.nombre}</p>
+                )}
               </div>
               <div>
                 <label className="block text-gray-700 font-medium mb-2">Fecha de Inicio</label>
@@ -481,9 +581,12 @@ export default function AdminPanel() {
                   name="fecha_inicio_inscripcion"
                   value={formDataConvocatoria.fecha_inicio_inscripcion}
                   onChange={handleInputChangeConvocatoria}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2"
+                  className={`w-full border rounded-lg px-4 py-2 ${formErrors.fecha_inicio_inscripcion ? 'border-red-500' : 'border-gray-300'}`}
                   required
                 />
+                {formErrors.fecha_inicio_inscripcion && (
+                  <p className="mt-1 text-sm text-red-600">{formErrors.fecha_inicio_inscripcion}</p>
+                )}
               </div>
               <div>
                 <label className="block text-gray-700 font-medium mb-2">Fecha de Fin</label>
@@ -492,9 +595,12 @@ export default function AdminPanel() {
                   name="fecha_fin_inscripcion"
                   value={formDataConvocatoria.fecha_fin_inscripcion}
                   onChange={handleInputChangeConvocatoria}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2"
+                  className={`w-full border rounded-lg px-4 py-2 ${formErrors.fecha_fin_inscripcion ? 'border-red-500' : 'border-gray-300'}`}
                   required
                 />
+                {formErrors.fecha_fin_inscripcion && (
+                  <p className="mt-1 text-sm text-red-600">{formErrors.fecha_fin_inscripcion}</p>
+                )}
               </div>
               <div>
                 <label className="block text-gray-700 font-medium mb-2">Máximo de Áreas por Estudiante</label>
