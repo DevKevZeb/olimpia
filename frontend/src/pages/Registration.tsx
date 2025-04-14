@@ -1,7 +1,36 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Check, ChevronRight, Upload, X, AlertCircle } from 'lucide-react';
+import { Calendar, Check, ChevronRight, Upload, X, AlertCircle, Plus, Trash2, Copy, Users } from 'lucide-react';
 import { verificarCodigoOrden, subirComprobantePago } from '../api/comprobantePagoApi';
 import { getDatosInscripcion, getAreasPorGrado, inscribirEstudiante, buscarUnidadesEducativas } from '../api/inscripcionCompletaApi';
+
+// Definir una interfaz para la estructura de datos de un estudiante
+interface EstudianteFormData {
+  id: string;
+  nombres: string;
+  apellidos: string;
+  ci: string;
+  fecha_nacimiento: string;
+  email: string;
+  id_grado: string;
+  unidad_educativa: {
+    id_unidad_educativa: null | number;
+    nombre: string;
+    departamento: string;
+    provincia: string;
+  };
+  tutor_legal: {
+    nombres: string;
+    apellidos: string;
+    ci: string;
+    telefono: string;
+    email: string;
+    parentesco: string;
+    es_el_mismo_estudiante: boolean;
+  };
+  areas_seleccionadas: Array<any>;
+  tutores_academicos: Array<any>;
+  selectedAreas: Array<any>;
+}
 
 export default function Registration() {
   // Estados originales para verificación de código
@@ -25,7 +54,12 @@ export default function Registration() {
   const [unidadesEducativas, setUnidadesEducativas] = useState([]);
   const [buscandoUnidades, setBuscandoUnidades] = useState(false);
   
-  // Estados para almacenar los datos del formulario
+  // Estados para inscripción múltiple
+  const [activeStudentIndex, setActiveStudentIndex] = useState(0);
+  const [estudiantes, setEstudiantes] = useState<EstudianteFormData[]>([]);
+  const [costoTotalGeneral, setCostoTotalGeneral] = useState(0);
+
+  // Estado para almacenar los datos del formulario (para compatibilidad con código existente)
   const [formData, setFormData] = useState({
     nombres: '',
     apellidos: '',
@@ -59,30 +93,272 @@ export default function Registration() {
   // Estado para almacenar el costo total
   const [costoTotal, setCostoTotal] = useState(0);
 
-  // Cargar datos iniciales cuando se monta el componente
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      setIsLoading(true);
-      try {
-        const data = await getDatosInscripcion();
-        console.log('Datos iniciales recibidos:', data);
-        console.log('Grados recibidos:', data.grados);
-        setConvocatoria(data.convocatoria);
-        setGrados(data.grados);
-        setFormData(prev => ({
-          ...prev,
-          id_convocatoria: data.convocatoria.id,
-        }));
-      } catch (error) {
-        console.error('Error al obtener datos iniciales:', error);
-        setErrorMessage('No se pudieron cargar los datos iniciales. Por favor, intente de nuevo más tarde.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  // Estados para el modal de detalles de estudiante
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedStudentDetails, setSelectedStudentDetails] = useState<EstudianteFormData | null>(null);
+
+  // Estado para el modal de la boleta de pago
+  const [isBoletaModalOpen, setIsBoletaModalOpen] = useState(false);
+
+  // Función para abrir el modal con los detalles de un estudiante específico
+  const openStudentDetailsModal = (estudiante: EstudianteFormData) => {
+    setSelectedStudentDetails(estudiante);
+    setIsModalOpen(true);
+  };
+
+  // Función para cerrar el modal
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedStudentDetails(null);
+  };
+
+  // Función para abrir el modal de la boleta de pago
+  const openBoletaModal = () => {
+    setIsBoletaModalOpen(true);
     
+    // Iniciar descarga automáticamente
+    console.log("Iniciando descarga automática de boleta...");
+    // En un caso real, aquí se haría la llamada a la API para generar y descargar el PDF
+    setTimeout(() => {
+      // Simulación de descarga completada
+      console.log("Boleta descargada automáticamente");
+    }, 1000);
+  };
+
+  // Función para cerrar el modal de la boleta de pago y resetear
+  const closeBoletaModal = () => {
+    setIsBoletaModalOpen(false);
+    
+    // Resetear datos y redirigir al step 1
+    const newEstudiante = createNewEstudiante();
+    setEstudiantes([newEstudiante]);
+    setActiveStudentIndex(0);
+    setStep(1);
+    setSelectedAreas([]);
+    setCostoTotal(0);
+    setCostoTotalGeneral(0);
+    
+    // Resetear el formulario
+    setFormData({
+      nombres: '',
+      apellidos: '',
+      ci: '',
+      fecha_nacimiento: '',
+      email: '',
+      id_grado: '',
+      unidad_educativa: {
+        id_unidad_educativa: null,
+        nombre: '',
+        departamento: '',
+        provincia: '',
+      },
+      tutor_legal: {
+        nombres: '',
+        apellidos: '',
+        ci: '',
+        telefono: '',
+        email: '',
+        parentesco: '',
+        es_el_mismo_estudiante: false,
+      },
+      id_convocatoria: convocatoria ? convocatoria.id : '',
+      areas_seleccionadas: [],
+      tutores_academicos: [],
+    });
+  };
+
+  // Inicializar el primer estudiante cuando se monta el componente
+  useEffect(() => {
+    const newEstudiante = createNewEstudiante();
+    setEstudiantes([newEstudiante]);
     fetchInitialData();
   }, []);
+
+  // Función para crear un nuevo estudiante con valores iniciales
+  const createNewEstudiante = (): EstudianteFormData => {
+    return {
+      id: `estudiante-${Date.now()}`,
+      nombres: '',
+      apellidos: '',
+      ci: '',
+      fecha_nacimiento: '',
+      email: '',
+      id_grado: '',
+      unidad_educativa: {
+        id_unidad_educativa: null,
+        nombre: '',
+        departamento: '',
+        provincia: '',
+      },
+      tutor_legal: {
+        nombres: '',
+        apellidos: '',
+        ci: '',
+        telefono: '',
+        email: '',
+        parentesco: '',
+        es_el_mismo_estudiante: false,
+      },
+      areas_seleccionadas: [],
+      tutores_academicos: [],
+      selectedAreas: []
+    };
+  };
+
+  // Sincronizar formData con estudiante activo
+  useEffect(() => {
+    if (estudiantes.length > 0 && activeStudentIndex < estudiantes.length) {
+      const activeStudent = estudiantes[activeStudentIndex];
+      
+      // Utilizamos una verificación para evitar actualizaciones innecesarias
+      if (
+        formData.nombres !== activeStudent.nombres ||
+        formData.apellidos !== activeStudent.apellidos ||
+        formData.ci !== activeStudent.ci ||
+        formData.fecha_nacimiento !== activeStudent.fecha_nacimiento ||
+        formData.email !== activeStudent.email ||
+        formData.id_grado !== activeStudent.id_grado ||
+        JSON.stringify(formData.unidad_educativa) !== JSON.stringify(activeStudent.unidad_educativa) ||
+        JSON.stringify(formData.tutor_legal) !== JSON.stringify(activeStudent.tutor_legal)
+      ) {
+        setFormData({
+          ...formData,
+          nombres: activeStudent.nombres,
+          apellidos: activeStudent.apellidos,
+          ci: activeStudent.ci,
+          fecha_nacimiento: activeStudent.fecha_nacimiento,
+          email: activeStudent.email,
+          id_grado: activeStudent.id_grado,
+          unidad_educativa: activeStudent.unidad_educativa,
+          tutor_legal: activeStudent.tutor_legal,
+        });
+      }
+      
+      // Solo actualizamos las áreas seleccionadas si son diferentes
+      if (JSON.stringify(selectedAreas) !== JSON.stringify(activeStudent.selectedAreas || [])) {
+        setSelectedAreas(activeStudent.selectedAreas || []);
+      }
+      
+      // Calculamos el costo solo cuando cambiamos de estudiante
+      let costoEstudiante = 0;
+      if (activeStudent.selectedAreas && activeStudent.selectedAreas.length > 0) {
+        costoEstudiante = activeStudent.selectedAreas.reduce((total, area) => 
+          total + (parseFloat(area.costo) || 0), 0);
+      }
+      setCostoTotal(costoEstudiante);
+    }
+  }, [activeStudentIndex, estudiantes]); // Solo dependemos del índice activo y el array de estudiantes
+
+  // Recalcular costo total general cuando cambian las áreas seleccionadas de cualquier estudiante
+  useEffect(() => {
+    const costoGeneral = estudiantes.reduce((total, estudiante) => {
+      if (estudiante.selectedAreas && estudiante.selectedAreas.length > 0) {
+        return total + estudiante.selectedAreas.reduce((subtotal, area) => 
+          subtotal + (parseFloat(area.costo) || 0), 0);
+      }
+      return total;
+    }, 0);
+    
+    setCostoTotalGeneral(costoGeneral);
+  }, [estudiantes]); // Solo dependemos del array de estudiantes
+
+  // Actualizar los datos del estudiante activo cuando cambia formData
+  const updateActiveStudent = (newFormData, newSelectedAreas) => {
+    if (estudiantes.length > 0 && activeStudentIndex < estudiantes.length) {
+      const updatedEstudiantes = [...estudiantes];
+      updatedEstudiantes[activeStudentIndex] = {
+        ...updatedEstudiantes[activeStudentIndex],
+        nombres: newFormData.nombres,
+        apellidos: newFormData.apellidos,
+        ci: newFormData.ci,
+        fecha_nacimiento: newFormData.fecha_nacimiento,
+        email: newFormData.email,
+        id_grado: newFormData.id_grado,
+        unidad_educativa: newFormData.unidad_educativa,
+        tutor_legal: newFormData.tutor_legal,
+        tutores_academicos: newFormData.tutores_academicos,
+        selectedAreas: newSelectedAreas
+      };
+      setEstudiantes(updatedEstudiantes);
+    }
+  };
+
+  // Añadir un nuevo estudiante
+  const addNewStudent = () => {
+    setEstudiantes([...estudiantes, createNewEstudiante()]);
+    setActiveStudentIndex(estudiantes.length);
+    // Redirigir al paso 1 para completar los datos del nuevo estudiante
+    setStep(1);
+  };
+
+  // Eliminar un estudiante
+  const removeStudent = (index: number) => {
+    // No permitir eliminar si solo hay un estudiante
+    if (estudiantes.length <= 1) return;
+    
+    const updatedEstudiantes = estudiantes.filter((_, i) => i !== index);
+    setEstudiantes(updatedEstudiantes);
+    
+    // Actualizar el índice activo si es necesario
+    if (activeStudentIndex >= updatedEstudiantes.length) {
+      setActiveStudentIndex(updatedEstudiantes.length - 1);
+    } else if (activeStudentIndex === index && index > 0) {
+      setActiveStudentIndex(index - 1);
+    }
+  };
+
+  // Función para copiar datos del estudiante actual al siguiente
+  const copyToNextStudent = () => {
+    if (activeStudentIndex === estudiantes.length - 1) {
+      // Si es el último estudiante, crear uno nuevo con los datos copiados
+      const currentStudent = estudiantes[activeStudentIndex];
+      const newStudent = {
+        ...currentStudent,
+        id: `estudiante-${Date.now()}`,
+        nombres: '',
+        apellidos: '',
+        ci: '',
+        email: '',
+        // Mantener datos de unidad educativa y tutor legal
+      };
+      
+      setEstudiantes([...estudiantes, newStudent]);
+      setActiveStudentIndex(estudiantes.length);
+    } else {
+      // Copiar al siguiente estudiante existente
+      const currentStudent = estudiantes[activeStudentIndex];
+      const updatedEstudiantes = [...estudiantes];
+      updatedEstudiantes[activeStudentIndex + 1] = {
+        ...updatedEstudiantes[activeStudentIndex + 1],
+        unidad_educativa: {...currentStudent.unidad_educativa},
+        tutor_legal: {...currentStudent.tutor_legal},
+      };
+      
+      setEstudiantes(updatedEstudiantes);
+      setActiveStudentIndex(activeStudentIndex + 1);
+    }
+  };
+
+  // Cargar datos iniciales cuando se monta el componente
+  const fetchInitialData = async () => {
+    setIsLoading(true);
+    try {
+      const data = await getDatosInscripcion();
+      console.log('Datos iniciales recibidos:', data);
+      console.log('Grados recibidos:', data.grados);
+      setConvocatoria(data.convocatoria);
+      setGrados(data.grados);
+      setFormData(prev => ({
+        ...prev,
+        id_convocatoria: data.convocatoria.id,
+      }));
+    } catch (error) {
+      console.error('Error al obtener datos iniciales:', error);
+      setErrorMessage('No se pudieron cargar los datos iniciales. Por favor, intente de nuevo más tarde.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
   
   // Cargar áreas disponibles cuando se selecciona un grado
   useEffect(() => {
@@ -247,7 +523,7 @@ export default function Registration() {
     
     // Verificar límite de áreas si estamos añadiendo una nueva
     if (!isSelected && convocatoria && selectedAreas.length >= convocatoria.max_areas) {
-      setFormErrorMessage(`No puede seleccionar más de ${convocatoria.max_areas} áreas`);
+      setFormErrorMessage(`Solo puede seleccionar hasta ${convocatoria.max_areas} áreas por estudiante`);
       return;
     }
     
@@ -255,59 +531,54 @@ export default function Registration() {
     const costo = parseFloat(areaNivel.costo) || 0;
     
     // Actualizar las áreas seleccionadas
+    let updatedSelectedAreas;
+    let newCostoTotal = costoTotal;
+    
     if (isSelected) {
-      setSelectedAreas(selectedAreas.filter(item => item.id_convocatoria_nivel !== areaNivel.id_convocatoria_nivel));
-      // Actualizar formData para eliminar esta área
-      setFormData(prevState => ({
-        ...prevState,
-        areas_seleccionadas: prevState.areas_seleccionadas.filter(
-          area => area.id_convocatoria_nivel !== areaNivel.id_convocatoria_nivel
-        ),
-        tutores_academicos: prevState.tutores_academicos.filter(
-          tutor => tutor.id_convocatoria_nivel !== areaNivel.id_convocatoria_nivel
-        )
-      }));
-      // Actualizar el costo total
-      setCostoTotal(prevTotal => {
-        const nuevoTotal = prevTotal - costo;
-        console.log(`Quitando área: ${areaNivel.area.nombre}, costo: ${costo}, nuevo total: ${nuevoTotal}`);
-        return nuevoTotal;
-      });
+      updatedSelectedAreas = selectedAreas.filter(item => item.id_convocatoria_nivel !== areaNivel.id_convocatoria_nivel);
+      newCostoTotal -= costo;
     } else {
-      const newArea = {
+      updatedSelectedAreas = [...selectedAreas, {
         id_convocatoria_nivel: areaNivel.id_convocatoria_nivel,
         area_nombre: areaNivel.area.nombre,
         nivel_nombre: areaNivel.nivel.nombre,
-        costo: costo
-      };
-      setSelectedAreas([...selectedAreas, newArea]);
-      
-      // Actualizar formData para añadir esta área
-      setFormData(prevState => ({
-        ...prevState,
-        areas_seleccionadas: [
-          ...prevState.areas_seleccionadas,
-          { id_convocatoria_nivel: areaNivel.id_convocatoria_nivel }
-        ],
-        tutores_academicos: [
-          ...prevState.tutores_academicos,
-          {
-            id_convocatoria_nivel: areaNivel.id_convocatoria_nivel,
-            nombres: '',
-            apellidos: '',
-            ci: '',
-            telefono: '',
-            email: ''
-          }
-        ]
-      }));
-      // Actualizar el costo total
-      setCostoTotal(prevTotal => {
-        const nuevoTotal = prevTotal + costo;
-        console.log(`Añadiendo área: ${areaNivel.area.nombre}, costo: ${costo}, nuevo total: ${nuevoTotal}`);
-        return nuevoTotal;
-      });
+        costo: areaNivel.costo
+      }];
+      newCostoTotal += costo;
     }
+    
+    setSelectedAreas(updatedSelectedAreas);
+    setCostoTotal(newCostoTotal);
+    
+    // Actualizar los tutores académicos
+    const updatedTutores = [...formData.tutores_academicos];
+    if (!isSelected) {
+      // Añadir un tutor nuevo para el área seleccionada
+      updatedTutores.push({
+        id_convocatoria_nivel: areaNivel.id_convocatoria_nivel,
+        nombres: '',
+        apellidos: '',
+        ci: '',
+        telefono: '',
+        email: '',
+      });
+    } else {
+      // Eliminar el tutor del área deseleccionada
+      const tutorIndex = updatedTutores.findIndex(
+        tutor => tutor.id_convocatoria_nivel === areaNivel.id_convocatoria_nivel
+      );
+      if (tutorIndex !== -1) {
+        updatedTutores.splice(tutorIndex, 1);
+      }
+    }
+    
+    const newFormData = {
+      ...formData,
+      tutores_academicos: updatedTutores
+    };
+    
+    setFormData(newFormData);
+    updateActiveStudent(newFormData, updatedSelectedAreas);
   };
 
   // Función para validar campos obligatorios del paso 1
@@ -367,20 +638,202 @@ export default function Registration() {
     return true;
   };
   
+  // Función para validar todos los estudiantes antes de avanzar al siguiente paso
+  const validateAllStudents = () => {
+    // Guardar el índice actual para restaurarlo después
+    const currentIndex = activeStudentIndex;
+    
+    // Verificar cada estudiante
+    for (let i = 0; i < estudiantes.length; i++) {
+      setActiveStudentIndex(i);
+      
+      // Esperar a que se actualice el estado
+      setTimeout(() => {
+        if (!validateStep1()) {
+          return false;
+        }
+      }, 0);
+    }
+    
+    // Restaurar el índice original
+    setActiveStudentIndex(currentIndex);
+    return true;
+  };
+  
+  // Validar si el estudiante actual tiene los datos requeridos
+  const isCurrentStudentValid = () => {
+    // Validación básica de campos obligatorios del estudiante actual
+    const currentStudent = estudiantes[activeStudentIndex];
+    if (!currentStudent) return false;
+    
+    return !!(
+      currentStudent.nombres &&
+      currentStudent.apellidos &&
+      currentStudent.ci &&
+      currentStudent.fecha_nacimiento &&
+      currentStudent.email &&
+      currentStudent.id_grado &&
+      currentStudent.unidad_educativa?.nombre
+    );
+  };
+
   // Función para manejar el cambio al siguiente paso
   const handleNextStep = () => {
-    if (step === 1 && validateStep1()) {
-      setStep(2);
+    if (step === 1) {
+      if (validateStep1()) {
+        setStep(2);
+      }
     } else if (step === 2) {
-      if (selectedAreas.length === 0) {
-        setFormErrorMessage('Debes seleccionar al menos un área para continuar');
+      // Verificar si al menos un estudiante tiene áreas seleccionadas
+      const hasSelectedAreas = estudiantes.some(e => 
+        e.selectedAreas && e.selectedAreas.length > 0
+      );
+      
+      if (!hasSelectedAreas) {
+        setFormErrorMessage('Debe seleccionar al menos un área para un estudiante');
         return;
       }
+      
       setFormErrorMessage('');
       setStep(3);
     } else if (step === 3) {
       setStep(4);
     }
+  };
+
+  // Función para manejar cambios en los inputs del formulario
+  const handleFormChange = (field, value) => {
+    const newFormData = { ...formData, [field]: value };
+    setFormData(newFormData);
+    updateActiveStudent(newFormData, selectedAreas);
+  };
+
+  // Función para manejar cambios en los campos anidados
+  const handleNestedChange = (parentField, field, value) => {
+    const newFormData = { 
+      ...formData, 
+      [parentField]: { 
+        ...formData[parentField], 
+        [field]: value 
+      } 
+    };
+    setFormData(newFormData);
+    updateActiveStudent(newFormData, selectedAreas);
+  };
+
+  // Actualizar los tutores en el paso 3
+  const handleTutorAcademicoChange = (index, field, value) => {
+    const newTutores = [...formData.tutores_academicos];
+    if (index >= 0) {
+      newTutores[index] = { 
+        ...newTutores[index], 
+        [field]: value 
+      };
+      
+      const newFormData = {
+        ...formData,
+        tutores_academicos: newTutores
+      };
+      
+      setFormData(newFormData);
+      updateActiveStudent(newFormData, selectedAreas);
+    }
+  };
+
+  // Crear un componente reutilizable para la barra de navegación entre estudiantes
+  const EstudiantesNavBar = ({
+    estudiantes,
+    activeStudentIndex,
+    setActiveStudentIndex,
+    removeStudent,
+    addNewStudent,
+    copyToNextStudent,
+    costoTotalGeneral,
+    isCurrentStudentValid
+  }) => (
+    <div className="bg-gray-50 border rounded-lg p-3 mb-4">
+      <div className="flex justify-between items-center mb-3">
+        <h4 className="text-base font-medium">Estudiantes</h4>
+        <div className="flex items-center">
+          <span className="text-sm text-gray-600 mr-2">Total: {costoTotalGeneral} Bs.</span>
+          <button
+            onClick={addNewStudent}
+            className={`${!isCurrentStudentValid ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 cursor-pointer'} text-white rounded-md p-1.5 flex items-center justify-center transition-colors`}
+            title={!isCurrentStudentValid ? "Complete los datos del estudiante actual antes de agregar uno nuevo" : "Añadir nuevo estudiante"}
+            disabled={!isCurrentStudentValid}
+          >
+            <Plus size={16} />
+          </button>
+        </div>
+      </div>
+      
+      <div className="flex flex-nowrap overflow-x-auto space-x-2 pb-2">
+        {estudiantes.map((estudiante, index) => (
+          <div 
+            key={estudiante.id}
+            className={`flex-shrink-0 flex items-center space-x-1 px-3 py-2 rounded-md cursor-pointer border ${activeStudentIndex === index 
+              ? 'bg-blue-50 border-blue-300 text-blue-800' 
+              : 'bg-white border-gray-200 hover:bg-gray-50'}`}
+            onClick={() => setActiveStudentIndex(index)}
+          >
+            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-sm ${
+              activeStudentIndex === index ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'
+            }`}>
+              {index + 1}
+            </div>
+            <span className="text-sm font-medium truncate max-w-[120px]">
+              {estudiante.nombres || estudiante.apellidos 
+                ? `${estudiante.nombres} ${estudiante.apellidos}`.trim() 
+                : `Estudiante ${index + 1}`}
+            </span>
+            
+            {estudiantes.length > 1 && (
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  removeStudent(index);
+                }}
+                className="text-gray-400 hover:text-red-500 ml-1"
+                title="Eliminar estudiante"
+              >
+                <Trash2 size={14} />
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+      
+      <div className="flex justify-between items-center mt-2">
+        <div className="flex items-center text-sm text-gray-600">
+          <Users size={16} className="mr-1" />
+          <span>{estudiantes.length} estudiante(s)</span>
+        </div>
+        <button
+          onClick={copyToNextStudent}
+          className="text-blue-600 hover:text-blue-800 flex items-center text-sm"
+          title="Copiar datos a un nuevo estudiante"
+        >
+          <Copy size={14} className="mr-1" />
+          Copiar datos
+        </button>
+      </div>
+    </div>
+  );
+
+  // Función que maneja la adición de un nuevo estudiante con validación
+  const handleAddNewStudent = () => {
+    // Verificar si el estudiante actual tiene datos completos antes de permitir añadir uno nuevo
+    if (!isCurrentStudentValid()) {
+      setFormErrorMessage('Debe completar los datos del estudiante actual antes de agregar uno nuevo.');
+      return;
+    }
+    
+    const newStudent = createNewEstudiante();
+    setEstudiantes([...estudiantes, newStudent]);
+    setActiveStudentIndex(estudiantes.length);
+    
+    // Redirigir al paso 1 para completar los datos del nuevo estudiante
+    setStep(1);
   };
 
   return (
@@ -586,6 +1039,25 @@ export default function Registration() {
           )}
         </div>
 
+        {/* Estudiantes Navigation Bar - Moved to top level */}
+        <div className="border rounded-lg p-6 mb-8">
+          <h2 className="text-xl font-semibold mb-2">Estudiantes para Inscripción</h2>
+          <p className="text-sm text-gray-600 mb-4">
+            Gestiona los estudiantes que deseas inscribir en esta convocatoria
+          </p>
+
+          <EstudiantesNavBar
+            estudiantes={estudiantes}
+            activeStudentIndex={activeStudentIndex}
+            setActiveStudentIndex={setActiveStudentIndex}
+            removeStudent={removeStudent}
+            addNewStudent={addNewStudent}
+            copyToNextStudent={copyToNextStudent}
+            costoTotalGeneral={costoTotalGeneral}
+            isCurrentStudentValid={isCurrentStudentValid()}
+          />
+        </div>
+
         {/* Registration Process Section */}
         <div className="border rounded-lg p-6">
           <h2 className="text-xl font-semibold mb-2">Proceso de Inscripción</h2>
@@ -644,7 +1116,7 @@ export default function Registration() {
           {step === 1 && (
             <div>
               <h3 className="text-lg font-semibold mb-2">Datos Personales</h3>
-              <p className="text-sm text-gray-600 mb-6">Ingrese sus datos personales para la inscripción</p>
+              <p className="text-sm text-gray-600 mb-3">Ingrese sus datos personales para la inscripción</p>
               
               {/* Mensaje de error del formulario */}
               {formErrorMessage && (
@@ -666,7 +1138,7 @@ export default function Registration() {
                     className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Ingrese sus nombres"
                     value={formData.nombres}
-                    onChange={(e) => setFormData({...formData, nombres: e.target.value})}
+                    onChange={(e) => handleFormChange('nombres', e.target.value)}
                     required
                   />
                 </div>
@@ -682,7 +1154,7 @@ export default function Registration() {
                     className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Ingrese sus apellidos"
                     value={formData.apellidos}
-                    onChange={(e) => setFormData({...formData, apellidos: e.target.value})}
+                    onChange={(e) => handleFormChange('apellidos', e.target.value)}
                     required
                   />
                 </div>
@@ -698,7 +1170,7 @@ export default function Registration() {
                     className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Número de CI"
                     value={formData.ci}
-                    onChange={(e) => setFormData({...formData, ci: e.target.value})}
+                    onChange={(e) => handleFormChange('ci', e.target.value)}
                     required
                   />
                 </div>
@@ -715,7 +1187,7 @@ export default function Registration() {
                       className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Seleccione una fecha"
                       value={formData.fecha_nacimiento}
-                      onChange={(e) => setFormData({...formData, fecha_nacimiento: e.target.value})}
+                      onChange={(e) => handleFormChange('fecha_nacimiento', e.target.value)}
                       required
                     />
                     <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
@@ -735,7 +1207,7 @@ export default function Registration() {
                     className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
                     placeholder="ejemplo@email.com"
                     value={formData.email}
-                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    onChange={(e) => handleFormChange('email', e.target.value)}
                     required
                   />
                 </div>
@@ -764,13 +1236,7 @@ export default function Registration() {
                     className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Ingrese su unidad educativa"
                     value={formData.unidad_educativa.nombre}
-                    onChange={(e) => setFormData({
-                      ...formData, 
-                      unidad_educativa: {
-                        ...formData.unidad_educativa,
-                        nombre: e.target.value
-                      }
-                    })}
+                    onChange={(e) => handleNestedChange('unidad_educativa', 'nombre', e.target.value)}
                     required
                   />
                 </div>
@@ -787,7 +1253,7 @@ export default function Registration() {
                     value={formData.id_grado}
                     onChange={(e) => {
                       console.log("Grado seleccionado:", e.target.value);
-                      setFormData({...formData, id_grado: e.target.value});
+                      handleFormChange('id_grado', e.target.value);
                     }}
                     required
                   >
@@ -818,13 +1284,7 @@ export default function Registration() {
                     id="departamento"
                     className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 bg-white"
                     value={formData.unidad_educativa.departamento}
-                    onChange={(e) => setFormData({
-                      ...formData, 
-                      unidad_educativa: {
-                        ...formData.unidad_educativa,
-                        departamento: e.target.value
-                      }
-                    })}
+                    onChange={(e) => handleNestedChange('unidad_educativa', 'departamento', e.target.value)}
                     required
                   >
                     <option value="">Seleccione su departamento</option>
@@ -851,13 +1311,7 @@ export default function Registration() {
                     className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Ingrese su provincia"
                     value={formData.unidad_educativa.provincia}
-                    onChange={(e) => setFormData({
-                      ...formData, 
-                      unidad_educativa: {
-                        ...formData.unidad_educativa,
-                        provincia: e.target.value
-                      }
-                    })}
+                    onChange={(e) => handleNestedChange('unidad_educativa', 'provincia', e.target.value)}
                     required
                   />
                 </div>
@@ -879,13 +1333,7 @@ export default function Registration() {
                       className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Nombres del tutor"
                       value={formData.tutor_legal.nombres}
-                      onChange={(e) => setFormData({
-                        ...formData, 
-                        tutor_legal: {
-                          ...formData.tutor_legal,
-                          nombres: e.target.value
-                        }
-                      })}
+                      onChange={(e) => handleNestedChange('tutor_legal', 'nombres', e.target.value)}
                       required
                     />
                   </div>
@@ -901,13 +1349,7 @@ export default function Registration() {
                       className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Apellidos del tutor"
                       value={formData.tutor_legal.apellidos}
-                      onChange={(e) => setFormData({
-                        ...formData, 
-                        tutor_legal: {
-                          ...formData.tutor_legal,
-                          apellidos: e.target.value
-                        }
-                      })}
+                      onChange={(e) => handleNestedChange('tutor_legal', 'apellidos', e.target.value)}
                       required
                     />
                   </div>
@@ -923,13 +1365,7 @@ export default function Registration() {
                       className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Número de CI"
                       value={formData.tutor_legal.ci}
-                      onChange={(e) => setFormData({
-                        ...formData, 
-                        tutor_legal: {
-                          ...formData.tutor_legal,
-                          ci: e.target.value
-                        }
-                      })}
+                      onChange={(e) => handleNestedChange('tutor_legal', 'ci', e.target.value)}
                       required
                     />
                   </div>
@@ -943,13 +1379,7 @@ export default function Registration() {
                       id="parentesco"
                       className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 bg-white"
                       value={formData.tutor_legal.parentesco}
-                      onChange={(e) => setFormData({
-                        ...formData, 
-                        tutor_legal: {
-                          ...formData.tutor_legal,
-                          parentesco: e.target.value
-                        }
-                      })}
+                      onChange={(e) => handleNestedChange('tutor_legal', 'parentesco', e.target.value)}
                       required
                     >
                       <option value="">Selecciona el parentesco</option>
@@ -973,13 +1403,7 @@ export default function Registration() {
                       className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
                       placeholder="correo@ejemplo.com"
                       value={formData.tutor_legal.email}
-                      onChange={(e) => setFormData({
-                        ...formData, 
-                        tutor_legal: {
-                          ...formData.tutor_legal,
-                          email: e.target.value
-                        }
-                      })}
+                      onChange={(e) => handleNestedChange('tutor_legal', 'email', e.target.value)}
                       required
                     />
                   </div>
@@ -995,13 +1419,7 @@ export default function Registration() {
                       className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Número de teléfono"
                       value={formData.tutor_legal.telefono}
-                      onChange={(e) => setFormData({
-                        ...formData, 
-                        tutor_legal: {
-                          ...formData.tutor_legal,
-                          telefono: e.target.value
-                        }
-                      })}
+                      onChange={(e) => handleNestedChange('tutor_legal', 'telefono', e.target.value)}
                       required
                     />
                   </div>
@@ -1176,16 +1594,7 @@ export default function Registration() {
                               className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
                               placeholder="Nombres del tutor"
                               value={tutorIndex >= 0 ? formData.tutores_academicos[tutorIndex].nombres : ''}
-                              onChange={(e) => {
-                                const newTutores = [...formData.tutores_academicos];
-                                if (tutorIndex >= 0) {
-                                  newTutores[tutorIndex] = { 
-                                    ...newTutores[tutorIndex], 
-                                    nombres: e.target.value 
-                                  };
-                                  setFormData({...formData, tutores_academicos: newTutores});
-                                }
-                              }}
+                              onChange={(e) => handleTutorAcademicoChange(tutorIndex, 'nombres', e.target.value)}
                             />
                           </div>
 
@@ -1200,16 +1609,7 @@ export default function Registration() {
                               className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
                               placeholder="Apellidos del tutor"
                               value={tutorIndex >= 0 ? formData.tutores_academicos[tutorIndex].apellidos : ''}
-                              onChange={(e) => {
-                                const newTutores = [...formData.tutores_academicos];
-                                if (tutorIndex >= 0) {
-                                  newTutores[tutorIndex] = { 
-                                    ...newTutores[tutorIndex], 
-                                    apellidos: e.target.value 
-                                  };
-                                  setFormData({...formData, tutores_academicos: newTutores});
-                                }
-                              }}
+                              onChange={(e) => handleTutorAcademicoChange(tutorIndex, 'apellidos', e.target.value)}
                             />
                           </div>
 
@@ -1224,16 +1624,7 @@ export default function Registration() {
                               className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
                               placeholder="correo@ejemplo.com"
                               value={tutorIndex >= 0 ? formData.tutores_academicos[tutorIndex].email : ''}
-                              onChange={(e) => {
-                                const newTutores = [...formData.tutores_academicos];
-                                if (tutorIndex >= 0) {
-                                  newTutores[tutorIndex] = { 
-                                    ...newTutores[tutorIndex], 
-                                    email: e.target.value 
-                                  };
-                                  setFormData({...formData, tutores_academicos: newTutores});
-                                }
-                              }}
+                              onChange={(e) => handleTutorAcademicoChange(tutorIndex, 'email', e.target.value)}
                             />
                           </div>
 
@@ -1248,16 +1639,7 @@ export default function Registration() {
                               className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
                               placeholder="Número de teléfono"
                               value={tutorIndex >= 0 ? formData.tutores_academicos[tutorIndex].telefono : ''}
-                              onChange={(e) => {
-                                const newTutores = [...formData.tutores_academicos];
-                                if (tutorIndex >= 0) {
-                                  newTutores[tutorIndex] = { 
-                                    ...newTutores[tutorIndex], 
-                                    telefono: e.target.value 
-                                  };
-                                  setFormData({...formData, tutores_academicos: newTutores});
-                                }
-                              }}
+                              onChange={(e) => handleTutorAcademicoChange(tutorIndex, 'telefono', e.target.value)}
                             />
                           </div>
                         </div>
@@ -1276,14 +1658,7 @@ export default function Registration() {
                             onChange={(e) => {
                               // Validar que solo se ingresen números
                               const value = e.target.value.replace(/[^0-9]/g, '');
-                              const newTutores = [...formData.tutores_academicos];
-                              if (tutorIndex >= 0) {
-                                newTutores[tutorIndex] = { 
-                                  ...newTutores[tutorIndex], 
-                                  ci: value 
-                                };
-                                setFormData({...formData, tutores_academicos: newTutores});
-                              }
+                              handleTutorAcademicoChange(tutorIndex, 'ci', value);
                             }}
                           />
                         </div>
@@ -1341,301 +1716,445 @@ export default function Registration() {
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Áreas máximas</p>
+                      <p className="text-sm text-gray-500">Áreas máximas por estudiante</p>
                       <p className="font-medium">{convocatoria.max_areas}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Total de estudiantes</p>
+                      <p className="font-medium">{estudiantes.length}</p>
                     </div>
                   </div>
                 )}
               </div>
               
-              {/* Datos Personales */}
+              {/* Resumen de Estudiantes */}
               <div className="border-b pb-4 mb-4">
-                <div className="flex justify-between items-center mb-2">
-                  <h4 className="text-base font-semibold">Datos Personales</h4>
-                  <button className="text-gray-400">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M5.293 7.293a1 1 011.414 0L10 10.586l-3.293-3.293a1 1 011.414-1.414l-4 4a1 1 01-1.414 0l-4-4a1 1 010-1.414z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <p className="text-sm text-gray-500">Nombres</p>
-                    <p className="font-medium">{formData.nombres}</p>
+                <div className="flex justify-between items-center mb-4">
+                  <h4 className="text-base font-semibold">Resumen de Estudiantes</h4>
+                  <div className="flex items-center">
+                    <span className="text-sm font-medium mr-2">Total: {estudiantes.length} estudiante(s)</span>
+                    <button className="text-gray-400">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M5.293 7.293a1 1 011.414 0L10 10.586l-3.293-3.293a1 1 011.414-1.414l-4 4a1 1 01-1.414 0l-4-4a1 1 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                    </button>
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Apellidos</p>
-                    <p className="font-medium">{formData.apellidos}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">CI</p>
-                    <p className="font-medium">{formData.ci}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Fecha Nacimiento</p>
-                    <p className="font-medium">{formData.fecha_nacimiento}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Email</p>
-                    <p className="font-medium">{formData.email}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Grado</p>
-                    <p className="font-medium">
-                      {grados.find(grado => grado.id.toString() === formData.id_grado.toString())?.nombre || ''}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Unidad Educativa</p>
-                    <p className="font-medium">{formData.unidad_educativa.nombre}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Departamento</p>
-                    <p className="font-medium">{formData.unidad_educativa.departamento}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Provincia</p>
-                    <p className="font-medium">{formData.unidad_educativa.provincia}</p>
-                  </div>
-                </div>
-
-                <div className="mt-4 pt-4 border-t">
-                  <h5 className="font-medium mb-2">Información del Tutor Legal</h5>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-gray-500">Nombres</p>
-                      <p className="font-medium">{formData.tutor_legal.nombres}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Apellidos</p>
-                      <p className="font-medium">{formData.tutor_legal.apellidos}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">CI</p>
-                      <p className="font-medium">{formData.tutor_legal.ci}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Parentesco</p>
-                      <p className="font-medium">{formData.tutor_legal.parentesco}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Email</p>
-                      <p className="font-medium">{formData.tutor_legal.email}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Teléfono</p>
-                      <p className="font-medium">{formData.tutor_legal.telefono}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Áreas Seleccionadas */}
-              <div className="border-b pb-4 mb-4">
-                <div className="flex justify-between items-center mb-2">
-                  <h4 className="text-base font-semibold">Áreas Seleccionadas</h4>
-                  <button className="text-gray-400">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293-3.293a1 1 011.414-1.414l-4 4a1 1 01-1.414 0l-4-4a1 1 010-1.414z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                </div>
-                {selectedAreas.length === 0 ? (
-                  <p className="text-center text-gray-500 py-4">No se han seleccionado áreas</p>
-                ) : (
-                  <div className="space-y-3">
-                    {selectedAreas.map(area => (
-                      <div key={area.id_convocatoria_nivel} className="bg-gray-50 p-3 rounded-md">
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <p className="font-medium">{area.area_nombre}</p>
-                            <p className="text-sm text-gray-500">Nivel: {area.nivel_nombre}</p>
-                          </div>
-                          <p className="font-medium">{area.costo} Bs.</p>
-                        </div>
-                      </div>
-                    ))}
-                    <div className="flex justify-between items-center p-2">
-                      <p className="font-medium">Total</p>
-                      <p className="font-bold">{costoTotal} Bs.</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Información de Tutores Académicos */}
-              <div className="border-b pb-4 mb-4">
-                <div className="flex justify-between items-center mb-2">
-                  <h4 className="text-base font-semibold">Información de Tutores Académicos</h4>
-                  <button className="text-gray-400">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M5.293 7.293a1 1 011.414 0L10 10.586l-3.293-3.293a1 1 011.414-1.414l-4 4a1 1 01-1.414 0l-4-4a1 1 010-1.414z" clipRule="evenodd" />
-                    </svg>
-                  </button>
                 </div>
                 
-                {selectedAreas.length === 0 ? (
-                  <p className="text-center text-gray-500 py-4">No hay información de tutores académicos</p>
-                ) : (
-                  <div className="space-y-4">
-                    {selectedAreas.map(area => {
-                      const tutor = formData.tutores_academicos.find(
-                        t => t.id_convocatoria_nivel === area.id_convocatoria_nivel
-                      );
+                <div className="space-y-4">
+                  {estudiantes.map((estudiante, index) => {
+                    // Cálculo del costo por estudiante
+                    const costoPorEstudiante = estudiante.selectedAreas ? 
+                      estudiante.selectedAreas.reduce((total, area) => total + (parseFloat(area.costo) || 0), 0) : 0;
                       
-                      if (!tutor) return null;
+                    // Determinar el color para el acordeón
+                    const acordeonColor = index % 2 === 0 ? 'bg-gray-50' : 'bg-white';
                       
-                      // Verificar si el tutor tiene al menos un campo con datos
-                      const hasTutorData = tutor.nombres || tutor.apellidos || tutor.email || tutor.telefono || tutor.ci;
-                      
-                      return (
-                        <div key={area.id_convocatoria_nivel} className="p-3 border border-gray-200 rounded-md">
-                          <h5 className="font-medium mb-2">Tutor para {area.area_nombre}</h5>
-                          
-                          {hasTutorData ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                              {tutor.nombres && (
-                                <div>
-                                  <p className="text-sm text-gray-500">Nombres</p>
-                                  <p className="text-sm">{tutor.nombres}</p>
-                                </div>
-                              )}
-                              {tutor.apellidos && (
-                                <div>
-                                  <p className="text-sm text-gray-500">Apellidos</p>
-                                  <p className="text-sm">{tutor.apellidos}</p>
-                                </div>
-                              )}
-                              {tutor.ci && (
-                                <div>
-                                  <p className="text-sm text-gray-500">Cédula de Identidad</p>
-                                  <p className="text-sm">{tutor.ci}</p>
-                                </div>
-                              )}
-                              {tutor.email && (
-                                <div>
-                                  <p className="text-sm text-gray-500">Email</p>
-                                  <p className="text-sm">{tutor.email}</p>
-                                </div>
-                              )}
-                              {tutor.telefono && (
-                                <div>
-                                  <p className="text-sm text-gray-500">Teléfono</p>
-                                  <p className="text-sm">{tutor.telefono}</p>
-                                </div>
-                              )}
-                              {tutor.institucion && (
-                                <div className="col-span-2">
-                                  <p className="text-sm text-gray-500">Institución</p>
-                                  <p className="text-sm">{tutor.institucion}</p>
-                                </div>
-                              )}
+                    return (
+                      <div key={estudiante.id} className={`rounded-lg border ${acordeonColor}`}>
+                        <div className="p-4">
+                          <div className="flex justify-between items-center mb-3">
+                            <div className="flex items-center">
+                              <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center mr-3 font-medium">
+                                {index + 1}
+                              </div>
+                              <h5 className="font-medium">
+                                {estudiante.nombres} {estudiante.apellidos}
+                              </h5>
                             </div>
-                          ) : (
-                            <p className="text-sm text-gray-500">No se ingresó información del tutor</p>
-                          )}
+                            <div className="flex items-center">
+                              <button 
+                                onClick={() => openStudentDetailsModal(estudiante)}
+                                className="mr-3 text-blue-600 hover:text-blue-800 flex items-center text-sm"
+                                title="Ver detalles completos"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                                <span className="ml-1">Ver detalles</span>
+                              </button>
+                              <div className="text-right">
+                                <p className="text-sm text-gray-500">Costo</p>
+                                <p className="font-medium">{costoPorEstudiante} Bs.</p>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm mb-3">
+                            <div>
+                              <span className="text-gray-500">CI:</span> {estudiante.ci}
+                            </div>
+                            <div>
+                              <span className="text-gray-500">Email:</span> {estudiante.email}
+                            </div>
+                            <div>
+                              <span className="text-gray-500">Grado:</span> {
+                                grados.find(grado => grado.id.toString() === estudiante.id_grado.toString())?.nombre || ''
+                              }
+                            </div>
+                          </div>
+                          
+                          <div className="mt-3">
+                            <p className="text-sm font-medium mb-2">Áreas seleccionadas:</p>
+                            <div className="space-y-1">
+                              {estudiante.selectedAreas && estudiante.selectedAreas.length > 0 ? 
+                                estudiante.selectedAreas.map((area, i) => (
+                                  <div key={i} className="flex justify-between text-sm border-b pb-1">
+                                    <span>{area.area_nombre} - {area.nivel_nombre}</span>
+                                    <span>{area.costo} Bs.</span>
+                                  </div>
+                                )) : 
+                                <p className="text-sm text-gray-500">No hay áreas seleccionadas</p>
+                              }
+                            </div>
+                          </div>
                         </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-
-              {/* Boleta de Pago */}
-              <div className="border rounded-lg p-6 mb-6">
-                <h4 className="text-base font-semibold mb-1">Boleta de Pago</h4>
-                <p className="text-xs text-gray-500 mb-6">
-                  Descarga tu boleta de pago para realizar el pago en cajas de la facultad
-                </p>
-                <div className="bg-gray-50 p-4 rounded-md mb-4">
-                  <div className="flex justify-between items-center mb-4">
-                    <div>
-                      <p className="text-sm text-gray-500">Código de Inscripción</p>
-                      <p className="font-medium">OCEP-{new Date().getFullYear()}-{Math.floor(10000 + Math.random() * 90000)}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm text-gray-500">Fecha</p>
-                      <p className="font-medium">{new Date().toLocaleDateString()}</p>
-                    </div>
-                  </div>
-                  <div className="mb-4">
-                    <p className="text-sm text-gray-500">Estudiante</p>
-                    <p className="font-medium">{formData.nombres} {formData.apellidos}</p>
-                    <p className="text-sm text-gray-500">CI: {formData.ci}</p>
-                  </div>
-                  <div className="mb-4">
-                    <p className="text-sm font-medium mb-2">Detalle</p>
-                    <div className="border-t border-b py-2">
-                      <div className="grid grid-cols-3 gap-2 mb-1 text-sm font-medium">
-                        <div>Área</div>
-                        <div>Nivel</div>
-                        <div className="text-right">Costo</div>
                       </div>
-                      
-                      {selectedAreas.map(area => (
-                        <div key={area.id_convocatoria_nivel} className="grid grid-cols-3 gap-2 mb-1 text-sm">
-                          <div>{area.area_nombre}</div>
-                          <div>{area.nivel_nombre}</div>
-                          <div className="text-right">{area.costo} Bs.</div>
-                        </div>
-                      ))}
-                    </div>
-                    
-                    <div className="flex justify-between items-center py-2 text-sm">
-                      <p className="font-medium">Subtotal</p>
-                      <p className="font-medium">{costoTotal} Bs.</p>
-                    </div>
-                    <div className="flex justify-between items-center py-2 text-sm font-bold">
-                      <p>TOTAL A PAGAR</p>
-                      <p>{costoTotal} Bs.</p>
-                    </div>
+                    );
+                  })}
+                </div>
+                
+                <div className="flex justify-end mt-4 pt-2">
+                  <div className="text-right">
+                    <p className="text-sm text-gray-500">Monto total general</p>
+                    <p className="text-lg font-bold">{costoTotalGeneral} Bs.</p>
                   </div>
                 </div>
-                <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-md mb-6">
-                  <p className="font-medium text-yellow-800 mb-1">Importante: Su inscripción no está completa</p>
-                  <p className="text-sm text-yellow-700 mb-2">Para completar su inscripción, siga estos pasos:</p>
-                  <ol className="text-sm text-yellow-700 list-decimal pl-5 space-y-1">
-                    <li>Descargue la boleta de pago</li>
-                    <li>Realice el pago en las cajas de la facultad</li>
-                    <li>Regrese a la página de inscripción e introduzca su código de inscripción</li>
-                    <li>Suba el comprobante de pago para finalizar su inscripción</li>
-                  </ol>
-                </div>
+              </div>
+              
+
+              <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-md mb-6">
+                <p className="font-medium text-yellow-800 mb-1">Importante: Su inscripción no está completa</p>
+                <p className="text-sm text-yellow-700 mb-2">Para completar su inscripción, siga estos pasos:</p>
+                <ol className="text-sm text-yellow-700 list-decimal pl-5 space-y-1">
+                  <li>Descargue la boleta de pago consolidada para todos los estudiantes</li>
+                  <li>Realice el pago en las cajas de la facultad</li>
+                  <li>Regrese a la página de inscripción e introduzca su código de inscripción</li>
+                  <li>Suba el comprobante de pago para finalizar la inscripción de todos los estudiantes</li>
+                </ol>
+              </div>
+              
+              {/* Botones de acción */}
+              <div className="flex gap-3 mb-6">
                 <button
                   className="w-full bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 flex items-center justify-center"
                   onClick={() => {
-                    // Aquí iría la lógica para generar y descargar la boleta
-                    alert('Generando boleta de pago...');
+                    openBoletaModal(); // Abre el modal con los detalles de la boleta
+                    // La funcionalidad de descarga se implementará posteriormente
                   }}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 01-1-1zm3.293-7.707a1 1 011.414 0L9 10.586V3a1 1 112 0v7.586l1.293-1.293a1 1 011.414 1.414l-3 3a1 1 01-1.414 0l-3-3a1 1 010-1.414z" clipRule="evenodd" />
+                    <path fillRule="evenodd" d="M3 17a1 1 011-1h12a1 1 110 2H4a1 1 01-1-1zm3.293-7.707a1 1 011.414 0L9 10.586V3a1 1 112 0v7.586l1.293-1.293a1 1 011.414 1.414l-3 3a1 1 01-1.414 0l-3-3a1 1 010-1.414z" clipRule="evenodd" />
                   </svg>
                   Descargar Boleta de Pago
                 </button>
+                <button
+                  className="bg-green-600 text-white px-6 py-3 rounded-md hover:bg-green-700 flex items-center justify-center"
+                  onClick={handleAddNewStudent}
+                  title="Añadir nuevo estudiante"
+                >
+                  <Plus size={20} className="mr-2" />
+                  Agregar Estudiante
+                </button>
               </div>
 
-              <div className="flex justify-between mt-6">
+             
+
+              <div className="flex justify-end mt-6">
                 <button
                   onClick={() => setStep(3)}
                   className="border border-gray-300 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-50"
                 >
                   Atrás
                 </button>
-                <button
-                  onClick={() => {
-                    // Aquí iría la lógica para finalizar la inscripción
-                    alert('Inscripción en proceso de finalización. Se generará su boleta de pago.');
-                  }}
-                  className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700"
-                >
-                  Completar Inscripción
-                </button>
               </div>
             </div>
           )}
         </div>
-      </div>
+
+      {/* Modal de detalles del estudiante */}
+      {isModalOpen && selectedStudentDetails && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white p-4 border-b flex justify-between items-center">
+              <h3 className="text-lg font-semibold">
+                Detalles de {selectedStudentDetails.nombres} {selectedStudentDetails.apellidos}
+              </h3>
+              <button 
+                onClick={closeModal}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-6">
+              {/* Datos Personales */}
+              <div className="mb-6">
+                <h4 className="font-medium text-gray-800 mb-2 border-b pb-1">Datos Personales</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-500">Nombres</p>
+                    <p className="font-medium">{selectedStudentDetails.nombres}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Apellidos</p>
+                    <p className="font-medium">{selectedStudentDetails.apellidos}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">CI</p>
+                    <p className="font-medium">{selectedStudentDetails.ci}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Fecha de Nacimiento</p>
+                    <p className="font-medium">{selectedStudentDetails.fecha_nacimiento}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Email</p>
+                    <p className="font-medium">{selectedStudentDetails.email}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Grado</p>
+                    <p className="font-medium">
+                      {grados.find(g => g.id.toString() === selectedStudentDetails.id_grado.toString())?.nombre || ''}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Unidad Educativa */}
+              <div className="mb-6">
+                <h4 className="font-medium text-gray-800 mb-2 border-b pb-1">Unidad Educativa</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-500">Nombre</p>
+                    <p className="font-medium">{selectedStudentDetails.unidad_educativa.nombre}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Departamento</p>
+                    <p className="font-medium">{selectedStudentDetails.unidad_educativa.departamento}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Provincia</p>
+                    <p className="font-medium">{selectedStudentDetails.unidad_educativa.provincia}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Tutor Legal */}
+              <div className="mb-6">
+                <h4 className="font-medium text-gray-800 mb-2 border-b pb-1">Tutor Legal</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-500">Nombres</p>
+                    <p className="font-medium">{selectedStudentDetails.tutor_legal.nombres}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Apellidos</p>
+                    <p className="font-medium">{selectedStudentDetails.tutor_legal.apellidos}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">CI</p>
+                    <p className="font-medium">{selectedStudentDetails.tutor_legal.ci}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Parentesco</p>
+                    <p className="font-medium">{selectedStudentDetails.tutor_legal.parentesco}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Email</p>
+                    <p className="font-medium">{selectedStudentDetails.tutor_legal.email}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Teléfono</p>
+                    <p className="font-medium">{selectedStudentDetails.tutor_legal.telefono}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Áreas y tutores académicos */}
+              <div className="mb-6">
+                <h4 className="font-medium text-gray-800 mb-2 border-b pb-1">Áreas seleccionadas</h4>
+                {selectedStudentDetails.selectedAreas && selectedStudentDetails.selectedAreas.length > 0 ? (
+                  <div className="space-y-4">
+                    {selectedStudentDetails.selectedAreas.map((area, index) => {
+                      // Buscar el tutor académico para esta área
+                      const tutorAcademico = selectedStudentDetails.tutores_academicos?.find(
+                        tutor => tutor.id_convocatoria_nivel === area.id_convocatoria_nivel
+                      );
+
+                      return (
+                        <div key={index} className="border p-3 rounded-md">
+                          <div className="flex justify-between mb-2">
+                            <h5 className="font-medium">{area.area_nombre} - {area.nivel_nombre}</h5>
+                            <span className="text-sm font-medium">{area.costo} Bs.</span>
+                          </div>
+                          {tutorAcademico && (
+                            <div className="mt-2 pt-2 border-t">
+                              <p className="text-sm font-medium text-gray-700">Tutor Académico:</p>
+                              <div className="grid grid-cols-2 gap-2 text-sm mt-1">
+                                {tutorAcademico.nombres && (
+                                  <div>
+                                    <span className="text-gray-500">Nombres:</span> {tutorAcademico.nombres}
+                                  </div>
+                                )}
+                                {tutorAcademico.apellidos && (
+                                  <div>
+                                    <span className="text-gray-500">Apellidos:</span> {tutorAcademico.apellidos}
+                                  </div>
+                                )}
+                                {tutorAcademico.ci && (
+                                  <div>
+                                    <span className="text-gray-500">CI:</span> {tutorAcademico.ci}
+                                  </div>
+                                )}
+                                {tutorAcademico.email && (
+                                  <div>
+                                    <span className="text-gray-500">Email:</span> {tutorAcademico.email}
+                                  </div>
+                                )}
+                                {tutorAcademico.telefono && (
+                                  <div>
+                                    <span className="text-gray-500">Teléfono:</span> {tutorAcademico.telefono}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500">No hay áreas seleccionadas</p>
+                )}
+              </div>
+
+              <div className="flex justify-end mt-4 pt-2 border-t">
+                <button
+                  onClick={closeModal}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de la boleta de pago */}
+      {isBoletaModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white p-4 border-b flex justify-between items-center">
+              <h3 className="text-lg font-semibold">Boleta de Pago Consolidada</h3>
+              <button 
+                onClick={closeBoletaModal}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="mb-6">
+                <div className="flex justify-between items-center mb-4">
+                  <div>
+                    <p className="text-sm text-gray-500">Código de Inscripción</p>
+                    <p className="font-medium">OCEP-{new Date().getFullYear()}-{Math.floor(10000 + Math.random() * 90000)}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-gray-500">Fecha</p>
+                    <p className="font-medium">{new Date().toLocaleDateString()}</p>
+                  </div>
+                </div>
+                
+                <div className="mb-4">
+                  <p className="text-sm text-gray-500">Tutor Legal Responsable</p>
+                  <p className="font-medium">{estudiantes[0]?.tutor_legal.nombres} {estudiantes[0]?.tutor_legal.apellidos}</p>
+                  <p className="text-sm text-gray-500">CI: {estudiantes[0]?.tutor_legal.ci}</p>
+                </div>
+                
+                <div className="border rounded-lg p-4 mb-4 bg-gray-50">
+                  <h4 className="font-medium text-gray-800 mb-3">Detalle de Estudiantes</h4>
+                  <div className="border-t border-b py-2">
+                    <div className="grid grid-cols-12 gap-2 mb-2 text-sm font-medium">
+                      <div className="col-span-1">#</div>
+                      <div className="col-span-4">Estudiante</div>
+                      <div className="col-span-2">CI</div>
+                      <div className="col-span-3">Áreas</div>
+                      <div className="col-span-2 text-right">Costo</div>
+                    </div>
+                    
+                    {estudiantes.map((estudiante, index) => {
+                      const costoPorEstudiante = estudiante.selectedAreas ? 
+                        estudiante.selectedAreas.reduce((total, area) => total + (parseFloat(area.costo) || 0), 0) : 0;
+                        
+                      return (
+                        <div key={estudiante.id} className="grid grid-cols-12 gap-2 mb-1 text-sm py-1 border-b border-gray-100">
+                          <div className="col-span-1">{index + 1}</div>
+                          <div className="col-span-4">{estudiante.nombres} {estudiante.apellidos}</div>
+                          <div className="col-span-2">{estudiante.ci}</div>
+                          <div className="col-span-3">
+                            {estudiante.selectedAreas && estudiante.selectedAreas.length > 0 ? (
+                              <div className="flex flex-col">
+                                {estudiante.selectedAreas.map((area, i) => (
+                                  <span key={i} className="text-xs">{area.area_nombre} - {area.nivel_nombre}</span>
+                                ))}
+                              </div>
+                            ) : 'Sin áreas'}
+                          </div>
+                          <div className="col-span-2 text-right">{costoPorEstudiante} Bs.</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  
+                  <div className="flex justify-between items-center py-2 text-sm">
+                    <p className="font-medium">Subtotal</p>
+                    <p className="font-medium">{costoTotalGeneral} Bs.</p>
+                  </div>
+                  <div className="flex justify-between items-center py-2 text-sm font-bold">
+                    <p>TOTAL A PAGAR</p>
+                    <p>{costoTotalGeneral} Bs.</p>
+                  </div>
+                </div>
+
+                <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-md mb-6">
+                  <p className="font-medium text-yellow-800 mb-1">Instrucciones de pago</p>
+                  <ol className="text-sm text-yellow-700 list-decimal pl-5 space-y-1">
+                    <li>Presente esta boleta en las cajas de la facultad</li>
+                    <li>Realice el pago del monto total indicado</li>
+                    <li>Conserve el comprobante que le entregarán</li>
+                    <li>Regrese a la página de inscripción e introduzca el código de verificación de esta boleta</li>
+                    <li>Suba el comprobante de pago para finalizar la inscripción</li>
+                  </ol>
+                </div>
+
+                <div className="border-t pt-4 mt-4 flex justify-between items-center">
+                  <div>
+                    <p className="text-xs text-gray-500">Esta boleta es válida hasta:</p>
+                    <p className="font-medium text-sm">{new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString()}</p>
+                  </div>
+                  <button
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center"
+                    onClick={() => {
+                      // Al hacer clic en "Aceptar", cerramos el modal
+                      closeBoletaModal();
+                    }}
+                  >
+                    <Check size={18} className="mr-2" />
+                    Aceptar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
+  );
+
+</div>
   );
 }
