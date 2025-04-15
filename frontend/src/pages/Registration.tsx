@@ -1514,13 +1514,19 @@ export default function Registration() {
                       Cédula de Identidad<span className="text-red-500">*</span>
                     </label>
                     <input
-                      type="text"
+                      type="number"
                       id="cedulaTutorLegal"
                       className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Número de CI"
                       value={formData.tutor_legal.ci}
-                      onChange={(e) => handleNestedChange('tutor_legal', 'ci', e.target.value)}
+                    
+                      onChange={(e) => {
+                        // Validar que solo se ingresen números
+                        const value = e.target.value.replace(/[^0-9]/g, '');
+                        handleNestedChange('tutor_legal', 'ci', value);
+                      }}
                       required
+                      maxLength={8}
                     />
                   </div>
 
@@ -1534,6 +1540,7 @@ export default function Registration() {
                       className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 bg-white"
                       value={formData.tutor_legal.parentesco}
                       onChange={(e) => handleNestedChange('tutor_legal', 'parentesco', e.target.value)}
+
                       required
                     >
                       <option value="">Selecciona el parentesco</option>
@@ -1568,13 +1575,19 @@ export default function Registration() {
                       Teléfono<span className="text-red-500">*</span>
                     </label>
                     <input
-                      type="tel"
+                      type="number"
                       id="telefonoTutorLegal"
                       className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Número de teléfono"
                       value={formData.tutor_legal.telefono}
-                      onChange={(e) => handleNestedChange('tutor_legal', 'telefono', e.target.value)}
+                   
+                      onChange={(e) => {
+                        // Validar que solo se ingresen números
+                        const value = e.target.value.replace(/[^0-9]/g, '');
+                        handleNestedChange('tutor_legal', 'telefono', value);
+                      }}
                       required
+                      maxLength={8}
                     />
                   </div>
                 </div>
@@ -1788,13 +1801,19 @@ export default function Registration() {
                               Teléfono
                             </label>
                             <input
-                              type="tel"
+                              type="number"
                               id={`telefono_${area.id_convocatoria_nivel}`}
                               className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
                               placeholder="Número de teléfono"
                               value={tutorIndex >= 0 ? formData.tutores_academicos[tutorIndex].telefono : ''}
-                              onChange={(e) => handleTutorAcademicoChange(tutorIndex, 'telefono', e.target.value)}
-                            />
+                              // onChange={(e) => handleTutorAcademicoChange(tutorIndex, 'telefono', e.target.value)}
+                              onChange={(e) => {
+                                // Validar que solo se ingresen números
+                                const value = e.target.value.replace(/[^0-9]/g, '');
+                                handleTutorAcademicoChange(tutorIndex, 'telefono', value);
+                              }}
+                              maxLength={8}
+                              />
                           </div>
                         </div>
 
@@ -1814,6 +1833,7 @@ export default function Registration() {
                               const value = e.target.value.replace(/[^0-9]/g, '');
                               handleTutorAcademicoChange(tutorIndex, 'ci', value);
                             }}
+                            maxLength={8}
                           />
                         </div>
                       </div>
