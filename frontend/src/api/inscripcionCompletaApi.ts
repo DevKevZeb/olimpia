@@ -51,12 +51,14 @@ export const buscarUnidadesEducativas = async (query: string) => {
  * Procesa la inscripción completa de un estudiante
  * @param data Datos completos del formulario de inscripción
  */
-export const inscribirEstudiante = async (data: any) => {
+export const inscribirEstudiante = async (data: any , openModal:any) => {
   try {
     const response = await axiosInstance.post('/v1/public/inscripcion-completa', data);
+    openModal();
     return response.data?.data || response.data;
   } catch (error) {
     console.error('Error al inscribir estudiante:', error);
+    alert("Opsie! , algo salio mal! " + error.response.data.message);
     throw error;
   }
 };

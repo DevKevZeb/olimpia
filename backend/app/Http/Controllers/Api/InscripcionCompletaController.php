@@ -229,11 +229,11 @@ class InscripcionCompletaController extends ApiController
                     
                     // Crear tutor académico
                     $tutorAcademico = TutorAcademico::create([
-                        'nombres' => $tutorData['nombres'],
-                        'apellidos' => $tutorData['apellidos'],
+                        'nombres' => $tutorData['nombres'] ?? '',
+                        'apellidos' => $tutorData['apellidos']?? '',
                         'ci' => $tutorData['ci'] ?? null,
-                        'telefono' => $tutorData['telefono'],
-                        'email' => $tutorData['email'] ?? null,
+                        'telefono' => $tutorData['telefono']?? '',
+                        'email' => $tutorData['email'] ?? '',
                     ]);
                     
                     // Crear inscripción

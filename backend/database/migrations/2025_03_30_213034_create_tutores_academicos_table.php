@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id('id_tutor_academico');
             $table->string('nombres', 100);
             $table->string('apellidos', 100);
-            $table->string('ci', 20);
+            $table->string('ci', 20)->nullable();
             $table->string('telefono', 20)->nullable();
             $table->string('email', 100);
             $table->timestamps();

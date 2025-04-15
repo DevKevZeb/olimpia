@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Calendar, Check, ChevronRight, Upload, X, AlertCircle, Plus, Trash2, Copy, Users } from 'lucide-react';
 import { verificarCodigoOrden, subirComprobantePago } from '../api/comprobantePagoApi';
 import { getDatosInscripcion, getAreasPorGrado, inscribirEstudiante, buscarUnidadesEducativas } from '../api/inscripcionCompletaApi';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 // Definir una interfaz para la estructura de datos de un estudiante
 interface EstudianteFormData {
@@ -32,6 +34,7 @@ interface EstudianteFormData {
 }
 
 export default function Registration() {
+  const componentRef = useRef<HTMLDivElement>(null);
   // Estados originales para verificación de código
   const [step, setStep] = useState(1);
   const [verificationCode, setVerificationCode] = useState('');
@@ -97,14 +100,10 @@ export default function Registration() {
 
 
       console.log(datos);
-      const data = await inscribirEstudiante( JSON.stringify(datos));
+      const data = await inscribirEstudiante( JSON.stringify(datos) , openBoletaModal);
       console.log(data);
-      // setCodigoUnico(data['orden_pago']['codigo_unico']);
-      // setCodigo(data['orden_pago']['codigo_unico']);
-      // setIsLoading(false);
-      // setTimeout(() => {
-        // generatePDF();
-      // }, 500);
+
+
 
     } catch (error) {
       console.error("Error al obtener el código:", error);
@@ -139,16 +138,34 @@ export default function Registration() {
  
 
   // Función para abrir el modal de la boleta de pago
-  const openBoletaModal = () => {
+  const openBoletaModal = async () => {
     setIsBoletaModalOpen(true);
     
     // Iniciar descarga automáticamente
     console.log("Iniciando descarga automática de boleta...");
     // En un caso real, aquí se haría la llamada a la API para generar y descargar el PDF
-    setTimeout(() => {
-      // Simulación de descarga completada
-      console.log("Boleta descargada automáticamente");
-    }, 1000);
+    
+    generatePDF();
+  };
+
+  const generatePDF = async () => {
+    if (!componentRef.current) return;
+    const payment =componentRef.current;
+
+    const canvas = await html2canvas(payment , {scale:  window.devicePixelRatio });
+    const imgData = canvas.toDataURL('image/png');
+
+    const pdf = new jsPDF({
+      orientation: 'landscape',
+      unit: 'px',
+      format: [ canvas.width , canvas.height],
+    });
+
+    pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+
+    const date = new Date();
+    const dateParsed = date.getDate() + "-"+ date.getMonth()+ "-" +date.getFullYear();
+    pdf.save(`Boleta de inscripcion ${dateParsed}.pdf`);
   };
 
   // Función para cerrar el modal de la boleta de pago y resetear
@@ -2103,7 +2120,7 @@ export default function Registration() {
                   <p className="text-sm text-gray-500">CI: {estudiantes[0]?.tutor_legal.ci}</p>
                 </div>
                 
-                <div className="border rounded-lg p-4 mb-4 bg-gray-50">
+                <div ref={componentRef} className="border rounded-lg p-4 mb-4 bg-gray-50">
                   <h4 className="font-medium text-gray-800 mb-3">Detalle de Estudiantes</h4>
                   <div className="border-t border-b py-2">
                     <div className="grid grid-cols-12 gap-2 mb-2 text-sm font-medium">
