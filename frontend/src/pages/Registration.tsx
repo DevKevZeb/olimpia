@@ -42,6 +42,7 @@ export default function Registration() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadComplete, setUploadComplete] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
   const [errorMessage, setErrorMessage] = useState(''); // Error para sección "Completar Inscripción"
   const [formErrorMessage, setFormErrorMessage] = useState(''); // Error para sección "Proceso de Inscripción"
   const codigo_unico = `OCEP-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
@@ -609,6 +610,8 @@ export default function Registration() {
 
   // Función para validar campos obligatorios del paso 1
   const validateStep1 = () => {
+    let isValid = true;
+    let currentErrors = {};
     // Lista de campos obligatorios del estudiante
     const requiredFields = [
       { field: formData.nombres, name: 'Nombres' },
@@ -630,6 +633,28 @@ export default function Registration() {
       { field: formData.tutor_legal.parentesco, name: 'Parentesco del Tutor Legal' },
     ];
     
+    // Validar campos del estudiante
+    const nombresError = validateField('nombres', formData.nombres);
+    if (nombresError) {
+      currentErrors.nombres = nombresError;
+      isValid = false;
+    }
+    const apellidosError = validateField('apellidos', formData.apellidos);
+    if (apellidosError) {
+      currentErrors.apellidos = apellidosError;
+      isValid = false;
+    }
+    const ciError = validateField('ci', formData.ci);
+    if (ciError) {
+      currentErrors.ci = ciError;
+      isValid = false;
+    }
+    const fechaNacimientoError = validateField('fecha_nacimiento', formData.fecha_nacimiento);
+    if (fechaNacimientoError) {
+      currentErrors.fecha_nacimiento = fechaNacimientoError;
+      isValid = false;
+    }
+
     // Verificar campos del estudiante
     for (const { field, name } of requiredFields) {
       if (!field || field.trim() === '') {
@@ -660,8 +685,11 @@ export default function Registration() {
     }
     
     // Si todo es válido
-    setFormErrorMessage('');
-    return true;
+    setFormErrors(currentErrors);
+    setFormErrorMessage(isValid ? '' : 'Por favor, corrija los errores en el formulario.');
+    //setFormErrorMessage('');
+    //return true;
+    return isValid;
   };
   
   // Función para validar todos los estudiantes antes de avanzar al siguiente paso
@@ -731,6 +759,7 @@ export default function Registration() {
   const handleFormChange = (field, value) => {
     const newFormData = { ...formData, [field]: value };
     setFormData(newFormData);
+    setFormErrors({ ...formErrors, [name]: '' });
     updateActiveStudent(newFormData, areas_seleccionadas);
   };
 
@@ -744,7 +773,56 @@ export default function Registration() {
       } 
     };
     setFormData(newFormData);
+    setFormErrors({ ...formErrors, [parent]: { ...formErrors[parent], [child]: '' } });
     updateActiveStudent(newFormData, areas_seleccionadas);
+  };
+
+  const validateField = (name, value) => {
+    let error = '';
+    switch (name) {
+      case 'nombres':
+      case 'apellidos':
+        if (value.length > 50) {
+          error = 'El campo debe contener menos de 50 caracteres.';
+        } else if (!/^[a-zA-Z\s]*$/.test(value)) {
+          error = 'No se permiten números ni caracteres especiales.';
+        }
+        break;
+      case 'ci':
+        if (!/^\d{1,8}$/.test(value)) {
+          error = 'Debe ser un valor numérico de hasta 8 dígitos.';
+        }
+        break;
+      case 'fecha_nacimiento':
+        const selectedDate = new Date(value);
+        const currentDate = new Date();
+        if (selectedDate >= currentDate) {
+          error = 'La fecha debe ser menor a la fecha actual.';
+        }
+        break;
+      case 'telefono':
+        if (value && !/^\d{1,8}$/.test(value)) {
+          error = 'Solo se permiten números con un máximo de 8 dígitos.';
+        }
+        break;
+      case 'unidad_educativa':
+        if (value.nombre.length > 50) {
+          error = { ...error, nombre: 'Debe contener menos de 50 caracteres.' };
+        } else if (!/^[a-zA-Z\s]*$/.test(value.nombre)) {
+          error = { ...error, nombre: 'No se permiten caracteres especiales.' };
+        }
+        break;
+      case 'unidad_educativa.provincia':
+        if (value.length > 50) {
+          error = 'Debe contener menos de 50 caracteres.';
+        } else if (!/^[a-zA-Z\s]*$/.test(value)) {
+          error = 'No se permiten números ni caracteres especiales.';
+        }
+        break;
+      default:
+        break;
+    }
+    return error;
   };
 
   // Actualizar los tutores en el paso 3
@@ -1165,8 +1243,10 @@ export default function Registration() {
                     placeholder="Ingrese sus nombres"
                     value={formData.nombres}
                     onChange={(e) => handleFormChange('nombres', e.target.value)}
+                    maxLength={50}
                     required
                   />
+                  {formErrors.nombres && <p className="text-red-500 text-xs mt-1">{formErrors.nombres}</p>}
                 </div>
 
                 {/* Apellidos */}
@@ -1181,8 +1261,10 @@ export default function Registration() {
                     placeholder="Ingrese sus apellidos"
                     value={formData.apellidos}
                     onChange={(e) => handleFormChange('apellidos', e.target.value)}
+                    maxLength={50}
                     required
                   />
+                  {formErrors.apellidos && <p className="text-red-500 text-xs mt-1">{formErrors.apellidos}</p>}
                 </div>
 
                 {/* Cédula de Identidad */}
@@ -1191,14 +1273,23 @@ export default function Registration() {
                     Cédula de Identidad<span className="text-red-500">*</span>
                   </label>
                   <input
-                    type="text"
+                    type="number"
                     id="cedula"
                     className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Número de CI"
                     value={formData.ci}
                     onChange={(e) => handleFormChange('ci', e.target.value)}
+                    onKeyPress={(event) => {
+                      if (event.target.value.length >= 8 && event.key !== 'Backspace' && event.key !== 'Delete' && !(event.ctrlKey && (event.key === 'c' || event.key === 'v'))) {
+                        event.preventDefault();
+                      }
+                    }}
                     required
+                    min="0" 
+                    step="1"
+                    maxLength={8}
                   />
+                  {formErrors.ci && <p className="text-red-500 text-xs mt-1">{formErrors.ci}</p>}
                 </div>
 
                 {/* Fecha de Nacimiento */}
@@ -1220,6 +1311,7 @@ export default function Registration() {
                       <Calendar size={18} className="text-gray-400" />
                     </div>
                   </div>
+                  {formErrors.fecha_nacimiento && <p className="text-red-500 text-xs mt-1">{formErrors.fecha_nacimiento}</p>}
                 </div>
 
                 {/* Correo Electrónico */}
@@ -1244,11 +1336,22 @@ export default function Registration() {
                     Teléfono
                   </label>
                   <input
-                    type="tel"
+                    type="number"
                     id="telefono"
-                    className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    className={`w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 ${formErrors.telefono ? 'border-red-500' : ''}`}
                     placeholder="Número de teléfono"
+                    value={formData.telefono}
+                    onChange={(e) => handleFormChange('telefono', e.target.value)}
+                    onKeyPress={(event) => {
+                      if (event.target.value.length >= 8 && event.key !== 'Backspace' && event.key !== 'Delete' && !(event.ctrlKey && (event.key === 'c' || event.key === 'v'))) {
+                        event.preventDefault();
+                      }
+                    }}
+                    min="0" 
+                    step="1"
+                    maxLength={8}
                   />
+                  {formErrors.telefono && <p className="text-red-500 text-xs mt-1">{formErrors.telefono}</p>}
                 </div>
 
                 {/* Unidad Educativa - Cambiado de dropdown a campo de texto */}
@@ -1263,8 +1366,12 @@ export default function Registration() {
                     placeholder="Ingrese su unidad educativa"
                     value={formData.unidad_educativa.nombre}
                     onChange={(e) => handleNestedChange('unidad_educativa', 'nombre', e.target.value)}
+                    maxLength={50}
                     required
                   />
+                  {formErrors.unidad_educativa?.nombre && (
+                    <p className="text-red-500 text-xs mt-1">{formErrors.unidad_educativa.nombre}</p>
+                  )}
                 </div>
 
                 {/* Curso */}
@@ -1338,8 +1445,12 @@ export default function Registration() {
                     placeholder="Ingrese su provincia"
                     value={formData.unidad_educativa.provincia}
                     onChange={(e) => handleNestedChange('unidad_educativa', 'provincia', e.target.value)}
+                    maxLength={50}
                     required
                   />
+                  {formErrors.unidad_educativa?.provincia && (
+                    <p className="text-red-500 text-xs mt-1">{formErrors.unidad_educativa.provincia}</p>
+                  )}
                 </div>
               </div>
 
