@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id('id_estudiante');
             $table->string('nombres', 100);
             $table->string('apellidos', 100);
-            $table->string('ci', 20)->unique();
+            $table->string('ci', 20);
             $table->date('fecha_nacimiento');
             $table->string('email', 100)->nullable();
             $table->foreignId('id_unidad_educativa')->constrained('unidades_educativas', 'id_unidad_educativa');

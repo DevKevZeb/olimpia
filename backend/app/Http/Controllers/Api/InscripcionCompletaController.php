@@ -2,19 +2,22 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Models\Grado;
+use App\Models\OrdenPago;
 use App\Models\Estudiante;
 use App\Models\TutorLegal;
+use App\Models\Inscripcion;
+use Illuminate\Support\Str;
+use App\Models\Convocatoria;
+use Illuminate\Http\Request;
 use App\Models\TutorAcademico;
 use App\Models\UnidadEducativa;
-use App\Models\Inscripcion;
-use App\Models\OrdenPago;
-use App\Models\Convocatoria;
+use App\Models\ListaInscripcion;
 use App\Models\ConvocatoriaNivel;
-use App\Models\Grado;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use App\Models\DetalleListaInscripcion;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 
 class InscripcionCompletaController extends ApiController
 {
@@ -75,10 +78,213 @@ class InscripcionCompletaController extends ApiController
         ], 'Áreas y niveles obtenidos correctamente');
     }
 
+
+    
+    public function inscribirEstudiante(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'lista_inscripcion' => 'required|array',
+            'id_convocatoria' => 'required|string',
+            'codigo_unico' => 'required|string'
+    ]);
+
+        Log::info("esto nos llega" . json_encode($request->all()));
+        if ($validator->fails()) {
+            return $this->errorResponse($validator->errors()->first(), 422);
+        }
+
+        $convocatoria = Convocatoria::find($request->id_convocatoria);
+        if (!$convocatoria || $convocatoria->estado !== 'abierta') {
+            return $this->errorResponse('La convocatoria no está abierta para inscripciones', 422);
+        }
+        DB::beginTransaction();
+
+
+        $listaInscripcion = ListaInscripcion::create([
+            'codigo_lista' => null,
+            'id_unidad_educativa' => null,
+            'fecha_creacion' => now()
+        ]);
+        $montoTotal = 0;
+        $inscripciones = $request->lista_inscripcion;
+
+        foreach( $inscripciones as $inscripcion){
+            Log::info("inscripcion " . json_encode($inscripcion) . "  " . gettype($inscripcion) );
+            $validator = Validator::make($inscripcion, [
+                // Datos del estudiante
+                'nombres' => 'required|string|max:100',
+                'apellidos' => 'required|string|max:100',
+                'ci' => 'required|string|max:20',
+                'fecha_nacimiento' => 'required|date',
+                'email' => 'nullable|email|max:100',
+                'id_grado' => 'required|exists:grados,id_grado',
+                
+                // Datos de la unidad educativa
+                'unidad_educativa' => 'required|array',
+                'unidad_educativa.id_unidad_educativa' => 'nullable|exists:unidades_educativas,id_unidad_educativa',
+                'unidad_educativa.nombre' => 'required_without:unidad_educativa.id_unidad_educativa|string|max:200',
+                'unidad_educativa.departamento' => 'required_without:unidad_educativa.id_unidad_educativa|string|max:50',
+                'unidad_educativa.provincia' => 'required_without:unidad_educativa.id_unidad_educativa|string|max:50',
+                
+                // Datos del tutor legal
+                'tutor_legal' => 'required|array',
+                'tutor_legal.nombres' => 'required|string|max:100',
+                'tutor_legal.apellidos' => 'required|string|max:100',
+                'tutor_legal.ci' => 'required|string|max:20',
+                'tutor_legal.telefono' => 'required|string|max:20',
+                'tutor_legal.email' => 'nullable|email|max:100',
+                'tutor_legal.parentesco' => 'required|string|max:50',
+                'tutor_legal.es_el_mismo_estudiante' => 'required|boolean',
+                
+                // Datos de la convocatoria y áreas seleccionadas
+   //             'id_convocatoria' => 'required|exists:convocatorias,id_convocatoria',
+                'areas_seleccionadas' => 'required|array|min:1',
+                'areas_seleccionadas.*.id_convocatoria_nivel' => 'required|exists:convocatoria_niveles,id_convocatoria_nivel',
+                
+                // Datos de tutores académicos (uno por área)
+                'tutores_academicos' => 'array',
+                'tutores_academicos.*.id_convocatoria_nivel' => 'nullable|exists:convocatoria_niveles,id_convocatoria_nivel',
+                'tutores_academicos.*.nombres' => 'nullable|string|max:100',
+                'tutores_academicos.*.apellidos' => 'nullable|string|max:100',
+                'tutores_academicos.*.ci' => 'nullable|string|max:20',
+                'tutores_academicos.*.telefono' => 'nullable|string|max:20',
+                'tutores_academicos.*.email' => 'nullable|email|max:100',
+            ]);
+
+            if ($validator->fails()) {
+                return $this->errorResponse($validator->errors()->first(), 422);
+            }
+            
+            // Verificar que no se exceda el máximo de áreas permitidas
+            if (count($inscripcion['areas_seleccionadas']) > $convocatoria->max_areas_por_estudiante) {
+                return $this->errorResponse(
+                    "Se ha excedido el máximo de áreas permitidas ({$convocatoria->max_areas_por_estudiante})",
+                    422
+                );
+            }
+            
+            // Verificar que cada área seleccionada tenga un tutor académico
+            foreach ($inscripcion['areas_seleccionadas'] as $area) {
+                $tieneTutor = false;
+                foreach ($inscripcion['tutores_academicos'] as $tutor) {
+                    if ($tutor['id_convocatoria_nivel'] == $area['id_convocatoria_nivel']) {
+                        $tieneTutor = true;
+                        break;
+                    }
+                }
+            }
+            
+            // Iniciar transacción
+            
+            try {
+                // 1. Crear o actualizar unidad educativa
+                $idUnidadEducativa = null;
+                if (isset($inscripcion['unidad_educativa']['id_unidad_educativa'])) {
+                    $idUnidadEducativa = $inscripcion['unidad_educativa']['id_unidad_educativa'];
+                } else {
+                    $unidadEducativa = UnidadEducativa::create([
+                        'nombre' => $inscripcion['unidad_educativa']['nombre'],
+                        'departamento' => $inscripcion['unidad_educativa']['departamento'],
+                        'provincia' => $inscripcion['unidad_educativa']['provincia'],
+                    ]);
+                    $idUnidadEducativa = $unidadEducativa->id_unidad_educativa;
+                }
+                
+                // 2. Crear tutor legal
+                $tutorLegal = TutorLegal::create([
+                    'nombres' => $inscripcion['tutor_legal']['nombres'],
+                    'apellidos' => $inscripcion['tutor_legal']['apellidos'],
+                    'ci' => $inscripcion['tutor_legal']['ci'],
+                    'telefono' => $inscripcion['tutor_legal']['telefono'],
+                    'email' => $inscripcion['tutor_legal']['email'],
+                    'parentesco' => $inscripcion['tutor_legal']['parentesco'],
+                    'es_el_mismo_estudiante' => $inscripcion['tutor_legal']['es_el_mismo_estudiante'],
+                ]);
+                
+                // 3. Crear estudiante
+                $estudiante = Estudiante::create([
+                    'nombres' => $inscripcion['nombres'],
+                    'apellidos' => $inscripcion['apellidos'],
+                    'ci' => $inscripcion['ci'],
+                    'fecha_nacimiento' => $inscripcion['fecha_nacimiento'],
+                    'email' => $inscripcion['email'],
+                    'id_unidad_educativa' => $idUnidadEducativa,
+                    'id_grado' => $inscripcion['id_grado'],
+                    'id_tutor_legal' => $tutorLegal->id_tutor_legal,
+                ]);
+                
+                // 4. Crear inscripciones y tutores académicos para cada área seleccionada
+                $inscripciones = [];
+                $montoInscripcionTotal = 0;
+                
+                foreach ($inscripcion['areas_seleccionadas'] as $areaSeleccionada) {
+                    // Buscar el tutor académico para esta área
+                    $tutorData = null;
+                    foreach ($inscripcion['tutores_academicos'] as $tutor) {
+                        if ($tutor['id_convocatoria_nivel'] == $areaSeleccionada['id_convocatoria_nivel']) {
+                            $tutorData = $tutor;
+                            break;
+                        }
+                    }
+                    
+                    // Crear tutor académico
+                    $tutorAcademico = TutorAcademico::create([
+                        'nombres' => $tutorData['nombres'],
+                        'apellidos' => $tutorData['apellidos'],
+                        'ci' => $tutorData['ci'] ?? null,
+                        'telefono' => $tutorData['telefono'],
+                        'email' => $tutorData['email'] ?? null,
+                    ]);
+                    
+                    // Crear inscripción
+                    DetalleListaInscripcion::create([
+                        'id_lista' => $listaInscripcion->id_lista,
+                        'id_estudiante' => $estudiante->id_estudiante,
+                        'id_convocatoria_nivel' => $areaSeleccionada['id_convocatoria_nivel'],
+                        'id_tutor_academico' => $tutorAcademico->id_tutor_academico,
+                        'fecha_registro' => now(),
+                    ]);
+                    // Sumar el costo de inscripción al monto total
+                    $convocatoriaNivel = ConvocatoriaNivel::with('convocatoriaArea')->find($areaSeleccionada['id_convocatoria_nivel']);
+                    $montoInscripcionTotal += $convocatoriaNivel->convocatoriaArea->costo_inscripcion;
+                }
+                $montoTotal += $montoInscripcionTotal;
+            } catch (\Exception $e) {
+                DB::rollBack();
+                return $this->errorResponse('Error al procesar la inscripción: ' . $e->getMessage(), 500);
+            }
+        }
+        
+        try{
+            // 5. Crear orden de pago
+            $ordenPago = OrdenPago::create([
+                'codigo_unico' => $request->codigo_unico,
+                'tipo_origen' => 'lista',
+                'id_inscripcion' => null, // Asociamos a la primera inscripción
+                'id_lista' => $listaInscripcion->id_lista,
+                'monto_total' => $montoTotal,
+                'fecha_emision' => now(),
+                'fecha_vencimiento' => now()->addDays(5), // 5 días para pagar
+                'estado' => 'pendiente',
+            ]);
+
+            DB::commit();
+
+            return $this->successResponse([
+                'estudiante' => $estudiante,
+                'inscripciones' => $listaInscripcion,  
+                'orden_pago' => $ordenPago,
+            ], 'Inscripción completada correctamente', 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->errorResponse('Error al procesar la inscripción: ' . $e->getMessage(), 500);
+        }
+       
+    }
     /**
      * Procesa la inscripción completa de un estudiante
      */
-    public function inscribirEstudiante(Request $request)
+    public function inscribirEstud(Request $request)
     {
         $validator = Validator::make($request->all(), [
             // Datos del estudiante
@@ -237,7 +443,7 @@ class InscripcionCompletaController extends ApiController
 
             // 5. Crear orden de pago
             $ordenPago = OrdenPago::create([
-                'codigo_unico' => 'ORD-' . strtoupper(Str::random(8)),
+                'codigo_unico' => $request->codigo_unico,
                 'tipo_origen' => 'individual',
                 'id_inscripcion' => $inscripciones[0]->id_inscripcion, // Asociamos a la primera inscripción
                 'id_lista' => null,

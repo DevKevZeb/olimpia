@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id('id_tutor_legal');
             $table->string('nombres', 100);
             $table->string('apellidos', 100);
-            $table->string('ci', 20)->unique();
+            $table->string('ci', 20);
             $table->string('telefono', 20);
             $table->string('email', 100)->nullable();
             $table->string('parentesco', 50)->comment('Padre, Madre, Tutor legal');
