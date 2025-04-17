@@ -1,0 +1,68 @@
+.registro-requisitos {
+    padding: 2rem;
+    max-width: 800px;
+    margin: 0 auto;
+    font-family: 'Segoe UI', sans-serif;
+  }
+  
+  .registro-requisitos h2 {
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    color: #2c3e50;
+  }
+  
+  .select-container {
+    margin-bottom: 1.5rem;
+  }
+  
+  .select-container label {
+    font-weight: bold;
+    margin-right: 0.5rem;
+  }
+  
+  .select-container select {
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  .seccion-requisitos {
+    margin-top: 2rem;
+  }
+  
+  .seccion-requisitos h4 {
+    margin-top: 1.5rem;
+    color: #34495e;
+  }
+  
+  .requisito-checkbox {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+  
+  .requisito-checkbox input[type="checkbox"] {
+    margin-right: 0.5rem;
+  }
+  
+  .boton-guardar {
+    margin-top: 2rem;
+    padding: 0.6rem 1.2rem;
+    background-color: #2980b9;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .boton-guardar:hover {
+    background-color: #1f6391;
+  }
+  
+  .error {
+    color: red;
+    margin-top: 1rem;
+    font-weight: bold;
+  }
+  

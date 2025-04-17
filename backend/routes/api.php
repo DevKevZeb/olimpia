@@ -20,8 +20,11 @@ use App\Http\Controllers\Api\PublicConvocatoriaController;
 use App\Http\Controllers\Api\InscripcionDatosController;
 use App\Http\Controllers\Api\InscripcionCompletaController;
 use App\Http\Controllers\Api\AdminDashboardController;
-use App\Http\Controllers\Api\ConvocatoriaCompletaController;
+//use App\Http\Controllers\Api\ConvocatoriaCompletaController;
 use App\Http\Controllers\Api\AdminConvocatoriaController;
+use App\Http\Controllers\Api\RequisitoConvocatoriaController;
+use App\Http\Controllers\Api\ExcelController;
+use App\Http\Controllers\Api\BuscarConvocatoriaNivelController;
 
 /*
 |--------------------------------------------------------------------------
@@ -64,6 +67,7 @@ Route::prefix('v1')->group(function () {
 
     // Grados
     Route::apiResource('grados', GradoController::class);
+    Route::get('grados/por-nombre/{nombre_grado}', [GradoController::class, 'showPorNombre']);
 
     // Niveles de Categoría
     Route::apiResource('niveles', NivelCategoriaController::class);
@@ -102,8 +106,8 @@ Route::prefix('v1')->group(function () {
 
     // Endpoints para página de Administración
     Route::get('/admin/dashboard-data', [AdminDashboardController::class, 'getDashboardData']);
-    Route::post('/admin/convocatorias/completa', [ConvocatoriaCompletaController::class, 'crearConvocatoriaCompleta']);
-    Route::get('/admin/convocatorias/{id}/completa', [ConvocatoriaCompletaController::class, 'getConvocatoriaCompleta']);
+    //Route::post('/admin/convocatorias/completa', [ConvocatoriaCompletaController::class, 'crearConvocatoriaCompleta']);
+    //Route::get('/admin/convocatorias/{id}/completa', [ConvocatoriaCompletaController::class, 'getConvocatoriaCompleta']);
 
     // Endpoints para el panel de administración de convocatorias
     Route::get('/admin/convocatorias-activas', [AdminConvocatoriaController::class, 'getConvocatoriasActivas']);
@@ -115,4 +119,12 @@ Route::prefix('v1')->group(function () {
     Route::post('/admin/convocatorias/asociar-niveles-grados', [AdminConvocatoriaController::class, 'asociarNivelesGrados']);
     Route::get('/admin/convocatorias/{id}/areas', [AdminConvocatoriaController::class, 'getAreasPorConvocatoria']);
     Route::get('/admin/convocatorias/{id}/niveles', [AdminConvocatoriaController::class, 'getNivelesPorConvocatoria']);
+
+    // Rutas para el controlador de RequisitoConvocatoria
+    Route::get('convocatorias/{convocatoria}/requisitos', [RequisitoConvocatoriaController::class, 'index'])->name('convocatorias.requisitos.index');
+    Route::post('convocatorias/{convocatoria}/requisitos', [RequisitoConvocatoriaController::class, 'store'])->name('convocatorias.requisitos.store');
+
+    // Rutas para el excel
+    Route::get('/excel/plantilla/{id_convocatoria}', [ExcelController::class, 'downloadTemplate']);
+    Route::post('/buscar-convocatoria-nivel', [BuscarConvocatoriaNivelController::class, 'buscarIdConvocatoriaNivel']);
 });

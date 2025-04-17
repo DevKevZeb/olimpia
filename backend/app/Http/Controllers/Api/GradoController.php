@@ -115,4 +115,18 @@ class GradoController extends ApiController
             'Grado eliminado correctamente'
         );
     }
+
+    public function showPorNombre(string $nombre_grado): JsonResponse
+    {
+        $grado = Grado::where('nombre_grado', $nombre_grado)->first();
+
+        if (!$grado) {
+            return $this->errorResponse('Grado no encontrado', 404);
+        }
+
+        return $this->successResponse(
+            new GradoResource($grado),
+            'Grado obtenido correctamente'
+        );
+    }
 }
