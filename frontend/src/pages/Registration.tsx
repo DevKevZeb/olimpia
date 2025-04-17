@@ -441,6 +441,17 @@ export default function Registration() {
       // Llamar a la API para verificar el código
       const response = await verificarCodigoOrden(verificationCode);
       
+      // Obtener la fecha de vencimiento de la orden
+      const fechaVencimiento = new Date(response.orden.fecha_vencimiento);
+      const fechaActual = new Date();
+
+      // Verificar si la orden ha vencido
+      if (fechaVencimiento < fechaActual) {
+        setErrorMessage('Esta orden de pago ha vencido. Por favor genere una nueva orden.');
+        setIsVerifying(false);
+        return;
+      }
+      
       // Verificar el estado de la orden
       if (response.orden.estado === 'pagada') {
         setErrorMessage('Esta orden de pago ya ha sido pagada. No es necesario subir un comprobante.');
