@@ -770,6 +770,7 @@ export default function AdminPanel() {
                   onChange={handleInputChangeConvocatoria}
                   className={`w-full border rounded-lg px-4 py-2 ${formErrors.nombre ? 'border-red-500' : 'border-gray-300'}`}
                   required
+                  maxLength={50}
                 />
                 {formErrors.nombre && (
                   <p className="mt-1 text-sm text-red-600">{formErrors.nombre}</p>
