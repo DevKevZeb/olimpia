@@ -134,8 +134,6 @@ const UploadAndScan: React.FC<UploadAndScanProps> = ({ selectedConvocatoriaId, o
             const tutor_academico_telefono = typeof tutor_academico_telefono_raw === 'number' ? tutor_academico_telefono_raw.toString() : tutor_academico_telefono_raw?.trim();
             const tutor_academico_email = row[27]?.trim(); // Ya es probable string
 
-            const codigo_unico = `OCEP-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
-
             console.log('campos obligatorios',{nombres, apellidos, ci, nombre_area, nombre_nivel, nombre_grado})
             if (nombres && apellidos && ci && nombre_area && nombre_nivel && nombre_grado) {
               if (studentAreaCounts[ci] === undefined) {
@@ -184,7 +182,6 @@ const UploadAndScan: React.FC<UploadAndScanProps> = ({ selectedConvocatoriaId, o
                         es_el_mismo_estudiante: false, // TODO: Implementar lógica si es necesario
                       },
                       id_convocatoria: String(selectedConvocatoriaId),
-                      codigo_unico: codigo_unico,
                       areas_seleccionadas: [{ id_convocatoria_nivel: id_convocatoria_nivel_result }],
                       tutores_academicos: tutor_academico_nombres || tutor_academico_apellidos || tutor_academico_ci || tutor_academico_telefono || tutor_academico_email ? [{
                         id_convocatoria_nivel: id_convocatoria_nivel_result,
@@ -247,9 +244,10 @@ const DataSummary = ({ scannedData, onCancel, onSave }: { scannedData: any[]; on
 
   const handleSave = () => {
     if (scannedData.length > 0) {
-      onSave({ lista_inscripcion: scannedData, id_convocatoria: scannedData[0]?.id_convocatoria, codigo_unico: scannedData[0]?.codigo_unico });
+        const codigo_unico = `OCEP-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
+        onSave({ lista_inscripcion: scannedData, id_convocatoria: scannedData[0]?.id_convocatoria, codigo_unico: codigo_unico });
     } else {
-      alert('No hay datos para inscribir.');
+        alert('No hay datos para inscribir.');
     }
   };
 
@@ -387,18 +385,18 @@ const ExcelWorkflow = () => {
   const handleInscribir = async (dataToSend: any) => {
     console.log('Datos a enviar al backend:', dataToSend);
     try {
-      await inscribirEstudiante(dataToSend, () => {
-        alert('Inscripción completada con éxito.');
-        setShowSummary(false);
-        setScannedData([]);
-        setSelectedConvocatoriaId(null);
-        setShowExcelUpload(false);
-        setShowScanner(false);
-        setConvocatoriaData(null);
-      });
+      const response = await inscribirEstudiante(dataToSend, () => {}); // La función openModal se llama DENTRO de inscribirEstudiante
+      console.log('Respuesta de inscripción:', response);
+      alert(`Inscripción completada con éxito. Su código único es: ${dataToSend.codigo_unico}`);
+      setShowSummary(false);
+      setScannedData([]);
+      setSelectedConvocatoriaId(null);
+      setShowExcelUpload(false);
+      setShowScanner(false);
+      setConvocatoriaData(null);
     } catch (error: any) {
       console.error('Error al inscribir estudiantes:', error);
-      alert('Error al inscribir estudiantes: ' + (error.response?.data?.message || 'Ocurrió un error inesperado.'));
+      alert("Opsie! , algo salio mal! " + error.response.data.message);
     }
   };
 
