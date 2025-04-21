@@ -3,7 +3,6 @@ import '../styles/CamposObligatorios.css';
 import { RequisitoConvocatoria } from '../types/RequisitoConvocatoria'; // Asegúrate de crear este archivo de tipos
 import { fetchConvocatorias, fetchRequisitosConvocatoria, saveRequisitosConvocatoria } from '../api/requisitoConvocatoria'; // Asegúrate de crear este archivo de API
 
-
 interface Props {
   // Puedes pasar un ID de convocatoria inicial si es necesario
   initialConvocatoriaId?: number;
@@ -17,9 +16,11 @@ const RegistroRequisitos: React.FC<Props> = ({ initialConvocatoriaId }) => {
   const [loadingRequisitos, setLoadingRequisitos] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const camposPostulante = ['nombres', 'apellidos', 'ci', 'fecha_nacimiento', 'email', 'id_unidad_educativa', 'id_grado', 'id_tutor_legal'];
-  const camposTutorLegal = ['nombres', 'apellidos', 'ci', 'telefono', 'email', 'parentesco', 'es_el_mismo_estudiante'];
+  const camposTutorLegalObligatorios = ['ci', 'nombres', 'apellidos', 'email'];
+  const camposTutorLegalOpcionales = ['telefono', 'parentesco'];
   const camposTutorAcademico = ['nombres', 'apellidos', 'ci', 'telefono', 'email'];
+  const camposPostulanteObligatorios = ['ci', 'nombres', 'apellidos', 'email'];
+  const camposPostulanteOpcionales = ['fecha_nacimiento', 'id_unidad_educativa', 'id_grado', 'teléfono', 'departamento', 'provincia'];
 
   useEffect(() => {
     const loadConvocatorias = async () => {
@@ -70,10 +71,66 @@ const RegistroRequisitos: React.FC<Props> = ({ initialConvocatoriaId }) => {
   };
 
   const handleCheckboxChange = (entidad: string, campo: string, checked: boolean) => {
+    if ((entidad === 'postulante' && camposPostulanteObligatorios.includes(campo)) ||
+        (entidad === 'tutorLegal' && camposTutorLegalObligatorios.includes(campo))) {
+      return; // No permitir desmarcar campos obligatorios
+    }
     setRequisitosGuardados((prev) => ({
       ...prev,
       [`${entidad}.${campo}`]: checked,
     }));
+  };
+
+  const handleSelectAll = (entidad: 'postulante' | 'tutorLegal' | 'tutorAcademico') => {
+    setRequisitosGuardados((prev) => {
+      const newState = { ...prev };
+      let camposToUpdate: string[] = [];
+
+      if (entidad === 'postulante') {
+        camposToUpdate = [...camposPostulanteObligatorios, ...camposPostulanteOpcionales];
+      } else if (entidad === 'tutorLegal') {
+        camposToUpdate = [...camposTutorLegalObligatorios, ...camposTutorLegalOpcionales];
+      } else if (entidad === 'tutorAcademico') {
+        camposToUpdate = camposTutorAcademico;
+      }
+
+      camposToUpdate.forEach((campo) => {
+        if (!(entidad === 'postulante' && camposPostulanteObligatorios.includes(campo)) &&
+            !(entidad === 'tutorLegal' && camposTutorLegalObligatorios.includes(campo))) {
+          newState[`${entidad}.${campo}`] = true;
+        }
+      });
+      return newState;
+    });
+  };
+
+  const handleDeselectAll = (entidad: 'postulante' | 'tutorLegal' | 'tutorAcademico') => {
+    setRequisitosGuardados((prev) => {
+      const newState = { ...prev };
+      let camposToUpdate: string[] = [];
+
+      if (entidad === 'postulante') {
+        camposToUpdate = camposPostulanteOpcionales;
+      } else if (entidad === 'tutorLegal') {
+        camposToUpdate = camposTutorLegalOpcionales;
+      } else if (entidad === 'tutorAcademico') {
+        camposToUpdate = camposTutorAcademico;
+      }
+
+      camposToUpdate.forEach((campo) => {
+        newState[`${entidad}.${campo}`] = false;
+      });
+      return newState;
+    });
+  };
+
+  const isCampoObligatorio = (entidad: string, campo: string): boolean => {
+    if (entidad === 'postulante') {
+      return camposPostulanteObligatorios.includes(campo);
+    } else if (entidad === 'tutorLegal') {
+      return camposTutorLegalObligatorios.includes(campo);
+    }
+    return false;
   };
 
   const handleGuardarRequisitos = async () => {
@@ -122,7 +179,7 @@ const RegistroRequisitos: React.FC<Props> = ({ initialConvocatoriaId }) => {
 
   return (
     <div className="registro-requisitos">
-      <h2>Configuracion de Campos Obligatorios por Convocatoria</h2>
+      <h2>Configuracion de Campos Obligatorios</h2>
 
       <div className="select-container">
         <label htmlFor="convocatoria">Seleccionar Convocatoria:</label>
@@ -149,7 +206,23 @@ const RegistroRequisitos: React.FC<Props> = ({ initialConvocatoriaId }) => {
           ) : (
             <div>
               <h4>Del Postulante:</h4>
-              {camposPostulante.map((campo) => (
+              <div className="seccion-acciones">
+                <button type="button" onClick={() => handleSelectAll('postulante')}>Seleccionar Todos</button>
+                <button type="button" onClick={() => handleDeselectAll('postulante')}>Deseleccionar Opcionales</button>
+              </div>
+              {camposPostulanteObligatorios.map((campo) => (
+                <div className="requisito-checkbox obligatorio" key={`postulante.${campo}`}>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={true}
+                      disabled
+                    />
+                    {campo} <span className="obligatorio-tag">(Obligatorio)</span>
+                  </label>
+                </div>
+              ))}
+              {camposPostulanteOpcionales.map((campo) => (
                 <div className="requisito-checkbox" key={`postulante.${campo}`}>
                   <label>
                     <input
@@ -163,7 +236,23 @@ const RegistroRequisitos: React.FC<Props> = ({ initialConvocatoriaId }) => {
               ))}
 
               <h4>Del Tutor Legal:</h4>
-              {camposTutorLegal.map((campo) => (
+              <div className="seccion-acciones">
+                <button type="button" onClick={() => handleSelectAll('tutorLegal')}>Seleccionar Todos</button>
+                <button type="button" onClick={() => handleDeselectAll('tutorLegal')}>Deseleccionar Opcionales</button>
+              </div>
+              {camposTutorLegalObligatorios.map((campo) => (
+                <div className="requisito-checkbox obligatorio" key={`tutorLegal.${campo}`}>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={true}
+                      disabled
+                    />
+                    {campo} <span className="obligatorio-tag">(Obligatorio)</span>
+                  </label>
+                </div>
+              ))}
+              {camposTutorLegalOpcionales.map((campo) => (
                 <div className="requisito-checkbox" key={`tutorLegal.${campo}`}>
                   <label>
                     <input
@@ -177,6 +266,10 @@ const RegistroRequisitos: React.FC<Props> = ({ initialConvocatoriaId }) => {
               ))}
 
               <h4>Del Tutor Académico:</h4>
+              <div className="seccion-acciones">
+                <button type="button" onClick={() => handleSelectAll('tutorAcademico')}>Seleccionar Todos</button>
+                <button type="button" onClick={() => handleDeselectAll('tutorAcademico')}>Deseleccionar Todos</button> {/* No hay opcionales definidos */}
+              </div>
               {camposTutorAcademico.map((campo) => (
                 <div className="requisito-checkbox" key={`tutorAcademico.${campo}`}>
                   <label>

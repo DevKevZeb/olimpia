@@ -1,0 +1,207 @@
+.registro-requisitos {
+    font-family: sans-serif;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .registro-requisitos h2 {
+    color: #333;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .select-container {
+    margin-bottom: 20px;
+  }
+  
+  .select-container label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #555;
+  }
+  
+  .select-container select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 16px;
+    color: #333;
+  }
+  
+  .select-container select:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  }
+  
+  .upload-and-scan {
+    margin-top: 20px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fff;
+  }
+  
+  .upload-and-scan h2 {
+    color: #333;
+    margin-top: 0;
+    margin-bottom: 15px;
+    text-align: left;
+    font-size: 1.5em;
+  }
+  
+  .upload-and-scan input[type="file"] {
+    display: block;
+    margin-bottom: 15px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 16px;
+  }
+  
+  .upload-and-scan button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .upload-and-scan button:hover {
+    background-color: #0056b3;
+  }
+  
+  .upload-and-scan button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+  
+  .upload-and-scan .error-message {
+    color: red;
+    margin-top: 10px;
+    font-size: 14px;
+  }
+  
+  .upload-and-scan .loading-message {
+    color: orange;
+    margin-top: 10px;
+    font-size: 14px;
+  }
+  
+  .data-summary {
+    margin-top: 20px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fff;
+  }
+  
+  .data-summary h2 {
+    color: #333;
+    margin-top: 0;
+    margin-bottom: 15px;
+    text-align: left;
+    font-size: 1.5em;
+  }
+  
+  .data-summary .table-container {
+    overflow-x: auto;
+    margin-bottom: 15px;
+  }
+  
+  .data-summary table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid #ddd;
+  }
+  
+  .data-summary th, .data-summary td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+    font-size: 14px;
+  }
+  
+  .data-summary th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+    color: #555;
+  }
+  
+  .data-summary tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+  
+  .data-summary .actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+  
+  .data-summary .actions button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .data-summary .actions button:first-child {
+    background-color: #6c757d;
+    color: white;
+  }
+  
+  .data-summary .actions button:first-child:hover {
+    background-color: #5a6268;
+  }
+  
+  .data-summary .actions button:last-child {
+    background-color: #28a745; 
+    color: white;
+    margin-left: 10px;
+  }
+  
+  .data-summary .actions button:last-child:hover {
+    background-color: #1e7e34;
+  }
+  
+  .download-template {
+    margin-bottom: 20px;
+  }
+  
+  .download-template a {
+    display: inline-block;
+    padding: 10px 15px;
+    background-color: #17a2b8; 
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .download-template a:hover {
+    background-color: #138496;
+  }
+  
+  .loading-convocatorias {
+    color: #007bff;
+    margin-top: 10px;
+    font-size: 16px;
+  }
+  
+  .error-convocatorias {
+    color: red;
+    margin-top: 10px;
+    font-size: 16px;
+  }

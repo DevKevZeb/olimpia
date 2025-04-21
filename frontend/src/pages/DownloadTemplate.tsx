@@ -1,4 +1,5 @@
 import React from 'react';
+import '../styles/DowloadTemplate.css';
 import {descargarPlantilla} from '../api/datosExcel';
 
 interface DownloadTemplateProps {
@@ -21,10 +22,10 @@ const DownloadTemplate: React.FC<DownloadTemplateProps> = ({ selectedConvocatori
   };
 
   return (
-    <div>
+    <div className='download-template-container'>
       <h2>Descargar Plantilla Excel</h2>
       <button onClick={handleDownload} disabled={!selectedConvocatoriaId}>
-        Descargar Plantilla (Axios)
+        Descargar Plantilla
       </button>
       {!selectedConvocatoriaId && (
         <p style={{ color: 'orange' }}>Selecciona una convocatoria para descargar la plantilla.</p>

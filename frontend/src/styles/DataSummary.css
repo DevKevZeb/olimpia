@@ -1,0 +1,101 @@
+.data-summary-container {
+    margin-top: 20px;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .data-summary-container h2 {
+    color: #333;
+    margin-bottom: 20px;
+    font-size: 1.8em;
+    text-align: center;
+  }
+  
+  .data-summary-container .table-container {
+    overflow-x: auto;
+    margin-bottom: 20px;
+  }
+  
+  .data-summary-container table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid #ccc;
+  }
+  
+  .data-summary-container th,
+  .data-summary-container td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: left;
+    font-size: 0.9em; /* Reducir un poco el tamaño de la fuente para tablas grandes */
+  }
+  
+  .data-summary-container th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+    color: #555;
+  }
+  
+  .data-summary-container tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+  
+  .data-summary-container tbody tr:hover {
+    background-color: #f0f0f0; /* Ligeramente resaltar la fila al pasar el ratón */
+  }
+  
+  .data-summary-container .actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+  }
+  
+  .data-summary-container .actions button {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  }
+  
+  .data-summary-container .actions button:first-child {
+    background-color: #6c757d; /* Gris para "Volver" */
+    color: white;
+  }
+  
+  .data-summary-container .actions button:first-child:hover {
+    background-color: #5a6268;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  }
+  
+  .data-summary-container .actions button:last-child {
+    background-color: #28a745; /* Verde para "Inscribir Estudiantes" */
+    color: white;
+  }
+  
+  .data-summary-container .actions button:last-child:hover {
+    background-color: #1e7e34;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Estilos específicos para los datos anidados (opcional, pero mejora la legibilidad) */
+  .data-summary-container td > * {
+    margin-bottom: 5px;
+  }
+  
+  .data-summary-container td > *:last-child {
+    margin-bottom: 0;
+  }
+  
+  .data-summary-container td hr {
+    border: 0;
+    border-top: 1px solid #eee;
+    margin: 10px 0;
+  }

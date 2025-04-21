@@ -1,4 +1,8 @@
 import React, { useState, useCallback, useEffect } from 'react';
+import '../styles/DowloadTemplate.css';
+import '../styles/RegistroExcel.css';
+import '../styles/UploadAndScan.css';
+import '../styles/DataSummary.css';
 import * as XLSX from 'xlsx';
 import { fetchConvocatorias } from '../api/requisitoConvocatoria'; // Import para obtener la configuración de la convocatoria
 import { buscarIdConvocatoriaNivel, obtenerIdGradoPorNombre } from '../api/datosExcel';
@@ -224,7 +228,7 @@ const UploadAndScan: React.FC<UploadAndScanProps> = ({ selectedConvocatoriaId, o
   }, [selectedFile, onDataScanned, selectedConvocatoriaId, convocatoriaData]);
 
   return (
-    <div>
+    <div className='upload-scan-container'>
       <h2>Subir y Escanear Archivo Excel</h2>
       <input type="file" accept=".xlsx, .xls" onChange={handleFileChange} />
       <button onClick={handleScan} disabled={!selectedFile || !selectedConvocatoriaId || !convocatoriaData}>
@@ -252,9 +256,9 @@ const DataSummary = ({ scannedData, onCancel, onSave }: { scannedData: any[]; on
   };
 
   return (
-    <div>
+    <div className='data-summary-container'>
       <h2>Vista Previa de Datos para Inscripción</h2>
-      <div style={{ overflowX: 'auto' }}>
+      <div className="table-container" style={{ overflowX: 'auto' }}>
         <table style={{ borderCollapse: 'collapse', width: '100%' }}>
           <thead>
             <tr>
@@ -314,8 +318,10 @@ const DataSummary = ({ scannedData, onCancel, onSave }: { scannedData: any[]; on
           </tbody>
         </table>
       </div>
-      <button onClick={onCancel}>Volver</button>
-      <button onClick={handleSave} style={{ marginLeft: '10px' }}>Inscribir Estudiantes</button>
+      <div className="actions"> {/* Aplica la clase aquí */}
+        <button onClick={onCancel}>Volver</button>
+        <button onClick={handleSave}>Inscribir Estudiantes</button>
+      </div>
     </div>
   );
 };

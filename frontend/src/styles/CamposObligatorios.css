@@ -1,5 +1,5 @@
 .registro-requisitos {
-    padding: 2rem;
+    padding: 20px;
     max-width: 800px;
     margin: 0 auto;
     font-family: 'Segoe UI', sans-serif;
@@ -7,42 +7,68 @@
   
   .registro-requisitos h2 {
     font-size: 1.8rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: 20px;
+    text-align: center;
     color: #2c3e50;
   }
   
   .select-container {
-    margin-bottom: 1.5rem;
+    margin-bottom: 20px;
   }
   
   .select-container label {
+    display: block;
+    margin-bottom: 5px;
     font-weight: bold;
-    margin-right: 0.5rem;
+    /*margin-right: 0.5rem;*/
   }
   
   .select-container select {
-    padding: 0.5rem;
+    width: 100%;
+    padding: 10px;
     border: 1px solid #ccc;
-    border-radius: 5px;
+    border-radius: 4px;
+    box-sizing: border-box;
   }
   
   .seccion-requisitos {
-    margin-top: 2rem;
+    margin-top: 20px;
+    padding: 15px;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    background-color: #f9f9f9;
   }
   
+  .seccion-requisitos h3 {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #34495e;
+  }
+
   .seccion-requisitos h4 {
-    margin-top: 1.5rem;
+    font-size: 1.1em; /* Tamaño de texto más grande (ligeramente menor que h3) */
+    font-weight: bold;
+    margin-top: 20px;
+    margin-bottom: 10px;
     color: #34495e;
   }
   
   .requisito-checkbox {
     display: flex;
     align-items: center;
-    margin-bottom: 0.5rem;
+    margin-bottom: 8px;
+  }
+
+  .requisito-checkbox label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
   }
   
   .requisito-checkbox input[type="checkbox"] {
-    margin-right: 0.5rem;
+    margin-right: 8px;
   }
   
   .boton-guardar {
@@ -66,3 +92,53 @@
     font-weight: bold;
   }
   
+  .obligatorio-tag {
+    color: red;
+    font-size: 0.8em;
+    margin-left: 5px;
+  }
+  .requisito-checkbox.obligatorio label {
+    font-weight: bold; 
+  }
+
+  .seccion-acciones {
+    margin-bottom: 15px;
+    display: flex;
+    gap: 10px; /* Espacio entre los botones */
+    align-items: center; /* Alineación vertical de los botones */
+  }
+  
+  .seccion-acciones button {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    background-color: #007bff; /* Color de fondo principal */
+    color: white;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.3s ease;
+  }
+  
+  .seccion-acciones button:hover {
+    background-color: #0056b3; /* Color de fondo al pasar el ratón */
+  }
+  
+  .seccion-acciones button[type="button"] {
+    /* Estilos específicos para los botones de acción (Seleccionar/Deseleccionar) si es necesario */
+  }
+  
+  .boton-guardar {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    background-color: #28a745; /* Color de fondo del botón Guardar */
+    color: white;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.3s ease;
+    margin-top: 20px;
+  }
+  
+  .boton-guardar:hover {
+    background-color: #1e7e34; /* Color de fondo al pasar el ratón en Guardar */
+  }

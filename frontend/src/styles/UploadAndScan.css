@@ -1,0 +1,69 @@
+.upload-scan-container {
+    margin-top: 20px;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    text-align: center; /* Centrar los elementos internamente */
+  }
+  
+  .upload-scan-container h2 {
+    color: #333;
+    margin-bottom: 20px;
+    font-size: 1.8em;
+  }
+  
+  .upload-scan-container input[type="file"] {
+    display: block;
+    margin: 15px auto; /* Centrar horizontalmente y añadir margen */
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 16px;
+    width: 80%; /* Ajustar el ancho según sea necesario */
+    max-width: 400px;
+  }
+  
+  .upload-scan-container button {
+    padding: 12px 25px;
+    background-color: #007bff; /* Azul para la acción principal */
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1.1em;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    margin-top: 15px;
+  }
+  
+  .upload-scan-container button:hover {
+    background-color: #0056b3;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  }
+  
+  .upload-scan-container button:disabled {
+    background-color: #ccc;
+    color: #666;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+  }
+  
+  .upload-scan-container p {
+    margin-top: 15px;
+    font-size: 1em;
+  }
+  
+  .upload-scan-container p.error-message {
+    color: red;
+    font-weight: bold;
+  }
+  
+  .upload-scan-container p.loading-message {
+    color: orange;
+    font-style: italic;
+  }
