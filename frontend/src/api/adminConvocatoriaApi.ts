@@ -43,6 +43,20 @@ export const getNivelesCategoria = async () => {
 };
 
 /**
+ * Crea un nuevo nivel de categoría
+ * @param nombre_nivel Nombre del nivel a crear
+ */
+export const createNivelCategoria = async (nombre_nivel) => {
+  try {
+    const response = await axiosInstance.post('/v1/niveles', { nombre_nivel });
+    return response.data?.data || response.data;
+  } catch (error) {
+    console.error('Error al crear nivel de categoría:', error);
+    throw error;
+  }
+};
+
+/**
  * Obtiene todos los grados
  */
 export const getGrados = async () => {

@@ -8,7 +8,8 @@ import {
   asociarAreas,
   asociarNivelesGrados,
   getAreasPorConvocatoria,
-  getNivelesPorConvocatoria
+  getNivelesPorConvocatoria,
+  createNivelCategoria
 } from '../api/adminConvocatoriaApi';
 
 export default function AdminPanel() {
@@ -16,6 +17,7 @@ export default function AdminPanel() {
   const [showCrearConvocatoriaForm, setShowCrearConvocatoriaForm] = useState(false);
   const [showAsignarAreasForm, setShowAsignarAreasForm] = useState(false);
   const [showConfigurarNivelesForm, setShowConfigurarNivelesForm] = useState(false);
+  const [showCrearNivelForm, setShowCrearNivelForm] = useState(false);
   
   // Estados para datos y selecciones
   const [convocatorias, setConvocatorias] = useState([]);
@@ -59,6 +61,10 @@ export default function AdminPanel() {
   const [selectedNiveles, setSelectedNiveles] = useState([]);
   const [nivelGrados, setNivelGrados] = useState({});
   const [loadingNiveles, setLoadingNiveles] = useState(false); // Nuevo estado para control específico de carga de niveles
+
+  // Estado para el nuevo nivel
+  const [nuevoNivel, setNuevoNivel] = useState('');
+  const [nivelError, setNivelError] = useState('');
 
   // Cargar datos iniciales
   useEffect(() => {
@@ -638,6 +644,42 @@ export default function AdminPanel() {
     );
   };
 
+  // Handler para crear un nuevo nivel de categoría
+  const handleCrearNivel = async (e) => {
+    e.preventDefault();
+    
+    // Validaciones
+    if (!nuevoNivel.trim()) {
+      setNivelError('El nombre del nivel no puede estar vacío');
+      return;
+    }
+    
+    setIsLoading(true);
+    setNivelError('');
+    
+    try {
+      const response = await createNivelCategoria(nuevoNivel.trim());
+      console.log('Nivel creado:', response);
+      
+      // Mensaje de éxito y reset de formulario
+      alert('Nivel creado exitosamente');
+      setNuevoNivel('');
+      setShowCrearNivelForm(false);
+      
+      // Actualizar lista de niveles
+      fetchData();
+    } catch (error) {
+      console.error('Error al crear nivel:', error);
+      if (error.response && error.response.data && error.response.data.message) {
+        setNivelError(`Error: ${error.response.data.message}`);
+      } else {
+        setNivelError('Error al crear el nivel. Por favor, inténtelo de nuevo.');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Renderizado de grados disponibles para un nivel
   const renderGrados = (areaId, nivelId) => {
     const key = `${areaId}-${nivelId}`;
@@ -681,6 +723,7 @@ export default function AdminPanel() {
               setShowCrearConvocatoriaForm(!showCrearConvocatoriaForm);
               setShowAsignarAreasForm(false);
               setShowConfigurarNivelesForm(false);
+              setShowCrearNivelForm(false);
               
               if (showCrearConvocatoriaForm) {
                 // Reiniciar el formulario al cerrar
@@ -707,6 +750,7 @@ export default function AdminPanel() {
               setShowAsignarAreasForm(!showAsignarAreasForm);
               setShowCrearConvocatoriaForm(false);
               setShowConfigurarNivelesForm(false);
+              setShowCrearNivelForm(false);
               
               if (showAsignarAreasForm) {
                 // Reiniciar el formulario al cerrar
@@ -728,6 +772,7 @@ export default function AdminPanel() {
               setShowConfigurarNivelesForm(!showConfigurarNivelesForm);
               setShowCrearConvocatoriaForm(false);
               setShowAsignarAreasForm(false);
+              setShowCrearNivelForm(false);
               
               if (showConfigurarNivelesForm) {
                 // Reiniciar el formulario al cerrar
@@ -743,6 +788,28 @@ export default function AdminPanel() {
             }`}
           >
             {showConfigurarNivelesForm ? 'Cancelar' : 'Configurar Niveles'}
+          </button>
+          
+          <button 
+            onClick={() => {
+              setShowCrearNivelForm(!showCrearNivelForm);
+              setShowCrearConvocatoriaForm(false);
+              setShowAsignarAreasForm(false);
+              setShowConfigurarNivelesForm(false);
+              
+              if (showCrearNivelForm) {
+                // Reiniciar el formulario al cerrar
+                setNuevoNivel('');
+                setNivelError('');
+              }
+            }}
+            className={`px-4 py-2 rounded-md font-medium transition ${
+              showCrearNivelForm 
+                ? 'bg-red-500 hover:bg-red-600 text-white' 
+                : 'bg-yellow-500 hover:bg-yellow-600 text-white'
+            }`}
+          >
+            {showCrearNivelForm ? 'Cancelar' : 'Crear Nivel'}
           </button>
         </div>
       </div>
@@ -1100,8 +1167,51 @@ export default function AdminPanel() {
         </div>
       )}
       
+      {/* Formulario para Crear Nivel */}
+      {showCrearNivelForm && (
+        <div className="bg-white rounded-lg shadow-lg p-8">
+          <h2 className="text-2xl font-bold mb-6">Crear Nuevo Nivel</h2>
+          <p className="text-gray-600 mb-6">Agrega un nuevo nivel al catálogo del sistema</p>
+          
+          {nivelError && (
+            <div className="p-3 mb-4 bg-red-50 border border-red-200 text-red-700 rounded-md">
+              {nivelError}
+            </div>
+          )}
+          
+          <form onSubmit={handleCrearNivel} className="space-y-6">
+            <div>
+              <label className="block text-gray-700 font-medium mb-2">Nombre del Nivel</label>
+              <input
+                type="text"
+                value={nuevoNivel}
+                onChange={(e) => setNuevoNivel(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-4 py-2"
+                required
+                maxLength={100}
+              />
+              <p className="mt-1 text-sm text-gray-500">
+                Ingrese un nombre único para el nivel. Este nombre aparecerá en las opciones de niveles para las áreas de competencia.
+              </p>
+            </div>
+
+            <div className="flex justify-end mt-8">
+              <button
+                type="submit"
+                disabled={isLoading}
+                className={`px-6 py-3 rounded-md font-medium transition ${
+                  isLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-yellow-500 hover:bg-yellow-600 text-white'
+                }`}
+              >
+                {isLoading ? 'Creando...' : 'Crear Nivel'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+      
       {/* Si no hay ningún formulario visible, mostrar la lista de convocatorias */}
-      {!showCrearConvocatoriaForm && !showAsignarAreasForm && !showConfigurarNivelesForm && (
+      {!showCrearConvocatoriaForm && !showAsignarAreasForm && !showConfigurarNivelesForm && !showCrearNivelForm && (
         <div className="bg-white rounded-lg shadow-lg p-8">
           <h2 className="text-2xl font-bold mb-6">Convocatorias Existentes</h2>
           
