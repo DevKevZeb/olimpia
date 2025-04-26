@@ -17,11 +17,6 @@ class ExcelController extends Controller
         $sheet = $spreadsheet->getActiveSheet();
         $columnIndex = 'A';
 
-        // Información de la Convocatoria (para referencia)
-        $sheet->setCellValue($columnIndex++ . '1', 'CONVOCATORIA');
-        $sheet->setCellValue($columnIndex++ . '1', $convocatoria->nombre);
-        $columnIndex++; // Espacio
-
         // Columnas base para la Inscripción
         $sheet->setCellValue($columnIndex++ . '1', 'ÁREA DE COMPETENCIA');
         $sheet->setCellValue($columnIndex++ . '1', 'NIVEL DE COMPETENCIA');

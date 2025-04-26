@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/CamposObligatorios.css';
-import { RequisitoConvocatoria } from '../types/RequisitoConvocatoria'; // Asegúrate de crear este archivo de tipos
-import { fetchConvocatorias, fetchRequisitosConvocatoria, saveRequisitosConvocatoria } from '../api/requisitoConvocatoria'; // Asegúrate de crear este archivo de API
+import { RequisitoConvocatoria } from '../types/RequisitoConvocatoria'; 
+import { fetchConvocatorias, fetchRequisitosConvocatoria, saveRequisitosConvocatoria } from '../api/requisitoConvocatoria';
 
 interface Props {
   // Puedes pasar un ID de convocatoria inicial si es necesario
@@ -19,8 +19,8 @@ const RegistroRequisitos: React.FC<Props> = ({ initialConvocatoriaId }) => {
   const camposTutorLegalObligatorios = ['ci', 'nombres', 'apellidos', 'email'];
   const camposTutorLegalOpcionales = ['telefono', 'parentesco'];
   const camposTutorAcademico = ['nombres', 'apellidos', 'ci', 'telefono', 'email'];
-  const camposPostulanteObligatorios = ['ci', 'nombres', 'apellidos', 'email'];
-  const camposPostulanteOpcionales = ['fecha_nacimiento', 'id_unidad_educativa', 'id_grado', 'teléfono', 'departamento', 'provincia'];
+  const camposPostulanteObligatorios = ['ci', 'nombres', 'apellidos', 'email', 'id_grado'];
+  const camposPostulanteOpcionales = ['fecha_nacimiento', 'id_unidad_educativa', 'teléfono', 'departamento', 'provincia'];
 
   useEffect(() => {
     const loadConvocatorias = async () => {

@@ -115,7 +115,7 @@ class InscripcionCompletaController extends ApiController
                 'nombres' => 'required|string|max:100',
                 'apellidos' => 'required|string|max:100',
                 'ci' => 'required|string|max:20',
-                'fecha_nacimiento' => 'required|date',
+                'fecha_nacimiento' => 'nullable|required|date',
                 'email' => 'nullable|email|max:100',
                 'id_grado' => 'required|exists:grados,id_grado',
                 
@@ -123,17 +123,17 @@ class InscripcionCompletaController extends ApiController
                 'unidad_educativa' => 'required|array',
                 'unidad_educativa.id_unidad_educativa' => 'nullable|exists:unidades_educativas,id_unidad_educativa',
                 'unidad_educativa.nombre' => 'required_without:unidad_educativa.id_unidad_educativa|string|max:200',
-                'unidad_educativa.departamento' => 'required_without:unidad_educativa.id_unidad_educativa|string|max:50',
-                'unidad_educativa.provincia' => 'required_without:unidad_educativa.id_unidad_educativa|string|max:50',
+                'unidad_educativa.departamento' => 'nullable|required_without:unidad_educativa.id_unidad_educativa|string|max:50',
+                'unidad_educativa.provincia' => 'nullable|required_without:unidad_educativa.id_unidad_educativa|string|max:50',
                 
                 // Datos del tutor legal
                 'tutor_legal' => 'required|array',
                 'tutor_legal.nombres' => 'required|string|max:100',
                 'tutor_legal.apellidos' => 'required|string|max:100',
                 'tutor_legal.ci' => 'required|string|max:20',
-                'tutor_legal.telefono' => 'required|string|max:20',
+                'tutor_legal.telefono' => 'nullable|required|string|max:20',
                 'tutor_legal.email' => 'nullable|email|max:100',
-                'tutor_legal.parentesco' => 'required|string|max:50',
+                'tutor_legal.parentesco' => 'nullable|required|string|max:50',
                 'tutor_legal.es_el_mismo_estudiante' => 'required|boolean',
                 
                 // Datos de la convocatoria y áreas seleccionadas
@@ -182,43 +182,50 @@ class InscripcionCompletaController extends ApiController
                 if (isset($inscripcion['unidad_educativa']['id_unidad_educativa'])) {
                     $idUnidadEducativa = $inscripcion['unidad_educativa']['id_unidad_educativa'];
                 } else {
-                    $unidadEducativa = UnidadEducativa::create([
+                    $unidadEducativaData = [
                         'nombre' => $inscripcion['unidad_educativa']['nombre'],
                         'departamento' => $inscripcion['unidad_educativa']['departamento'],
                         'provincia' => $inscripcion['unidad_educativa']['provincia'],
-                    ]);
+                    ];
+                    $unidadEducativa = UnidadEducativa::create($unidadEducativaData);
                     $idUnidadEducativa = $unidadEducativa->id_unidad_educativa;
                 }
-                
+
                 // 2. Crear tutor legal
-                $tutorLegal = TutorLegal::create([
+                $tutorLegalEmail = $inscripcion['tutor_legal']['email'];
+                if ($tutorLegalEmail === "") {
+                    $tutorLegalEmail = 'tutor.sin.email@miinstitucion.edu.bo'; // ¡Tú decides!
+                }
+                $tutorLegalData = [
                     'nombres' => $inscripcion['tutor_legal']['nombres'],
                     'apellidos' => $inscripcion['tutor_legal']['apellidos'],
                     'ci' => $inscripcion['tutor_legal']['ci'],
                     'telefono' => $inscripcion['tutor_legal']['telefono'],
-                    'email' => $inscripcion['tutor_legal']['email'],
+                    'email' => $tutorLegalEmail,
                     'parentesco' => $inscripcion['tutor_legal']['parentesco'],
                     'es_el_mismo_estudiante' => $inscripcion['tutor_legal']['es_el_mismo_estudiante'],
-                ]);
-                
+                ];
+                $tutorLegal = TutorLegal::create($tutorLegalData);
+
                 // 3. Crear estudiante
-                $estudiante = Estudiante::create([
+                $estudianteEmail = $inscripcion['email'];
+                if ($estudianteEmail === "") {
+                    $estudianteEmail = 'estudiante.no.tiene.correo@miinstitucion.edu.bo'; // ¡Tu elección!
+                }
+                $estudianteData = [
                     'nombres' => $inscripcion['nombres'],
                     'apellidos' => $inscripcion['apellidos'],
                     'ci' => $inscripcion['ci'],
                     'fecha_nacimiento' => $inscripcion['fecha_nacimiento'],
-                    'email' => $inscripcion['email'],
                     'id_unidad_educativa' => $idUnidadEducativa,
                     'id_grado' => $inscripcion['id_grado'],
                     'id_tutor_legal' => $tutorLegal->id_tutor_legal,
-                ]);
-                
+                    'email' => $estudianteEmail,
+                ];
+                $estudiante = Estudiante::create($estudianteData);
+
                 // 4. Crear inscripciones y tutores académicos para cada área seleccionada
-                $inscripciones = [];
-                $montoInscripcionTotal = 0;
-                
                 foreach ($inscripcion['areas_seleccionadas'] as $areaSeleccionada) {
-                    // Buscar el tutor académico para esta área
                     $tutorData = null;
                     foreach ($inscripcion['tutores_academicos'] as $tutor) {
                         if ($tutor['id_convocatoria_nivel'] == $areaSeleccionada['id_convocatoria_nivel']) {
@@ -226,17 +233,42 @@ class InscripcionCompletaController extends ApiController
                             break;
                         }
                     }
-                    
-                    // Crear tutor académico
-                    $tutorAcademico = TutorAcademico::create([
-                        'nombres' => $tutorData['nombres'] ?? '',
-                        'apellidos' => $tutorData['apellidos']?? '',
-                        'ci' => $tutorData['ci'] ?? null,
-                        'telefono' => $tutorData['telefono']?? '',
-                        'email' => $tutorData['email'] ?? '',
-                    ]);
-                    
-                    // Crear inscripción
+
+                    $tutorAcademicoNombres = $tutorData['nombres'] ?? '';
+                    if ($tutorAcademicoNombres === "") {
+                        $tutorAcademicoNombres = 'Sin Nombre Asignado'; // ¡Tu valor!
+                    }
+
+                    $tutorAcademicoApellidos = $tutorData['apellidos'] ?? '';
+                    if ($tutorAcademicoApellidos === "") {
+                        $tutorAcademicoApellidos = 'Sin Apellido Asignado'; // ¡Tu decisión!
+                    }
+
+                    $tutorAcademicoCi = $tutorData['ci'] ?? null;
+                    if ($tutorAcademicoCi === "") {
+                        $tutorAcademicoCi = 'SN'; // ¡Tú mandas!
+                    }
+
+                    $tutorAcademicoTelefono = $tutorData['telefono'] ?? '';
+                    if ($tutorAcademicoTelefono === "") {
+                        $tutorAcademicoTelefono = 'No Registrado'; // ¡Tu elección!
+                    }
+
+                    $tutorAcademicoEmail = $tutorData['email'] ?? '';
+                    if ($tutorAcademicoEmail === "") {
+                        $tutorAcademicoEmail = 'tutoracademico.no.email@miinstitucion.edu.bo'; // ¡Tu directiva!
+                    }
+
+                    $tutorAcademicoData = [
+                        'nombres' => $tutorAcademicoNombres,
+                        'apellidos' => $tutorAcademicoApellidos,
+                        'ci' => $tutorAcademicoCi,
+                        'telefono' => $tutorAcademicoTelefono,
+                        'email' => $tutorAcademicoEmail,
+                        'id_convocatoria_nivel' => $areaSeleccionada['id_convocatoria_nivel'],
+                    ];
+                    $tutorAcademico = TutorAcademico::create($tutorAcademicoData);
+
                     DetalleListaInscripcion::create([
                         'id_lista' => $listaInscripcion->id_lista,
                         'id_estudiante' => $estudiante->id_estudiante,
@@ -244,11 +276,11 @@ class InscripcionCompletaController extends ApiController
                         'id_tutor_academico' => $tutorAcademico->id_tutor_academico,
                         'fecha_registro' => now(),
                     ]);
-                    // Sumar el costo de inscripción al monto total
+
                     $convocatoriaNivel = ConvocatoriaNivel::with('convocatoriaArea')->find($areaSeleccionada['id_convocatoria_nivel']);
-                    $montoInscripcionTotal += $convocatoriaNivel->convocatoriaArea->costo_inscripcion;
+                    $montoTotal += $convocatoriaNivel->convocatoriaArea->costo_inscripcion;
                 }
-                $montoTotal += $montoInscripcionTotal;
+
             } catch (\Exception $e) {
                 DB::rollBack();
                 return $this->errorResponse('Error al procesar la inscripción: ' . $e->getMessage(), 500);
@@ -380,27 +412,37 @@ class InscripcionCompletaController extends ApiController
             }
 
             // 2. Crear tutor legal
-            $tutorLegal = TutorLegal::create([
+            $tutorLegalEmail = $request->tutor_legal['email'];
+            if ($tutorLegalEmail === "") {
+                $tutorLegalEmail = 'tutor.sin.email@miinstitucion.edu.bo'; // ¡Tu valor!
+            }
+            $tutorLegalData = [
                 'nombres' => $request->tutor_legal['nombres'],
                 'apellidos' => $request->tutor_legal['apellidos'],
                 'ci' => $request->tutor_legal['ci'],
                 'telefono' => $request->tutor_legal['telefono'],
-                'email' => $request->tutor_legal['email'],
+                'email' => $tutorLegalEmail,
                 'parentesco' => $request->tutor_legal['parentesco'],
                 'es_el_mismo_estudiante' => $request->tutor_legal['es_el_mismo_estudiante'],
-            ]);
+            ];
+            $tutorLegal = TutorLegal::create($tutorLegalData);
 
             // 3. Crear estudiante
-            $estudiante = Estudiante::create([
+            $estudianteEmail = $request->email;
+            if ($estudianteEmail === "") {
+                $estudianteEmail = 'estudiante.no.tiene.correo@miinstitucion.edu.bo'; // ¡Tu decisión!
+            }
+            $estudianteData = [
                 'nombres' => $request->nombres,
                 'apellidos' => $request->apellidos,
                 'ci' => $request->ci,
                 'fecha_nacimiento' => $request->fecha_nacimiento,
-                'email' => $request->email,
+                'email' => $estudianteEmail,
                 'id_unidad_educativa' => $idUnidadEducativa,
                 'id_grado' => $request->id_grado,
                 'id_tutor_legal' => $tutorLegal->id_tutor_legal,
-            ]);
+            ];
+            $estudiante = Estudiante::create($estudianteData);
 
             // 4. Crear inscripciones y tutores académicos para cada área seleccionada
             $inscripciones = [];
@@ -416,14 +458,40 @@ class InscripcionCompletaController extends ApiController
                     }
                 }
 
-                // Crear tutor académico
-                $tutorAcademico = TutorAcademico::create([
-                    'nombres' => $tutorData['nombres'],
-                    'apellidos' => $tutorData['apellidos'],
-                    'ci' => $tutorData['ci'] ?? null,
-                    'telefono' => $tutorData['telefono'],
-                    'email' => $tutorData['email'] ?? null,
-                ]);
+                $tutorAcademicoNombres = $tutorData['nombres'] ?? '';
+                if ($tutorAcademicoNombres === "") {
+                    $tutorAcademicoNombres = 'Nombre Tutor Defecto'; // ¡Tu asignación!
+                }
+
+                $tutorAcademicoApellidos = $tutorData['apellidos'] ?? '';
+                if ($tutorAcademicoApellidos === "") {
+                    $tutorAcademicoApellidos = 'Apellido Tutor Defecto'; // ¡Tu elección!
+                }
+
+                $tutorAcademicoCi = $tutorData['ci'] ?? null;
+                if ($tutorAcademicoCi === "") {
+                    $tutorAcademicoCi = '000000'; // ¡Tu valor predeterminado!
+                }
+
+                $tutorAcademicoTelefono = $tutorData['telefono'] ?? '';
+                if ($tutorAcademicoTelefono === "") {
+                    $tutorAcademicoTelefono = 'Sin Telefono'; // ¡Tu decisión!
+                }
+
+                $tutorAcademicoEmail = $tutorData['email'] ?? '';
+                if ($tutorAcademicoEmail === "") {
+                    $tutorAcademicoEmail = 'tutoracademico.default@miinstitucion.edu.bo'; // ¡Tu directiva!
+                }
+
+                $tutorAcademicoData = [
+                    'nombres' => $tutorAcademicoNombres,
+                    'apellidos' => $tutorAcademicoApellidos,
+                    'ci' => $tutorAcademicoCi,
+                    'telefono' => $tutorAcademicoTelefono,
+                    'email' => $tutorAcademicoEmail,
+                    'id_convocatoria_nivel' => $areaSeleccionada['id_convocatoria_nivel'],
+                ];
+                $tutorAcademico = TutorAcademico::create($tutorAcademicoData);
 
                 // Crear inscripción
                 $inscripcion = Inscripcion::create([

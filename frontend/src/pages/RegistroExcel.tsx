@@ -91,21 +91,22 @@ const UploadAndScan: React.FC<UploadAndScanProps> = ({ selectedConvocatoriaId, o
           for (const row of dataRows) {
             console.log('--- Procesando fila ---', row);
             
-            if (row.every((cell: any) => cell === undefined || cell === null || cell === '')) {
-                continue; // Saltar filas vacías
-            }
-            const nombre_area = row[3]?.trim();
-            const nombre_nivel = row[4]?.trim();
+            //if (row.every((cell: any) => cell === undefined || cell === null || cell === '')) {
+                //continue; // Saltar filas vacías
+            //}
+            const nombre_area = row[0]?.trim();
+            console.log('nombreArea', nombre_area)
+            const nombre_nivel = row[1]?.trim();
 
-            const nombres = row[6]?.trim();
+            const nombres = row[3]?.trim();
             console.log('nombres', nombres)
-            const apellidos = row[7]?.trim();
+            const apellidos = row[4]?.trim();
             console.log('apellidos',apellidos)
-            const ci_raw = row[8];
+            const ci_raw = row[5];
             const ci = typeof ci_raw === 'number' ? ci_raw.toString() : ci_raw?.trim();
             console.log('ci', ci);
             //const fecha_nacimiento = row[headers.indexOf('Fecha de Nacimiento (YYYY-MM-DD)')]?.trim();
-            const fecha_nacimiento_raw = row[9];
+            const fecha_nacimiento_raw = row[6];
             let fecha_nacimiento = '';
             console.log('fecha_nacimiento_raw', fecha_nacimiento_raw)
             if (typeof fecha_nacimiento_raw === 'number') {
@@ -114,29 +115,29 @@ const UploadAndScan: React.FC<UploadAndScanProps> = ({ selectedConvocatoriaId, o
                 fecha_nacimiento = fecha_nacimiento_raw.trim();
             }
             console.log(fecha_nacimiento)
-            const email = row[10]?.trim(); // Ya es probable string
+            const email = row[7]?.trim(); // Ya es probable string
 
-            const unidad_educativa_nombre = row[11]?.trim();
-            const departamento = row[12]?.trim();
-            const provincia = row[13]?.trim();
-            const nombre_grado = row[14]?.trim();
+            const unidad_educativa_nombre = row[8]?.trim();
+            const departamento = row[9]?.trim();
+            const provincia = row[10]?.trim();
+            const nombre_grado = row[11]?.trim();
 
-            const tutor_legal_nombres = row[16]?.trim();
-            const tutor_legal_apellidos = row[17]?.trim();
-            const tutor_legal_ci_raw = row[18];
+            const tutor_legal_nombres = row[13]?.trim();
+            const tutor_legal_apellidos = row[14]?.trim();
+            const tutor_legal_ci_raw = row[15];
             const tutor_legal_ci = typeof tutor_legal_ci_raw === 'number' ? tutor_legal_ci_raw.toString() : tutor_legal_ci_raw?.trim();
-            const tutor_legal_telefono_raw = row[19];
+            const tutor_legal_telefono_raw = row[16];
             const tutor_legal_telefono = typeof tutor_legal_telefono_raw === 'number' ? tutor_legal_telefono_raw.toString() : tutor_legal_telefono_raw?.trim();
-            const tutor_legal_email = row[20]?.trim(); // Ya es probable string
-            const tutor_legal_parentesco = row[21]?.trim();
+            const tutor_legal_email = row[17]?.trim(); // Ya es probable string
+            const tutor_legal_parentesco = row[18]?.trim();
 
-            const tutor_academico_nombres = row[23]?.trim();
-            const tutor_academico_apellidos = row[24]?.trim();
-            const tutor_academico_ci_raw = row[25];
+            const tutor_academico_nombres = row[20]?.trim();
+            const tutor_academico_apellidos = row[21]?.trim();
+            const tutor_academico_ci_raw = row[22];
             const tutor_academico_ci = typeof tutor_academico_ci_raw === 'number' ? tutor_academico_ci_raw.toString() : tutor_academico_ci_raw?.trim();
-            const tutor_academico_telefono_raw = row[26];
+            const tutor_academico_telefono_raw = row[23];
             const tutor_academico_telefono = typeof tutor_academico_telefono_raw === 'number' ? tutor_academico_telefono_raw.toString() : tutor_academico_telefono_raw?.trim();
-            const tutor_academico_email = row[27]?.trim(); // Ya es probable string
+            const tutor_academico_email = row[24]?.trim(); // Ya es probable string
 
             console.log('campos obligatorios',{nombres, apellidos, ci, nombre_area, nombre_nivel, nombre_grado})
             if (nombres && apellidos && ci && nombre_area && nombre_nivel && nombre_grado) {
