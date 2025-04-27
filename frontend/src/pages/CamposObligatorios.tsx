@@ -20,7 +20,7 @@ const RegistroRequisitos: React.FC<Props> = ({ initialConvocatoriaId }) => {
   const camposTutorLegalOpcionales = ['telefono', 'parentesco'];
   const camposTutorAcademico = ['nombres', 'apellidos', 'ci', 'telefono', 'email'];
   const camposPostulanteObligatorios = ['ci', 'nombres', 'apellidos', 'email', 'id_grado'];
-  const camposPostulanteOpcionales = ['fecha_nacimiento', 'id_unidad_educativa', 'teléfono', 'departamento', 'provincia'];
+  const camposPostulanteOpcionales = ['fecha_nacimiento', 'id_unidad_educativa', 'departamento', 'provincia'];
 
   useEffect(() => {
     const loadConvocatorias = async () => {

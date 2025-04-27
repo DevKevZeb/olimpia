@@ -58,7 +58,8 @@ export const inscribirEstudiante = async (data: any , openModal:any) => {
     return response.data?.data || response.data;
   } catch (error) {
     console.error('Error al inscribir estudiante:', error);
-    alert("Opsie! , algo salio mal! " + error.response.data.message);
+    console.error('Detalles del error de validación:', error.response?.data); // Loguea los detalles del error
+    alert("Opsie! , algo salio mal! " + error.response?.data?.message);
     throw error;
   }
 };

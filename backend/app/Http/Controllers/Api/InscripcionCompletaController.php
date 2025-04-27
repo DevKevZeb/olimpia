@@ -109,6 +109,7 @@ class InscripcionCompletaController extends ApiController
         $inscripciones = $request->lista_inscripcion;
 
         foreach( $inscripciones as $inscripcion){
+            Log::info("Datos de unidad_educativa antes de validar: " . json_encode($inscripcion['unidad_educativa']));
             Log::info("inscripcion " . json_encode($inscripcion) . "  " . gettype($inscripcion) );
             $validator = Validator::make($inscripcion, [
                 // Datos del estudiante
@@ -122,10 +123,11 @@ class InscripcionCompletaController extends ApiController
                 // Datos de la unidad educativa
                 'unidad_educativa' => 'required|array',
                 'unidad_educativa.id_unidad_educativa' => 'nullable|exists:unidades_educativas,id_unidad_educativa',
-                'unidad_educativa.nombre' => 'required_without:unidad_educativa.id_unidad_educativa|string|max:200',
-                'unidad_educativa.departamento' => 'nullable|required_without:unidad_educativa.id_unidad_educativa|string|max:50',
-                'unidad_educativa.provincia' => 'nullable|required_without:unidad_educativa.id_unidad_educativa|string|max:50',
-                
+                'unidad_educativa.nombre' => 'nullable|required_without:unidad_educativa.id_unidad_educativa|string|max:200',
+                //'unidad_educativa.departamento' => 'nullable|required_without:unidad_educativa.id_unidad_educativa|string|max:50',
+                'unidad_educativa.departamento' => 'nullable|string|max:50',
+                'unidad_educativa.provincia' => 'nullable|string|max:50',
+                //'unidad_educativa.provincia' => 'nullable|required_without:unidad_educativa.id_unidad_educativa|string|max:50',            
                 // Datos del tutor legal
                 'tutor_legal' => 'required|array',
                 'tutor_legal.nombres' => 'required|string|max:100',
@@ -182,45 +184,95 @@ class InscripcionCompletaController extends ApiController
                 if (isset($inscripcion['unidad_educativa']['id_unidad_educativa'])) {
                     $idUnidadEducativa = $inscripcion['unidad_educativa']['id_unidad_educativa'];
                 } else {
-                    $unidadEducativaData = [
-                        'nombre' => $inscripcion['unidad_educativa']['nombre'],
-                        'departamento' => $inscripcion['unidad_educativa']['departamento'],
-                        'provincia' => $inscripcion['unidad_educativa']['provincia'],
-                    ];
-                    $unidadEducativa = UnidadEducativa::create($unidadEducativaData);
-                    $idUnidadEducativa = $unidadEducativa->id_unidad_educativa;
+                    $unidadEducativaDepartamento = $inscripcion['unidad_educativa']['departamento'] ?? '';
+                    $unidadEducativaProvincia = $inscripcion['unidad_educativa']['provincia'] ?? '';
+                    $unidadEducativaNombre = $inscripcion['unidad_educativa']['nombre'] ?? '';
+
+                    $departamentoParaGuardar = $unidadEducativaDepartamento !== "" ? $unidadEducativaDepartamento : 'No Especificado';
+                    $provinciaParaGuardar = $unidadEducativaProvincia !== "" ? $unidadEducativaProvincia : 'No Especificado';
+                    $nombreParaGuardar = $unidadEducativaNombre !== "" ? $unidadEducativaNombre : 'Colegio Desconocido';
+
+                    if ($unidadEducativaDepartamento !== "" && $unidadEducativaProvincia !== "") {
+                        $unidadEducativa = UnidadEducativa::create([
+                            'nombre' => 'Colegio No Especificado',
+                            'departamento' => $departamentoParaGuardar,
+                            'provincia' => $provinciaParaGuardar,
+                        ]);
+                        $idUnidadEducativa = $unidadEducativa->id_unidad_educativa;
+                    } else {
+                        $unidadEducativa = UnidadEducativa::create([
+                            'nombre' => $nombreParaGuardar,
+                            'departamento' => $departamentoParaGuardar,
+                            'provincia' => $provinciaParaGuardar,
+                        ]);
+                        $idUnidadEducativa = $unidadEducativa->id_unidad_educativa;
+                    }
                 }
 
+                Log::info('ID Unidad Educativa (inscribirEstudiante): ' . $idUnidadEducativa); // <--- Asegúrate de que esta línea esté aquí
+
                 // 2. Crear tutor legal
-                $tutorLegalEmail = $inscripcion['tutor_legal']['email'];
+                $tutorLegalEmail = $inscripcion['tutor_legal']['email'] ?? '';
                 if ($tutorLegalEmail === "") {
-                    $tutorLegalEmail = 'tutor.sin.email@miinstitucion.edu.bo'; // ¡Tú decides!
+                    $tutorLegalEmail = 'tutor.sin.email@miinstitucion.edu.bo';
                 }
+
+                $tutorLegalTelefono = $inscripcion['tutor_legal']['telefono'] ?? '';
+                if ($tutorLegalTelefono === "") {
+                    $tutorLegalTelefono = 'Sin Teléfono'; // Tu valor genérico
+                }
+
+                $tutorLegalParentesco = $inscripcion['tutor_legal']['parentesco'] ?? '';
+                if ($tutorLegalParentesco === "") {
+                    $tutorLegalParentesco = 'No Especificado'; // Tu valor genérico
+                }
+
                 $tutorLegalData = [
                     'nombres' => $inscripcion['tutor_legal']['nombres'],
                     'apellidos' => $inscripcion['tutor_legal']['apellidos'],
                     'ci' => $inscripcion['tutor_legal']['ci'],
-                    'telefono' => $inscripcion['tutor_legal']['telefono'],
+                    'telefono' => $tutorLegalTelefono,
                     'email' => $tutorLegalEmail,
-                    'parentesco' => $inscripcion['tutor_legal']['parentesco'],
+                    'parentesco' => $tutorLegalParentesco,
                     'es_el_mismo_estudiante' => $inscripcion['tutor_legal']['es_el_mismo_estudiante'],
                 ];
                 $tutorLegal = TutorLegal::create($tutorLegalData);
 
                 // 3. Crear estudiante
-                $estudianteEmail = $inscripcion['email'];
+                $estudianteEmail = $inscripcion['email'] ?? '';
                 if ($estudianteEmail === "") {
-                    $estudianteEmail = 'estudiante.no.tiene.correo@miinstitucion.edu.bo'; // ¡Tu elección!
+                    $estudianteEmail = 'estudiante.no.tiene.correo@miinstitucion.edu.bo';
                 }
+
+                $estudianteTelefono = $inscripcion['telefono'] ?? '';
+                if ($estudianteTelefono === "") {
+                    $estudianteTelefono = 'Sin Teléfono'; // Tu valor genérico
+                }
+
+                $estudianteDepartamento = $inscripcion['departamento'] ?? '';
+                if ($estudianteDepartamento === "") {
+                    $estudianteDepartamento = 'No Especificado'; // Tu valor genérico
+                }
+
+                $estudianteProvincia = $inscripcion['provincia'] ?? '';
+                if ($estudianteProvincia === "") {
+                    $estudianteProvincia = 'No Especificado'; // Tu valor genérico
+                }
+
+                print($idUnidadEducativa);
+
                 $estudianteData = [
                     'nombres' => $inscripcion['nombres'],
                     'apellidos' => $inscripcion['apellidos'],
                     'ci' => $inscripcion['ci'],
-                    'fecha_nacimiento' => $inscripcion['fecha_nacimiento'],
-                    'id_unidad_educativa' => $idUnidadEducativa,
+                    'fecha_nacimiento' => $inscripcion['fecha_nacimiento'], // Aunque es nullable|required, lo dejamos tal cual para no romper la validación
+                    'id_unidad_educativa' => $idUnidadEducativa, // Este ya se maneja en la lógica anterior
                     'id_grado' => $inscripcion['id_grado'],
                     'id_tutor_legal' => $tutorLegal->id_tutor_legal,
                     'email' => $estudianteEmail,
+                    'telefono' => $estudianteTelefono,
+                    'departamento' => $estudianteDepartamento,
+                    'provincia' => $estudianteProvincia,
                 ];
                 $estudiante = Estudiante::create($estudianteData);
 
@@ -323,25 +375,26 @@ class InscripcionCompletaController extends ApiController
             'nombres' => 'required|string|max:100',
             'apellidos' => 'required|string|max:100',
             'ci' => 'required|string|max:20',
-            'fecha_nacimiento' => 'required|date',
+            'fecha_nacimiento' => 'nullable|required|date',
             'email' => 'nullable|email|max:100',
             'id_grado' => 'required|exists:grados,id_grado',
             
             // Datos de la unidad educativa
             'unidad_educativa' => 'required|array',
             'unidad_educativa.id_unidad_educativa' => 'nullable|exists:unidades_educativas,id_unidad_educativa',
-            'unidad_educativa.nombre' => 'required_without:unidad_educativa.id_unidad_educativa|string|max:200',
-            'unidad_educativa.departamento' => 'required_without:unidad_educativa.id_unidad_educativa|string|max:50',
-            'unidad_educativa.provincia' => 'required_without:unidad_educativa.id_unidad_educativa|string|max:50',
-            
+            'unidad_educativa.nombre' => 'nullable|required_without:unidad_educativa.id_unidad_educativa|string|max:200',
+            //'unidad_educativa.departamento' => 'nullable|required_without:unidad_educativa.id_unidad_educativa|string|max:50',
+            'unidad_educativa.departamento' => 'nullable|string|max:50',
+            'unidad_educativa.provincia' => 'nullable|string|max:50',
+            //'unidad_educativa.provincia' => 'nullable|required_without:unidad_educativa.id_unidad_educativa|string|max:50',            
             // Datos del tutor legal
             'tutor_legal' => 'required|array',
             'tutor_legal.nombres' => 'required|string|max:100',
             'tutor_legal.apellidos' => 'required|string|max:100',
             'tutor_legal.ci' => 'required|string|max:20',
-            'tutor_legal.telefono' => 'required|string|max:20',
+            'tutor_legal.telefono' => 'nullable|required|string|max:20',
             'tutor_legal.email' => 'nullable|email|max:100',
-            'tutor_legal.parentesco' => 'required|string|max:50',
+            'tutor_legal.parentesco' => 'nullable|required|string|max:50',
             'tutor_legal.es_el_mismo_estudiante' => 'required|boolean',
             
             // Datos de la convocatoria y áreas seleccionadas
@@ -403,44 +456,93 @@ class InscripcionCompletaController extends ApiController
             if (isset($request->unidad_educativa['id_unidad_educativa'])) {
                 $idUnidadEducativa = $request->unidad_educativa['id_unidad_educativa'];
             } else {
-                $unidadEducativa = UnidadEducativa::create([
-                    'nombre' => $request->unidad_educativa['nombre'],
-                    'departamento' => $request->unidad_educativa['departamento'],
-                    'provincia' => $request->unidad_educativa['provincia'],
-                ]);
-                $idUnidadEducativa = $unidadEducativa->id_unidad_educativa;
+                $unidadEducativaDepartamento = $request->unidad_educativa['departamento'] ?? '';
+                $unidadEducativaProvincia = $request->unidad_educativa['provincia'] ?? '';
+                $unidadEducativaNombre = $request->unidad_educativa['nombre'] ?? '';
+
+                $departamentoParaGuardar = $unidadEducativaDepartamento !== "" ? $unidadEducativaDepartamento : 'No Especificado';
+                $provinciaParaGuardar = $unidadEducativaProvincia !== "" ? $unidadEducativaProvincia : 'No Especificado';
+                $nombreParaGuardar = $unidadEducativaNombre !== "" ? $unidadEducativaNombre : 'Colegio Desconocido';
+
+                if ($unidadEducativaDepartamento !== "" && $unidadEducativaProvincia !== "") {
+                    $unidadEducativa = UnidadEducativa::create([
+                        'nombre' => 'Colegio No Especificado',
+                        'departamento' => $departamentoParaGuardar,
+                        'provincia' => $provinciaParaGuardar,
+                    ]);
+                    $idUnidadEducativa = $unidadEducativa->id_unidad_educativa;
+                } else {
+                    $unidadEducativa = UnidadEducativa::create([
+                        'nombre' => $nombreParaGuardar,
+                        'departamento' => $departamentoParaGuardar,
+                        'provincia' => $provinciaParaGuardar,
+                    ]);
+                    $idUnidadEducativa = $unidadEducativa->id_unidad_educativa;
+                }
             }
 
+            Log::info('ID Unidad Educativa (inscribirEstud): ' . $idUnidadEducativa); // <--- Asegúrate de que esta línea esté aquí
+
             // 2. Crear tutor legal
-            $tutorLegalEmail = $request->tutor_legal['email'];
+            $tutorLegalEmail = $request->tutor_legal['email'] ?? '';
             if ($tutorLegalEmail === "") {
-                $tutorLegalEmail = 'tutor.sin.email@miinstitucion.edu.bo'; // ¡Tu valor!
+                $tutorLegalEmail = 'tutor.sin.email@miinstitucion.edu.bo';
             }
+
+            $tutorLegalTelefono = $request->tutor_legal['telefono'] ?? '';
+            if ($tutorLegalTelefono === "") {
+                $tutorLegalTelefono = 'Sin Teléfono'; // Tu valor genérico
+            }
+
+            $tutorLegalParentesco = $request->tutor_legal['parentesco'] ?? '';
+            if ($tutorLegalParentesco === "") {
+                $tutorLegalParentesco = 'No Especificado'; // Tu valor genérico
+            }
+
             $tutorLegalData = [
                 'nombres' => $request->tutor_legal['nombres'],
                 'apellidos' => $request->tutor_legal['apellidos'],
                 'ci' => $request->tutor_legal['ci'],
-                'telefono' => $request->tutor_legal['telefono'],
+                'telefono' => $tutorLegalTelefono,
                 'email' => $tutorLegalEmail,
-                'parentesco' => $request->tutor_legal['parentesco'],
+                'parentesco' => $tutorLegalParentesco,
                 'es_el_mismo_estudiante' => $request->tutor_legal['es_el_mismo_estudiante'],
             ];
             $tutorLegal = TutorLegal::create($tutorLegalData);
 
             // 3. Crear estudiante
-            $estudianteEmail = $request->email;
+            $estudianteEmail = $request->email ?? '';
             if ($estudianteEmail === "") {
-                $estudianteEmail = 'estudiante.no.tiene.correo@miinstitucion.edu.bo'; // ¡Tu decisión!
+                $estudianteEmail = 'estudiante.no.tiene.correo@miinstitucion.edu.bo';
             }
+
+            $estudianteTelefono = $request->telefono ?? '';
+            if ($estudianteTelefono === "") {
+                $estudianteTelefono = 'Sin Teléfono'; // Tu valor genérico
+            }
+
+            $estudianteDepartamento = $request->departamento ?? '';
+            if ($estudianteDepartamento === "") {
+                $estudianteDepartamento = 'No Especificado'; // Tu valor genérico
+            }
+
+            $estudianteProvincia = $request->provincia ?? '';
+            if ($estudianteProvincia === "") {
+                $estudianteProvincia = 'No Especificado'; // Tu valor genérico
+            }
+
             $estudianteData = [
                 'nombres' => $request->nombres,
                 'apellidos' => $request->apellidos,
                 'ci' => $request->ci,
-                'fecha_nacimiento' => $request->fecha_nacimiento,
-                'email' => $estudianteEmail,
-                'id_unidad_educativa' => $idUnidadEducativa,
+                'fecha_nacimiento' => $request->fecha_nacimiento, // Igual que en inscribirEstudiante
+                'id_unidad_educativa' => $idUnidadEducativa, // Ya se maneja
                 'id_grado' => $request->id_grado,
                 'id_tutor_legal' => $tutorLegal->id_tutor_legal,
+                'email' => $estudianteEmail,
+                'telefono' => $estudianteTelefono,
+                'departamento' => $estudianteDepartamento,
+                'provincia' => $estudianteProvincia,
             ];
             $estudiante = Estudiante::create($estudianteData);
 

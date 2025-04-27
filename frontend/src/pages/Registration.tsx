@@ -836,39 +836,66 @@ export default function Registration() {
   const handleNextStep = () => {
     if (step === 1) {
       if (validateStep1()) {
+        const camposObligatoriosVacios = [];
         const dataToSend = { ...formData };
-
+  
         for (const key in requisitosGuardados) {
+          if (key.startsWith('tutorAcademico.')) {
+            continue; // Ignorar los campos del tutor académico
+          }
+  
           const requisitoInfo = requisitosGuardados[key];
           const [entidad, campo] = key.split('.');
-          const fieldValue = entidad === 'tutorLegal' ? dataToSend.tutor_legal[campo as keyof typeof dataToSend.tutor_legal] : dataToSend[campo as keyof typeof dataToSend];
+          let fieldValue;
   
-          // Si el campo está vacío y no es obligatorio, asignar un valor predeterminado
-          if (!requisitoInfo.obligatorio && (fieldValue === '' || fieldValue === null || fieldValue === undefined)) {
-            const defaultValue = 'ninguno'; // O el valor que prefieras
-  
-            if (entidad === 'tutorLegal') {
-              dataToSend.tutor_legal[campo as keyof typeof dataToSend.tutor_legal] = defaultValue;
+          if (entidad === 'tutorLegal') {
+            fieldValue = dataToSend.tutor_legal[campo as keyof typeof dataToSend.tutor_legal];
+          } else if (entidad === 'unidad_educativa') {
+            fieldValue = dataToSend.unidad_educativa[campo as keyof typeof dataToSend.unidad_educativa];
+          } else if (entidad === 'postulante') {
+            // Manejar los campos de postulante que están anidados dentro de unidad_educativa
+            if (campo === 'departamento') {
+              fieldValue = dataToSend.unidad_educativa.departamento;
+            } else if (campo === 'id_unidad_educativa') {
+              const nombreUnidadEducativaValue = dataToSend.unidad_educativa.nombre;
+              const idUnidadEducativaValue = dataToSend.unidad_educativa.id_unidad_educativa;
+              if (requisitoInfo?.obligatorio && (nombreUnidadEducativaValue?.trim() === '' && (idUnidadEducativaValue === null || idUnidadEducativaValue === undefined))) {
+                camposObligatoriosVacios.push(key);
+              }
+              continue; // Evitar la verificación general más adelante
+            } else if (campo === 'provincia') {
+              fieldValue = dataToSend.unidad_educativa.provincia;
             } else {
-              dataToSend[campo as keyof typeof dataToSend] = defaultValue;
+              fieldValue = dataToSend[campo as keyof typeof dataToSend];
             }
+          } else {
+            fieldValue = dataToSend[campo as keyof typeof dataToSend];
+          }
+  
+          if (requisitoInfo?.obligatorio && (fieldValue === '' || fieldValue === null || fieldValue === undefined)) {
+            camposObligatoriosVacios.push(key);
           }
         }
-
+  
+        if (camposObligatoriosVacios.length > 0) {
+          setFormErrorMessage(`Por favor, complete los siguientes campos obligatorios: ${camposObligatoriosVacios.join(', ')}`);
+          return; // Detener el avance si hay campos obligatorios vacíos
+        }
+  
+        setFormErrorMessage('');
         console.log("Datos a enviar:", dataToSend);
         setStep(2);
       }
     } else if (step === 2) {
-      // Verificar si al menos un estudiante tiene áreas seleccionadas
-      const hasSelectedAreas = estudiantes.some(e => 
+      const hasSelectedAreas = estudiantes.some(e =>
         e.areas_seleccionadas && e.areas_seleccionadas.length > 0
       );
-      
+  
       if (!hasSelectedAreas) {
         setFormErrorMessage('Debe seleccionar al menos un área para un estudiante');
         return;
       }
-      
+  
       setFormErrorMessage('');
       setStep(3);
     } else if (step === 3) {
