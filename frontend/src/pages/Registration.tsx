@@ -1,42 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Calendar, Check, ChevronRight, Upload, X, AlertCircle, Plus, Trash2, Copy, Users } from 'lucide-react';
 import { verificarCodigoOrden, subirComprobantePago } from '../api/comprobantePagoApi';
-import { getDatosInscripcion, getAreasPorGrado, inscribirEstudiante, buscarUnidadesEducativas } from '../api/inscripcionCompletaApi';
-import { RequisitoConvocatoria } from '../types/RequisitoConvocatoria'; 
-import { fetchRequisitosConvocatoria } from '../api/requisitoConvocatoria';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import BoletaInfo from '../components/BoletaInfo'
+import { PDFDownloadLink, Document, Page } from '@react-pdf/renderer';
 
-// Definir una interfaz para la estructura de datos de un estudiante
-interface EstudianteFormData {
-  id: string;
-  nombres: string;
-  apellidos: string;
-  ci: string;
-  fecha_nacimiento: string;
-  email: string;
-  id_grado: string;
-  unidad_educativa: {
-    id_unidad_educativa: null | number;
-    nombre: string;
-    departamento: string;
-    provincia: string;
-  };
-  tutor_legal: {
-    nombres: string;
-    apellidos: string;
-    ci: string;
-    telefono: string;
-    email: string;
-    parentesco: string;
-    es_el_mismo_estudiante: boolean;
-  };
-  tutores_academicos: Array<any>;
-  areas_seleccionadas: Array<any>;
-}
+import { getDatosInscripcion, getAreasPorGrado, inscribirEstudiante, buscarUnidadesEducativas } from '../api/inscripcionCompletaApi';
+import { EstudianteFormData} from '../types/index';
+import DescargarBoleta from '../components/DescargarBoleta';
+
 
 export default function Registration() {
-  const componentRef = useRef<HTMLDivElement>(null);
   // Estados originales para verificación de código
   const [step, setStep] = useState(1);
   const [verificationCode, setVerificationCode] = useState('');
@@ -91,44 +64,6 @@ export default function Registration() {
     areas_seleccionadas: [],
     tutores_academicos: [],
   });
-
-  //para cargar requisitos obligatorios
-  const [requisitosGuardados, setRequisitosGuardados] = useState<Record<string, { obligatorio: boolean; valor: any | undefined }>>({});
-  const [loadingRequisitos, setLoadingRequisitos] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  
-
-  useEffect(() => {
-      const loadRequisitos = async () => {
-        if (convocatoria) {
-          setLoadingRequisitos(true);
-          try {
-            console.log('convocatoria', convocatoria.id)
-            const data = await fetchRequisitosConvocatoria(convocatoria.id);
-            const initialRequisitosGuardados: Record<string, { obligatorio: boolean; valor: any | undefined }> = {};
-            data.forEach((requisito) => {
-              const key = `${requisito.entidad}.${requisito.campo}`;
-              initialRequisitosGuardados[key] = {
-                obligatorio: requisito.es_obligatorio, // Usamos 'es_obligatorio'
-                valor: undefined, // Inicialmente no tenemos un valor por defecto desde la API en esta estructura
-              };
-            });
-            setRequisitosGuardados(initialRequisitosGuardados);
-            console.log('Contenido de requisitosGuardados después de cargar:', initialRequisitosGuardados);
-            setLoadingRequisitos(false);
-          } catch (error: any) {
-            setError('Error al cargar los requisitos: ' + error.message);
-            setLoadingRequisitos(false);
-            setRequisitosGuardados({});
-          }
-        } else {
-          setRequisitosGuardados({});
-        }
-      };
-  
-      loadRequisitos();
-  }, [convocatoria]);
-  
   
   const fetchCodigoUnico = async () => {
     try {
@@ -138,10 +73,7 @@ export default function Registration() {
           codigo_unico: codigo_unico
 
       };
-
-      console.log(datos);
       const data = await inscribirEstudiante( JSON.stringify(datos) , openBoletaModal);
-      console.log(data);
 
     } catch (error) {
       console.error("Error al obtener el código:", error);
@@ -183,27 +115,6 @@ export default function Registration() {
     console.log("Iniciando descarga automática de boleta...");
     // En un caso real, aquí se haría la llamada a la API para generar y descargar el PDF
     
-    generatePDF();
-  };
-
-  const generatePDF = async () => {
-    if (!componentRef.current) return;
-    const payment =componentRef.current;
-
-    const canvas = await html2canvas(payment , {scale:  window.devicePixelRatio });
-    const imgData = canvas.toDataURL('image/png');
-
-    const pdf = new jsPDF({
-      orientation: 'landscape',
-      unit: 'px',
-      format: [ canvas.width , canvas.height],
-    });
-
-    pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-
-    const date = new Date();
-    const dateParsed = date.getDate() + "-"+ date.getMonth()+ "-" +date.getFullYear();
-    pdf.save(`Boleta de inscripcion ${dateParsed}.pdf`);
   };
 
   // Función para cerrar el modal de la boleta de pago y resetear
@@ -454,7 +365,7 @@ export default function Registration() {
           setCostoTotal(0);
         } catch (error) {
           console.error('Error al obtener áreas por grado:', error);
-          setErrorMessage('No se pudieron cargar las áreas disponibles para el grado seleccionado.');
+          setErrorMessage('Hubo un problema al descargar la boleta de pago.');
         } finally {
           setIsLoading(false);
         }
@@ -523,7 +434,6 @@ export default function Registration() {
           message = error.response.data.message;
         }
       }
-      
       setErrorMessage(message);
     } finally {
       setIsVerifying(false);
@@ -677,9 +587,28 @@ export default function Registration() {
   const validateStep1 = () => {
     let isValid = true;
     let currentErrors = {};
-    setFormErrorMessage('');
-  
-    // Validar campos del estudiante (con validateField)
+    // Lista de campos obligatorios del estudiante
+    const requiredFields = [
+      { field: formData.nombres, name: 'Nombres' },
+      { field: formData.apellidos, name: 'Apellidos' },
+      { field: formData.ci, name: 'Cédula de Identidad' },
+      { field: formData.fecha_nacimiento, name: 'Fecha de Nacimiento' },
+      { field: formData.email, name: 'Correo Electrónico' },
+      { field: formData.id_grado, name: 'Grado' },
+      { field: formData.unidad_educativa.nombre, name: 'Unidad Educativa' },
+    ];
+    
+    // Campos obligatorios del tutor legal
+    const requiredTutorFields = [
+      { field: formData.tutor_legal.nombres, name: 'Nombres del Tutor Legal' },
+      { field: formData.tutor_legal.apellidos, name: 'Apellidos del Tutor Legal' },
+      { field: formData.tutor_legal.ci, name: 'CI del Tutor Legal' },
+      { field: formData.tutor_legal.email, name: 'Email del Tutor Legal' },
+      { field: formData.tutor_legal.telefono, name: 'Teléfono del Tutor Legal' },
+      { field: formData.tutor_legal.parentesco, name: 'Parentesco del Tutor Legal' },
+    ];
+    
+    // Validar campos del estudiante
     const nombresError = validateField('nombres', formData.nombres);
     if (nombresError) {
       currentErrors.nombres = nombresError;
@@ -700,96 +629,41 @@ export default function Registration() {
       currentErrors.fecha_nacimiento = fechaNacimientoError;
       isValid = false;
     }
-    const emailError = validateField('email', formData.email);
-    if (emailError) {
-      currentErrors.email = emailError;
-      isValid = false;
-    }
-    const gradoError = validateField('id_grado', formData.id_grado);
-    if (gradoError) {
-      currentErrors.id_grado = gradoError;
-      isValid = false;
-    }
-    const unidadEducativaError = validateField('unidad_educativa.nombre', formData.unidad_educativa.nombre);
-    if (unidadEducativaError) {
-      currentErrors['unidad_educativa.nombre'] = unidadEducativaError;
-      isValid = false;
-    }
-  
-    // Validar campos del tutor legal (con validateField)
-    const tutorNombresError = validateField('tutor_legal.nombres', formData.tutor_legal.nombres);
-    if (tutorNombresError) {
-      currentErrors['tutor_legal.nombres'] = tutorNombresError;
-      isValid = false;
-    }
-    const tutorApellidosError = validateField('tutor_legal.apellidos', formData.tutor_legal.apellidos);
-    if (tutorApellidosError) {
-      currentErrors['tutor_legal.apellidos'] = tutorApellidosError;
-      isValid = false;
-    }
-    const tutorCiError = validateField('tutor_legal.ci', formData.tutor_legal.ci);
-    if (tutorCiError) {
-      currentErrors['tutor_legal.ci'] = tutorCiError;
-      isValid = false;
-    }
-    const tutorEmailError = validateField('tutor_legal.email', formData.tutor_legal.email);
-    if (tutorEmailError) {
-      currentErrors['tutor_legal.email'] = tutorEmailError;
-      isValid = false;
-    }
-    const tutorTelefonoError = validateField('tutor_legal.telefono', formData.tutor_legal.telefono);
-    if (tutorTelefonoError) {
-      currentErrors['tutor_legal.telefono'] = tutorTelefonoError;
-      isValid = false;
-    }
-    const tutorParentescoError = validateField('tutor_legal.parentesco', formData.tutor_legal.parentesco);
-    if (tutorParentescoError) {
-      currentErrors['tutor_legal.parentesco'] = tutorParentescoError;
-      isValid = false;
-    }
-  
-    // Verificar campos obligatorios usando requisitosGuardados
-    const verificarCampoObligatorio = (entidad: string, campo: string, valor: any, nombreParaMensaje: string) => {
-      const key = `${entidad}.${campo}`;
-      if (requisitosGuardados[key]?.obligatorio && (!valor || valor.trim() === '')) {
-        setFormErrorMessage(`El campo ${nombreParaMensaje} es obligatorio`);
-        return false; // Detener al primer error obligatorio
+
+    // Verificar campos del estudiante
+    for (const { field, name } of requiredFields) {
+      if (!field || field.trim() === '') {
+        setFormErrorMessage(`El campo ${name} es obligatorio`);
+        return false;
       }
-      return true;
-    };
-  
-    // Verificar obligatoriedad para campos comunes (estudiante)
-    if (!verificarCampoObligatorio('postulante', 'nombres', formData.nombres, 'Nombres')) return false;
-    if (!verificarCampoObligatorio('postulante', 'apellidos', formData.apellidos, 'Apellidos')) return false;
-    if (!verificarCampoObligatorio('postulante', 'ci', formData.ci, 'Cédula de Identidad')) return false;
-    if (!verificarCampoObligatorio('postulante', 'fecha_nacimiento', formData.fecha_nacimiento, 'Fecha de Nacimiento')) return false;
-    if (!verificarCampoObligatorio('postulante', 'email', formData.email, 'Correo Electrónico')) return false;
-    if (!verificarCampoObligatorio('postulante', 'id_grado', formData.id_grado, 'Grado')) return false;
-    if (!verificarCampoObligatorio('postulante', 'id_unidad_educativa', formData.unidad_educativa.nombre, 'Unidad Educativa')) return false;
-  
-    // Verificar obligatoriedad para campos del tutor legal
-    if (!verificarCampoObligatorio('tutorLegal', 'nombres', formData.tutor_legal.nombres, 'Nombres del Tutor Legal')) return false;
-    if (!verificarCampoObligatorio('tutorLegal', 'apellidos', formData.tutor_legal.apellidos, 'Apellidos del Tutor Legal')) return false;
-    if (!verificarCampoObligatorio('tutorLegal', 'ci', formData.tutor_legal.ci, 'CI del Tutor Legal')) return false;
-    if (!verificarCampoObligatorio('tutorLegal', 'email', formData.tutor_legal.email, 'Email del Tutor Legal')) return false;
-    if (!verificarCampoObligatorio('tutorLegal', 'telefono', formData.tutor_legal.telefono, 'Teléfono del Tutor Legal')) return false;
-    if (!verificarCampoObligatorio('tutorLegal', 'parentesco', formData.tutor_legal.parentesco, 'Parentesco del Tutor Legal')) return false;
-  
+    }
+    
+    // Verificar campos del tutor legal
+    for (const { field, name } of requiredTutorFields) {
+      if (!field || field.trim() === '') {
+        setFormErrorMessage(`El campo ${name} es obligatorio`);
+        return false;
+      }
+    }
+    
     // Validar formato de email del estudiante
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (formData.email && !emailRegex.test(formData.email)) {
+    if (!emailRegex.test(formData.email)) {
       setFormErrorMessage('El formato del correo electrónico no es válido');
       return false;
     }
-  
+    
     // Validar formato de email del tutor legal
-    if (formData.tutor_legal.email && !emailRegex.test(formData.tutor_legal.email)) {
+    if (!emailRegex.test(formData.tutor_legal.email)) {
       setFormErrorMessage('El formato del correo electrónico del tutor legal no es válido');
       return false;
     }
-  
+    
+    // Si todo es válido
     setFormErrors(currentErrors);
     setFormErrorMessage(isValid ? '' : 'Por favor, corrija los errores en el formulario.');
+    //setFormErrorMessage('');
+    //return true;
     return isValid;
   };
   
@@ -836,66 +710,19 @@ export default function Registration() {
   const handleNextStep = () => {
     if (step === 1) {
       if (validateStep1()) {
-        const camposObligatoriosVacios = [];
-        const dataToSend = { ...formData };
-  
-        for (const key in requisitosGuardados) {
-          if (key.startsWith('tutorAcademico.')) {
-            continue; // Ignorar los campos del tutor académico
-          }
-  
-          const requisitoInfo = requisitosGuardados[key];
-          const [entidad, campo] = key.split('.');
-          let fieldValue;
-  
-          if (entidad === 'tutorLegal') {
-            fieldValue = dataToSend.tutor_legal[campo as keyof typeof dataToSend.tutor_legal];
-          } else if (entidad === 'unidad_educativa') {
-            fieldValue = dataToSend.unidad_educativa[campo as keyof typeof dataToSend.unidad_educativa];
-          } else if (entidad === 'postulante') {
-            // Manejar los campos de postulante que están anidados dentro de unidad_educativa
-            if (campo === 'departamento') {
-              fieldValue = dataToSend.unidad_educativa.departamento;
-            } else if (campo === 'id_unidad_educativa') {
-              const nombreUnidadEducativaValue = dataToSend.unidad_educativa.nombre;
-              const idUnidadEducativaValue = dataToSend.unidad_educativa.id_unidad_educativa;
-              if (requisitoInfo?.obligatorio && (nombreUnidadEducativaValue?.trim() === '' && (idUnidadEducativaValue === null || idUnidadEducativaValue === undefined))) {
-                camposObligatoriosVacios.push(key);
-              }
-              continue; // Evitar la verificación general más adelante
-            } else if (campo === 'provincia') {
-              fieldValue = dataToSend.unidad_educativa.provincia;
-            } else {
-              fieldValue = dataToSend[campo as keyof typeof dataToSend];
-            }
-          } else {
-            fieldValue = dataToSend[campo as keyof typeof dataToSend];
-          }
-  
-          if (requisitoInfo?.obligatorio && (fieldValue === '' || fieldValue === null || fieldValue === undefined)) {
-            camposObligatoriosVacios.push(key);
-          }
-        }
-  
-        if (camposObligatoriosVacios.length > 0) {
-          setFormErrorMessage(`Por favor, complete los siguientes campos obligatorios: ${camposObligatoriosVacios.join(', ')}`);
-          return; // Detener el avance si hay campos obligatorios vacíos
-        }
-  
-        setFormErrorMessage('');
-        console.log("Datos a enviar:", dataToSend);
         setStep(2);
       }
     } else if (step === 2) {
-      const hasSelectedAreas = estudiantes.some(e =>
+      // Verificar si al menos un estudiante tiene áreas seleccionadas
+      const hasSelectedAreas = estudiantes.some(e => 
         e.areas_seleccionadas && e.areas_seleccionadas.length > 0
       );
-  
+      
       if (!hasSelectedAreas) {
         setFormErrorMessage('Debe seleccionar al menos un área para un estudiante');
         return;
       }
-  
+      
       setFormErrorMessage('');
       setStep(3);
     } else if (step === 3) {
@@ -1090,7 +917,7 @@ export default function Registration() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="bg-white rounded-lg shadow-lg p-8">
+      <div className="bg-white rounded-lg shadow-lg  p-8">
         <h1 className="text-3xl font-bold text-center text-gray-900 mb-4">Inscripción</h1>
         <p className="text-gray-600 text-center mb-8">
           Completa el proceso de inscripción para participar en las olimpiadas científicas
@@ -1290,6 +1117,8 @@ export default function Registration() {
             </div>
           )}
         </div>
+
+        <DescargarBoleta/>
 
         {/* Estudiantes Navigation Bar - Moved to top level */}
         <div className="border rounded-lg p-6 mb-8">
@@ -2154,7 +1983,7 @@ export default function Registration() {
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M3 17a1 1 011-1h12a1 1 110 2H4a1 1 01-1-1zm3.293-7.707a1 1 011.414 0L9 10.586V3a1 1 112 0v7.586l1.293-1.293a1 1 011.414 1.414l-3 3a1 1 01-1.414 0l-3-3a1 1 010-1.414z" clipRule="evenodd" />
                   </svg>
-                  Descargar Boleta de Pago
+                  Terminar Pre-inscripcion
                 </button>
                 <button
                   className="bg-green-600 text-white px-6 py-3 rounded-md hover:bg-green-700 flex items-center justify-center"
@@ -2382,7 +2211,7 @@ export default function Registration() {
                   <p className="text-sm text-gray-500">CI: {estudiantes[0]?.tutor_legal.ci}</p>
                 </div>
                 
-                <div ref={componentRef} className="border rounded-lg p-4 mb-4 bg-gray-50">
+                <div className="border rounded-lg p-4 mb-4 bg-gray-50">
                   <h4 className="font-medium text-gray-800 mb-3">Detalle de Estudiantes</h4>
                   <div className="border-t border-b py-2">
                     <div className="grid grid-cols-12 gap-2 mb-2 text-sm font-medium">
@@ -2460,6 +2289,8 @@ export default function Registration() {
         </div>
       )}
     </div>
+  );
+
 </div>
   );
 }

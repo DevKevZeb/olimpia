@@ -85,7 +85,8 @@ Route::prefix('v1')->group(function () {
 
     // Órdenes de Pago
     Route::apiResource('ordenes-pago', OrdenPagoController::class);
-    Route::get('ordenes-pago/buscar-por-codigo', [OrdenPagoController::class, 'getByCode']);
+    Route::get('ordenes-pago/descargar/{codigo}', [OrdenPagoController::class, 'getByCode']);
+    // Route::get('ordenes-pago/buscar-por-codigo', [OrdenPagoController::class, 'getByCode']);
 
     // Comprobantes de Pago
     Route::apiResource('comprobantes-pago', ComprobantePagoController::class);

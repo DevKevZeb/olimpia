@@ -205,29 +205,43 @@ class OrdenPagoController extends ApiController
     /**
      * Get an order by its unique code
      */
-    public function getByCode(Request $request): JsonResponse
+    public function getByCode(Request $request, string $codigo): JsonResponse
     {
-        $codigo = $request->query('codigo');
         if (!$codigo) {
             return $this->errorResponse('Debe proporcionar un código', 422);
         }
         
-        $orden = OrdenPago::with([
-                'inscripcion.estudiante', 
-                'inscripcion.convocatoriaArea.area', 
-                'lista.unidadEducativa',
-                'lista.detalles.estudiante',
-                'lista.detalles.convocatoriaArea.area',
-            ])
-            ->where('codigo_unico', $codigo)
-            ->first();
+        $orden = OrdenPago::where( "codigo_unico" ,  $codigo)->first();
+        
+        if(!$orden){
+            return $this->errorResponse('Debe proporcionar un código', 422);
+        }
+        $montoTotal = $orden->monto_total;
+        $orden = DB::select(
+            'SELECT e.ci, e.nombres, e.apellidos, ac.nombre_area, nc.nombre_nivel, ca.costo_inscripcion
+            FROM ordenes_pago op, convocatoria_niveles cn, niveles_categoria nc, areas_competencia ac,
+                estudiantes e, convocatoria_areas ca, detalles_lista_inscripcion dli, listas_inscripcion li
+            WHERE op.codigo_unico = ?
+            AND op.id_orden = li.id_lista
+            AND li.id_lista = dli.id_detalle
+            AND dli.id_convocatoria_nivel = cn.id_convocatoria_nivel
+            AND dli.id_estudiante = e.id_estudiante
+            AND cn.id_nivel = nc.id_nivel
+            AND ac.id_area = ca.id_area
+            AND cn.id_convocatoria_area = ca.id_convocatoria_area
+            ORDER BY ci, nombres, apellidos
+            ',
+            [$codigo]
+        );  
             
         if (!$orden) {
             return $this->errorResponse('Orden de pago no encontrada', 404);
         }
         
         return $this->successResponse(
-            new OrdenPagoResource($orden),
+            [ "orden" => $orden,
+            "monto_total" => $montoTotal
+        ],
             'Orden de pago obtenida correctamente'
         );
     }
