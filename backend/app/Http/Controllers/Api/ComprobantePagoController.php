@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Smalot\PdfParser\Parser;
 
 class ComprobantePagoController extends ApiController
 {
@@ -132,11 +133,7 @@ class ComprobantePagoController extends ApiController
     {
         $validator = Validator::make($request->all(), [
             'codigo_orden' => 'required|string|exists:ordenes_pago,codigo_unico',
-            'numero_comprobante' => 'required|string|max:50',
-            'nombre_pagador' => 'required|string|max:100',
-            'fecha_pago' => 'required|date',
-            'monto_pagado' => 'required|numeric|min:0',
-            'pdf_comprobante' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'pdf_comprobante' => 'required|file|mimes:pdf|max:2048',
         ]);
 
         if ($validator->fails()) {
@@ -145,59 +142,85 @@ class ComprobantePagoController extends ApiController
 
         try {
             DB::beginTransaction();
-            
-            // Buscar la orden por su código único
             $orden = OrdenPago::where('codigo_unico', $request->codigo_orden)->first();
-            
             if (!$orden) {
                 return $this->errorResponse('Orden de pago no encontrada', 404);
             }
-            
-            // Check if the order is already paid
             if ($orden->estado === 'pagada') {
                 return $this->errorResponse('Esta orden de pago ya ha sido pagada', 422);
             }
-            
-            // Check if the order is expired
             if ($orden->estado === 'vencida') {
                 return $this->errorResponse('Esta orden de pago está vencida', 422);
             }
-            
-            // Check if the amount paid matches the total amount
-            if ((float) $request->monto_pagado < (float) $orden->monto_total) {
-                return $this->errorResponse('El monto pagado debe ser igual o mayor al monto total de la orden', 422);
-            }
-            
-            // Check if order already has a pending receipt
             if ($orden->comprobantes()->where('estado_verificacion', 'pendiente')->exists()) {
                 return $this->errorResponse('Esta orden ya tiene un comprobante pendiente de verificación', 422);
             }
-            
-            // Store the file
-            $filePath = $request->file('pdf_comprobante')->store('comprobantes', 'public');
-            
-            // Create the comprobante
+            // Guardar el archivo
+            $file = $request->file('pdf_comprobante');
+            $filePath = $file->store('comprobantes', 'public');
+            // Extraer texto del PDF
+            $pdfPath = storage_path('app/public/' . $filePath);
+            $parser = new Parser();
+            $pdf = $parser->parseFile($pdfPath);
+            $ocrText = $pdf->getText();
+            // Buscar datos por patrones
+            $nombre = null;
+            $numero = null;
+            $fecha = null;
+            if (preg_match('/Cliente:?[ \t]*([A-Za-zÁÉÍÓÚáéíóúñÑ ]+)/i', $ocrText, $m)) {
+                $nombre = trim($m[1]);
+            }
+            // Extraer número de comprobante de forma robusta y flexible
+            $numero = null;
+            $lines = preg_split('/\r\n|\r|\n/', $ocrText);
+            foreach ($lines as $i => $line) {
+                // Busca variantes de "Comprobante n°: 04499856" (permite espacios, mayúsculas, minúsculas, n°/N°/Nº/No)
+                if (preg_match('/Comprobante\s*n[°ºoO]?[\s:]*([0-9]{4,12})/iu', $line, $m)) {
+                    $numero = trim($m[1]);
+                    break;
+                }
+                // Si la línea contiene "Comprobante" y "n°" pero no el número, busca en la siguiente línea
+                if (preg_match('/Comprobante\s*n[°ºoO]?[\s:]*$/iu', $line) && isset($lines[$i+1])) {
+                    if (preg_match('/([0-9]{4,12})/', $lines[$i+1], $m)) {
+                        $numero = trim($m[1]);
+                        break;
+                    }
+                }
+            }
+            // Validar que el número sea obligatorio y solo dígitos (4 a 12 dígitos)
+            if (!$numero || !preg_match('/^[0-9]{4,12}$/', $numero)) {
+                Storage::disk('public')->delete($filePath);
+                return $this->errorResponse('No se pudo extraer un número de comprobante válido. Asegúrese de subir un comprobante/factura válido.', 422);
+            }
+            if (preg_match('/Fecha:?\s*([0-9]{2}\/[0-9]{2}\/[0-9]{4})/i', $ocrText, $m)) {
+                $fecha = $m[1];
+            }
+            // Validar que sea comprobante
+            if (!$nombre || !$fecha || stripos($ocrText, 'comprobante') === false) {
+                Storage::disk('public')->delete($filePath);
+                return $this->errorResponse('El archivo no parece ser un comprobante de pago válido. Asegúrese de subir el documento correcto.', 422);
+            }
+            // Guardar comprobante
             $comprobante = ComprobantePago::create([
                 'id_orden' => $orden->id_orden,
-                'numero_comprobante' => $request->numero_comprobante,
-                'nombre_pagador' => $request->nombre_pagador,
-                'fecha_pago' => $request->fecha_pago,
-                'monto_pagado' => $request->monto_pagado,
+                'numero_comprobante' => $numero ?? 'N/A',
+                'nombre_pagador' => $nombre,
+                'fecha_pago' => $fecha ? date('Y-m-d', strtotime(str_replace('/', '-', $fecha))) : now(),
+                'monto_pagado' => $orden->monto_total,
                 'pdf_comprobante' => $filePath,
-                'datos_ocr' => null,
+                'datos_ocr' => json_encode([
+                    'ocr_text' => $ocrText,
+                    'nombre' => $nombre,
+                    'numero_comprobante' => $numero,
+                    'fecha' => $fecha
+                ]),
                 'estado_verificacion' => 'pendiente',
             ]);
-            
-            // Update the orden status
             $orden->update(['estado' => 'pagada']);
-            
-            // If the payment is for an individual registration, update the registration status
             if ($orden->tipo_origen === 'individual' && $orden->inscripcion) {
                 $orden->inscripcion->update(['estado' => 'pagada']);
             }
-            
             DB::commit();
-            
             return $this->successResponse(
                 new ComprobantePagoResource($comprobante->load('orden')),
                 'Comprobante de pago registrado correctamente',
