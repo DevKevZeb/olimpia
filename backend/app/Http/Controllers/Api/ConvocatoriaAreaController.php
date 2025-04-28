@@ -39,7 +39,7 @@ class ConvocatoriaAreaController extends ApiController
             'id_convocatoria' => 'required|exists:convocatorias,id_convocatoria',
             'areas' => 'required|array|min:1',
             'areas.*.id_area' => 'required|exists:areas_competencia,id_area',
-            'areas.*.costo_inscripcion' => 'required|numeric|min:0',
+            'areas.*.costo_inscripcion' => 'nullable|numeric|min:0',
         ]);
 
         if ($validator->fails()) {
@@ -123,5 +123,21 @@ class ConvocatoriaAreaController extends ApiController
             null,
             'Área de convocatoria eliminada correctamente'
         );
+    }
+
+    /**
+     * Asigna un costo general a todas las áreas de una convocatoria
+     */
+    public function setCostoGeneral(Request $request, $idConvocatoria): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'costo_inscripcion' => 'required|numeric|min:0',
+        ]);
+        if ($validator->fails()) {
+            return $this->errorResponse($validator->errors()->first(), 422);
+        }
+        ConvocatoriaArea::where('id_convocatoria', $idConvocatoria)
+            ->update(['costo_inscripcion' => $request->costo_inscripcion]);
+        return $this->successResponse(null, 'Costo general actualizado correctamente');
     }
 }

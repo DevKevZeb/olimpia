@@ -9,7 +9,8 @@ import {
   asociarNivelesGrados,
   getAreasPorConvocatoria,
   getNivelesPorConvocatoria,
-  createNivelCategoria
+  createNivelCategoria,
+  setCostoGeneralConvocatoria
 } from '../api/adminConvocatoriaApi';
 
 export default function AdminPanel() {
@@ -18,6 +19,11 @@ export default function AdminPanel() {
   const [showAsignarAreasForm, setShowAsignarAreasForm] = useState(false);
   const [showConfigurarNivelesForm, setShowConfigurarNivelesForm] = useState(false);
   const [showCrearNivelForm, setShowCrearNivelForm] = useState(false);
+  // Estado para el formulario de costo general
+  const [showCostoGeneralForm, setShowCostoGeneralForm] = useState(false);
+  const [selectedConvocatoriaCosto, setSelectedConvocatoriaCosto] = useState('');
+  const [costoGeneral, setCostoGeneral] = useState('');
+  const [costoGeneralError, setCostoGeneralError] = useState('');
   
   // Estados para datos y selecciones
   const [convocatorias, setConvocatorias] = useState([]);
@@ -384,51 +390,59 @@ export default function AdminPanel() {
     }
   };
 
+  // Handler para asignar costo general
+  const handleSetCostoGeneral = async (e) => {
+    e.preventDefault();
+    setCostoGeneralError('');
+    if (!selectedConvocatoriaCosto) {
+      setCostoGeneralError('Debe seleccionar una convocatoria');
+      return;
+    }
+    if (!costoGeneral || isNaN(Number(costoGeneral)) || Number(costoGeneral) <= 0) {
+      setCostoGeneralError('Ingrese un costo válido (> 0)');
+      return;
+    }
+    setIsLoading(true);
+    try {
+      await setCostoGeneralConvocatoria(selectedConvocatoriaCosto, Number(costoGeneral));
+      alert('Costo general asignado correctamente');
+      setShowCostoGeneralForm(false);
+      setSelectedConvocatoriaCosto('');
+      setCostoGeneral('');
+      fetchData();
+    } catch (error) {
+      setCostoGeneralError('Error al asignar el costo general.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Manejadores para el formulario de Asignar Áreas
   const handleAreaSelect = (areaId) => {
     const isSelected = selectedAreas.some((area) => area.id_area === areaId);
     if (isSelected) {
       setSelectedAreas(selectedAreas.filter((area) => area.id_area !== areaId));
     } else {
-      setSelectedAreas([...selectedAreas, { id_area: areaId, costo_inscripcion: '' }]);
+      setSelectedAreas([...selectedAreas, { id_area: areaId }]);
     }
-  };
-
-  const handleAreaCostChange = (areaId, cost) => {
-    setSelectedAreas((prev) =>
-      prev.map((area) =>
-        area.id_area === areaId ? { ...area, costo_inscripcion: cost } : area
-      )
-    );
   };
 
   const handleAsignarAreas = async (e) => {
     e.preventDefault();
-    
-    // Validaciones
     if (!selectedConvocatoria) {
       alert('Debe seleccionar una convocatoria');
       return;
     }
-    
     if (selectedAreas.length === 0) {
       alert('Debe seleccionar al menos un área');
       return;
     }
-    
-    // Verificar que todas las áreas tengan costo
-    const areasConCosto = selectedAreas.every(area => area.costo_inscripcion);
-    if (!areasConCosto) {
-      alert('Todas las áreas deben tener un costo de inscripción');
-      return;
-    }
-    
     setIsLoading(true);
     try {
       // Preparar datos de áreas correctamente formateados
       const areasData = selectedAreas.map(area => ({
         id_area: area.id_area,
-        costo_inscripcion: parseInt(area.costo_inscripcion, 10)
+        costo_inscripcion: null
       }));
       
       // Enviar datos al servidor
@@ -461,7 +475,7 @@ export default function AdminPanel() {
     );
     
     if (nivelYaAsignado) {
-      // No permitir seleccionar un nivel ya asignado a esta área específica
+      // No permitir seleccionar un nivel ya asignado a esta área. Seleccione otro nivel o configure otro diferente.
       alert('Este nivel ya está asignado a esta área. Seleccione otro nivel o configure otro diferente.');
       return;
     }
@@ -591,7 +605,7 @@ export default function AdminPanel() {
         {nivelesDisponibles.map(nivel => (
           <div 
             key={`nivel-${area.id_area}-${nivel.id_nivel}`}
-            className={`border rounded-lg p-3 cursor-pointer transition-all ${
+            className={`border rounded-lg p-3 cursor-pointer transition ${
               selectedNiveles.some(n => n.id_nivel === nivel.id_nivel && n.id_area === area.id_area)
                 ? 'border-green-500 bg-green-50'
                 : 'hover:border-gray-400'
@@ -811,8 +825,82 @@ export default function AdminPanel() {
           >
             {showCrearNivelForm ? 'Cancelar' : 'Crear Nivel'}
           </button>
+
+          <button
+            onClick={() => {
+              setShowCostoGeneralForm(!showCostoGeneralForm);
+              setShowCrearConvocatoriaForm(false);
+              setShowAsignarAreasForm(false);
+              setShowConfigurarNivelesForm(false);
+              setShowCrearNivelForm(false);
+              if (showCostoGeneralForm) {
+                setSelectedConvocatoriaCosto('');
+                setCostoGeneral('');
+                setCostoGeneralError('');
+              }
+            }}
+            className={`px-4 py-2 rounded-md font-medium transition ${
+              showCostoGeneralForm
+                ? 'bg-red-500 hover:bg-red-600 text-white'
+                : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+            }`}
+          >
+            {showCostoGeneralForm ? 'Cancelar' : 'Agregar costo convocatoria'}
+          </button>
         </div>
       </div>
+
+      {/* Formulario para agregar costo general */}
+      {showCostoGeneralForm && (
+        <div className="bg-white rounded-lg shadow-lg p-8">
+          <h2 className="text-2xl font-bold mb-6">Agregar costo general a convocatoria</h2>
+          <form onSubmit={handleSetCostoGeneral} className="space-y-6">
+            <div>
+              <label className="block text-gray-700 font-medium mb-2">Seleccionar Convocatoria</label>
+              <select
+                value={selectedConvocatoriaCosto}
+                onChange={e => setSelectedConvocatoriaCosto(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-4 py-2"
+                required
+              >
+                <option value="">-- Seleccione una convocatoria --</option>
+                {convocatorias.map(convocatoria => (
+                  <option key={convocatoria.id_convocatoria} value={convocatoria.id_convocatoria}>
+                    {convocatoria.nombre}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-gray-700 font-medium mb-2">Costo de inscripción (Bs.)</label>
+              <input
+                type="number"
+                min="1"
+                step="1"
+                value={costoGeneral}
+                onChange={e => setCostoGeneral(e.target.value)}
+                className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
+                placeholder="Ingrese costo general"
+                required
+              />
+            </div>
+            {costoGeneralError && (
+              <div className="p-2 bg-red-100 text-red-700 rounded">{costoGeneralError}</div>
+            )}
+            <div className="flex justify-end mt-8">
+              <button
+                type="submit"
+                disabled={isLoading}
+                className={`px-6 py-3 rounded-md font-medium transition ${
+                  isLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                }`}
+              >
+                {isLoading ? 'Guardando...' : 'Guardar costo general'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {/* Formulario para Crear Convocatoria */}
       {showCrearConvocatoriaForm && (
@@ -919,8 +1007,7 @@ export default function AdminPanel() {
       {showAsignarAreasForm && (
         <div className="bg-white rounded-lg shadow-lg p-8">
           <h2 className="text-2xl font-bold mb-6">Asignar Áreas a Convocatoria</h2>
-          <p className="text-gray-600 mb-6">Selecciona las áreas y sus costos para una convocatoria existente</p>
-          
+          <p className="text-gray-600 mb-6">Selecciona las áreas para una convocatoria existente</p>
           <form onSubmit={handleAsignarAreas} className="space-y-6">
             {/* Selector de Convocatoria */}
             <div className="mb-6">
@@ -949,14 +1036,8 @@ export default function AdminPanel() {
                 <h3 className="text-lg font-semibold text-gray-700 mb-3">Áreas ya asignadas</h3>
                 <div className="flex flex-wrap gap-2 mb-2">
                   {areasAsignadas.map(area => (
-                    <div 
-                      key={`assigned-${area.id_area}`} 
-                      className="px-3 py-2 bg-blue-100 text-blue-800 rounded-md flex items-center"
-                    >
+                    <div key={`assigned-${area.id_area}`} className="px-3 py-2 bg-blue-100 text-blue-800 rounded-md flex items-center">
                       <span className="text-sm font-medium">{area.nombre_area}</span>
-                      <span className="ml-2 text-xs bg-blue-200 px-2 py-1 rounded-full">
-                        {area.costo_inscripcion} Bs.
-                      </span>
                     </div>
                   ))}
                 </div>
@@ -1005,23 +1086,6 @@ export default function AdminPanel() {
                             {area.nombre_area}
                           </label>
                         </div>
-                        
-                        {selectedAreas.some(a => a.id_area === area.id_area) && (
-                          <div className="mt-3 pt-3 border-t border-gray-200">
-                            <label className="block text-sm text-gray-600 mb-1">Costo de Inscripción (Bs.)</label>
-                            <input
-                              type="number"
-                              min="1"
-                              step="1"
-                              value={selectedAreas.find(a => a.id_area === area.id_area)?.costo_inscripcion || ''}
-                              onChange={(e) => handleAreaCostChange(area.id_area, e.target.value)}
-                              className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
-                              placeholder="Ingrese costo"
-                              onClick={(e) => e.stopPropagation()}
-                              required
-                            />
-                          </div>
-                        )}
                       </div>
                     ))}
                   </div>
@@ -1131,7 +1195,7 @@ export default function AdminPanel() {
                               {selectedNiveles
                                 .filter(n => n.id_area === area.id_area)
                                 .map(selectedNivel => renderGrados(area.id_area, selectedNivel.id_nivel))
-                              }
+                            }
                             </div>
                           </div>
                         )}

@@ -158,3 +158,18 @@ export const getNivelesPorConvocatoria = async (idConvocatoria) => {
     throw error;
   }
 };
+
+/**
+ * Asigna un costo general a todas las áreas de una convocatoria
+ * @param idConvocatoria ID de la convocatoria
+ * @param costo_inscripcion Costo general a asignar
+ */
+export const setCostoGeneralConvocatoria = async (idConvocatoria: string, costo_inscripcion: number) => {
+  try {
+    const response = await axiosInstance.post(`/v1/admin/convocatorias/${idConvocatoria}/set-costo-general`, { costo_inscripcion });
+    return response.data;
+  } catch (error) {
+    console.error('Error al asignar costo general:', error);
+    throw error;
+  }
+};
