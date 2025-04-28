@@ -72,6 +72,10 @@ export default function AdminPanel() {
   const [nuevoNivel, setNuevoNivel] = useState('');
   const [nivelError, setNivelError] = useState('');
 
+  // Estado para mostrar el costo actual de la convocatoria seleccionada
+  const [costoActualConvocatoria, setCostoActualConvocatoria] = useState<string | null>(null);
+  const [mensajeCostoConvocatoria, setMensajeCostoConvocatoria] = useState('');
+
   // Cargar datos iniciales
   useEffect(() => {
     fetchData();
@@ -727,6 +731,44 @@ export default function AdminPanel() {
     );
   };
 
+  // Cuando selecciona una convocatoria en el formulario de costo general, obtener el costo actual
+  useEffect(() => {
+    if (showCostoGeneralForm && selectedConvocatoriaCosto) {
+      setCostoActualConvocatoria(null);
+      setMensajeCostoConvocatoria('');
+      getAreasPorConvocatoria(selectedConvocatoriaCosto)
+        .then((areas: any[]) => {
+          if (!areas || areas.length === 0) {
+            setCostoActualConvocatoria(null);
+            setMensajeCostoConvocatoria('Esta convocatoria no tiene áreas asignadas.');
+            return;
+          }
+          const costos = areas.map(a => a.costo_inscripcion);
+          const todosNull = costos.every(c => c === null || c === undefined);
+          const unicos = Array.from(new Set(costos.filter(c => c !== null && c !== undefined)));
+          if (todosNull) {
+            setCostoActualConvocatoria(null);
+            setMensajeCostoConvocatoria('Esta convocatoria no tiene un costo asignado.');
+          } else if (unicos.length === 1) {
+            setCostoActualConvocatoria(unicos[0]);
+            setMensajeCostoConvocatoria('');
+            setCostoGeneral(unicos[0]);
+          } else {
+            setCostoActualConvocatoria(null);
+            setMensajeCostoConvocatoria('Esta convocatoria tiene costos diferentes por área. Puede definir un costo general para unificarlos.');
+          }
+        })
+        .catch(() => {
+          setCostoActualConvocatoria(null);
+          setMensajeCostoConvocatoria('No se pudo obtener el costo actual.');
+        });
+    } else {
+      setCostoActualConvocatoria(null);
+      setMensajeCostoConvocatoria('');
+      setCostoGeneral('');
+    }
+  }, [showCostoGeneralForm, selectedConvocatoriaCosto]);
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
@@ -871,6 +913,17 @@ export default function AdminPanel() {
                 ))}
               </select>
             </div>
+            {selectedConvocatoriaCosto && (
+              <div className="mb-2">
+                {mensajeCostoConvocatoria ? (
+                  <div className="p-2 bg-yellow-100 text-yellow-800 rounded mb-2">{mensajeCostoConvocatoria}</div>
+                ) : (
+                  <div className="p-2 bg-blue-100 text-blue-800 rounded mb-2">
+                    Costo actual: <span className="font-bold">{costoActualConvocatoria} Bs.</span>
+                  </div>
+                )}
+              </div>
+            )}
             <div>
               <label className="block text-gray-700 font-medium mb-2">Costo de inscripción (Bs.)</label>
               <input
