@@ -4,9 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Models\Estudiante;
 use Illuminate\Http\Request;
-use App\Http\Resources\EstudianteResource;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use App\Http\Resources\EstudianteResource;
 
 class EstudianteController extends ApiController
 {
@@ -165,5 +166,35 @@ class EstudianteController extends ApiController
             ],
             'Resultados de búsqueda obtenidos correctamente'
         );
+    }
+
+       /**
+     * Search students by name, surname or CI
+     */
+    public function searchByCI(Request $request): JsonResponse
+    {
+        $ci = $request->query('ci');
+        $userType = $request->query('type');
+        if (!$ci || !$userType) {
+            return $this->errorResponse('Debe proporcionar un término de búsqueda', 422);
+        }
+        
+        $telefono = $userType == 'estudiantes'  ? '' : ',telefono';
+
+        $query = 
+        $user = DB::select('
+        SELECT nombres, apellidos, ci, email, created_at '. $telefono .' 
+        FROM ' . $userType . ' 
+        WHERE ci = ?
+        ORDER BY created_at DESC
+        LIMIT 1
+        ', [$ci]);
+            
+        return $this->successResponse(
+            [
+                'data' => $user,
+            ],
+            'Resultados de búsqueda obtenidos correctamente'
+           );
     }
 }
