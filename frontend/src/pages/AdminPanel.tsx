@@ -10,6 +10,13 @@ import {
   getAreasPorConvocatoria,
   getNivelesPorConvocatoria
 } from '../api/adminConvocatoriaApi';
+import { useNavigate } from 'react-router-dom';
+
+interface ButtonLinkProps {
+  to: string;
+  className?: string;
+  children: React.ReactNode;
+}
 
 export default function AdminPanel() {
   // Estados para controlar qué formulario mostrar
@@ -59,6 +66,23 @@ export default function AdminPanel() {
   const [selectedNiveles, setSelectedNiveles] = useState([]);
   const [nivelGrados, setNivelGrados] = useState({});
   const [loadingNiveles, setLoadingNiveles] = useState(false); // Nuevo estado para control específico de carga de niveles
+
+  const BotonNavegarCamposObligatorios = () => {
+    const navigate = useNavigate();
+  
+    const handleClick = () => {
+      navigate('/camposobligatorios');
+    };
+  
+    return (
+      <button
+        onClick={handleClick}
+        className="px-4 py-2 rounded-md font-medium text-sm transition-colors duration-200 text-white bg-indigo-600 hover:bg-indigo-700"
+      >
+        Configurar Campos Obligatorios
+      </button>
+    );
+  };
 
   // Cargar datos iniciales
   useEffect(() => {
@@ -744,6 +768,9 @@ export default function AdminPanel() {
           >
             {showConfigurarNivelesForm ? 'Cancelar' : 'Configurar Niveles'}
           </button>
+
+          <BotonNavegarCamposObligatorios />
+
         </div>
       </div>
 

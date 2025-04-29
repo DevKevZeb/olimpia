@@ -18,7 +18,6 @@ const RegistroRequisitos: React.FC<Props> = ({ initialConvocatoriaId }) => {
 
   const camposTutorLegalObligatorios = ['ci', 'nombres', 'apellidos', 'email'];
   const camposTutorLegalOpcionales = ['telefono', 'parentesco'];
-  const camposTutorAcademico = ['nombres', 'apellidos', 'ci', 'telefono', 'email'];
   const camposPostulanteObligatorios = ['ci', 'nombres', 'apellidos', 'email', 'id_grado'];
   const camposPostulanteOpcionales = ['fecha_nacimiento', 'id_unidad_educativa', 'departamento', 'provincia'];
 
@@ -90,8 +89,6 @@ const RegistroRequisitos: React.FC<Props> = ({ initialConvocatoriaId }) => {
         camposToUpdate = [...camposPostulanteObligatorios, ...camposPostulanteOpcionales];
       } else if (entidad === 'tutorLegal') {
         camposToUpdate = [...camposTutorLegalObligatorios, ...camposTutorLegalOpcionales];
-      } else if (entidad === 'tutorAcademico') {
-        camposToUpdate = camposTutorAcademico;
       }
 
       camposToUpdate.forEach((campo) => {
@@ -113,8 +110,6 @@ const RegistroRequisitos: React.FC<Props> = ({ initialConvocatoriaId }) => {
         camposToUpdate = camposPostulanteOpcionales;
       } else if (entidad === 'tutorLegal') {
         camposToUpdate = camposTutorLegalOpcionales;
-      } else if (entidad === 'tutorAcademico') {
-        camposToUpdate = camposTutorAcademico;
       }
 
       camposToUpdate.forEach((campo) => {
@@ -259,24 +254,6 @@ const RegistroRequisitos: React.FC<Props> = ({ initialConvocatoriaId }) => {
                       type="checkbox"
                       checked={requisitosGuardados[`tutorLegal.${campo}`] || false}
                       onChange={(e) => handleCheckboxChange('tutorLegal', campo, e.target.checked)}
-                    />
-                    {campo}
-                  </label>
-                </div>
-              ))}
-
-              <h4>Del Tutor Académico:</h4>
-              <div className="seccion-acciones">
-                <button type="button" onClick={() => handleSelectAll('tutorAcademico')}>Seleccionar Todos</button>
-                <button type="button" onClick={() => handleDeselectAll('tutorAcademico')}>Deseleccionar Todos</button> {/* No hay opcionales definidos */}
-              </div>
-              {camposTutorAcademico.map((campo) => (
-                <div className="requisito-checkbox" key={`tutorAcademico.${campo}`}>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={requisitosGuardados[`tutorAcademico.${campo}`] || false}
-                      onChange={(e) => handleCheckboxChange('tutorAcademico', campo, e.target.checked)}
                     />
                     {campo}
                   </label>

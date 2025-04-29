@@ -8,6 +8,8 @@ import { fetchConvocatorias } from '../api/requisitoConvocatoria'; // Import par
 import { buscarIdConvocatoriaNivel, obtenerIdGradoPorNombre } from '../api/datosExcel';
 import { inscribirEstudiante } from '../api/inscripcionCompletaApi';
 import DownloadTemplate from './DownloadTemplate';
+import 'react-toastify/dist/ReactToastify.css';
+import { toast, ToastContainer } from 'react-toastify';
 
 interface Convocatoria {
   id_convocatoria: number;
@@ -50,13 +52,13 @@ const UploadAndScan: React.FC<UploadAndScanProps> = ({ selectedConvocatoriaId, o
     console.log('Botón Escanear clickeado');
     console.log('--- handleScan INICIO ---');
     if (!selectedFile) {
-      setScanError('Por favor, selecciona un archivo Excel.');
-      return;
+        setScanError('Por favor, selecciona un archivo Excel.');
+        return;
     }
 
     if (!selectedConvocatoriaId) {
-      setScanError('Por favor, selecciona una convocatoria.');
-      return;
+        setScanError('Por favor, selecciona una convocatoria.');
+        return;
     }
 
     if (!convocatoriaData?.max_areas_por_estudiante) {
@@ -64,170 +66,313 @@ const UploadAndScan: React.FC<UploadAndScanProps> = ({ selectedConvocatoriaId, o
         return;
     }
 
-
     const reader = new FileReader();
     reader.onload = async (e) => {
-      const binaryString = e.target?.result;
-      if (binaryString) {
-        try {
-          const workbook = XLSX.read(binaryString, { type: 'binary' });
-          const sheetName = workbook.SheetNames[0];
-          const worksheet = workbook.Sheets[sheetName];
-          const rawData: any[] = XLSX.utils.sheet_to_json(worksheet, { header: 1 }); // Obtener array de arrays
+        const binaryString = e.target?.result;
+        if (binaryString) {
+            try {
+                const workbook = XLSX.read(binaryString, { type: 'binary' });
+                const sheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[sheetName];
+                const rawData: any[] = XLSX.utils.sheet_to_json(worksheet, { header: 1 }); // Obtener array de arrays
 
-          console.log('rawData (datos crudos del Excel):', rawData);
-          
-          if (rawData.length <= 1) {
-            setScanError('El archivo Excel está vacío o no tiene datos.');
-            return;
-          }
+                console.log('rawData (datos crudos del Excel):', rawData);
 
-          const headers = rawData[0]?.map((header: any) => String(header).trim().toLowerCase()) || [];          
-          console.log('Headers extraídos:', headers);
-          const dataRows = rawData.slice(1);
-          const transformedData: any[] = [];
-          const studentAreaCounts: { [ci: string]: number } = {};
-
-          for (const row of dataRows) {
-            console.log('--- Procesando fila ---', row);
-            
-            //if (row.every((cell: any) => cell === undefined || cell === null || cell === '')) {
-                //continue; // Saltar filas vacías
-            //}
-            const nombre_area = row[0]?.trim();
-            console.log('nombreArea', nombre_area)
-            const nombre_nivel = row[1]?.trim();
-
-            const nombres = row[3]?.trim();
-            console.log('nombres', nombres)
-            const apellidos = row[4]?.trim();
-            console.log('apellidos',apellidos)
-            const ci_raw = row[5];
-            const ci = typeof ci_raw === 'number' ? ci_raw.toString() : ci_raw?.trim();
-            console.log('ci', ci);
-            //const fecha_nacimiento = row[headers.indexOf('Fecha de Nacimiento (YYYY-MM-DD)')]?.trim();
-            const fecha_nacimiento_raw = row[6];
-            let fecha_nacimiento = '';
-            console.log('fecha_nacimiento_raw', fecha_nacimiento_raw)
-            if (typeof fecha_nacimiento_raw === 'number') {
-                fecha_nacimiento = excelDateToJSDate(fecha_nacimiento_raw);
-            } else if (typeof fecha_nacimiento_raw === 'string') {
-                fecha_nacimiento = fecha_nacimiento_raw.trim();
-            }
-            console.log(fecha_nacimiento)
-            const email = row[7]?.trim(); // Ya es probable string
-
-            const unidad_educativa_nombre = row[8]?.trim();
-            const departamento = row[9]?.trim();
-            const provincia = row[10]?.trim();
-            const nombre_grado = row[11]?.trim();
-
-            const tutor_legal_nombres = row[13]?.trim();
-            const tutor_legal_apellidos = row[14]?.trim();
-            const tutor_legal_ci_raw = row[15];
-            const tutor_legal_ci = typeof tutor_legal_ci_raw === 'number' ? tutor_legal_ci_raw.toString() : tutor_legal_ci_raw?.trim();
-            const tutor_legal_telefono_raw = row[16];
-            const tutor_legal_telefono = typeof tutor_legal_telefono_raw === 'number' ? tutor_legal_telefono_raw.toString() : tutor_legal_telefono_raw?.trim();
-            const tutor_legal_email = row[17]?.trim(); // Ya es probable string
-            const tutor_legal_parentesco = row[18]?.trim();
-
-            const tutor_academico_nombres = row[20]?.trim();
-            const tutor_academico_apellidos = row[21]?.trim();
-            const tutor_academico_ci_raw = row[22];
-            const tutor_academico_ci = typeof tutor_academico_ci_raw === 'number' ? tutor_academico_ci_raw.toString() : tutor_academico_ci_raw?.trim();
-            const tutor_academico_telefono_raw = row[23];
-            const tutor_academico_telefono = typeof tutor_academico_telefono_raw === 'number' ? tutor_academico_telefono_raw.toString() : tutor_academico_telefono_raw?.trim();
-            const tutor_academico_email = row[24]?.trim(); // Ya es probable string
-
-            console.log('campos obligatorios',{nombres, apellidos, ci, nombre_area, nombre_nivel, nombre_grado})
-            if (nombres && apellidos && ci && nombre_area && nombre_nivel && nombre_grado) {
-              if (studentAreaCounts[ci] === undefined) {
-                studentAreaCounts[ci] = 0;
-              }
-
-              if (studentAreaCounts[ci] < convocatoriaData.max_areas_por_estudiante) {
-                try {
-                  const id_convocatoria_nivel_result = await buscarIdConvocatoriaNivel(
-                    selectedConvocatoriaId,
-                    nombre_area,
-                    nombre_nivel,
-                    nombre_grado
-                  );
-                  console.log('id_convocatoria_nivel_result', id_convocatoria_nivel_result)
-                  //const id_grado_objeto = await obtenerIdGradoPorNombre(nombre_grado);
-                  //const id_grado = id_grado_objeto?.id_grado;
-                  //console.log('id_grado', id_grado)
-
-                  const id_grado_objeto = await obtenerIdGradoPorNombre(nombre_grado);
-                  console.log('Resultado de obtenerIdGradoPorNombre:', id_grado_objeto);
-                  const id_grado = id_grado_objeto?.id;
-                  console.log('id_grado después de la extracción:', id_grado);
-
-                  if (id_convocatoria_nivel_result) {
-                    transformedData.push({
-                      nombres: nombres,
-                      apellidos: apellidos,
-                      ci: ci,
-                      fecha_nacimiento: fecha_nacimiento,
-                      email: email,
-                      id_grado: id_grado, 
-                      unidad_educativa: {
-                        id_unidad_educativa: null, // No se proporciona en el Excel
-                        nombre: unidad_educativa_nombre,
-                        departamento: departamento,
-                        provincia: provincia,
-                      },
-                      tutor_legal: {
-                        nombres: tutor_legal_nombres,
-                        apellidos: tutor_legal_apellidos,
-                        ci: tutor_legal_ci,
-                        telefono: tutor_legal_telefono,
-                        email: tutor_legal_email,
-                        parentesco: tutor_legal_parentesco,
-                        es_el_mismo_estudiante: false, // TODO: Implementar lógica si es necesario
-                      },
-                      id_convocatoria: String(selectedConvocatoriaId),
-                      areas_seleccionadas: [{ id_convocatoria_nivel: id_convocatoria_nivel_result }],
-                      tutores_academicos: tutor_academico_nombres || tutor_academico_apellidos || tutor_academico_ci || tutor_academico_telefono || tutor_academico_email ? [{
-                        id_convocatoria_nivel: id_convocatoria_nivel_result,
-                        nombres: tutor_academico_nombres || '',
-                        apellidos: tutor_academico_apellidos || '',
-                        ci: tutor_academico_ci || '',
-                        telefono: tutor_academico_telefono || '',
-                        email: tutor_academico_email || '',
-                      }] : [],
-                    });
-                    studentAreaCounts[ci]++;
-                  } else {
-                    console.warn(`No se encontró id_convocatoria_nivel para: Área=${nombre_area}, Nivel=${nombre_nivel}, Grado=${nombre_grado} en la fila`, row);
-                    // Puedes optar por omitir esta fila o mostrar un error específico al usuario
-                  }
-                } catch (error) {
-                  console.error('Error al buscar id_convocatoria_nivel:', error);
-                  setScanError('Error al procesar los datos del archivo.');
-                  return;
+                if (rawData.length <= 1) {
+                    setScanError('El archivo Excel está vacío o no tiene datos.');
+                    return;
                 }
-              } else {
-                console.warn(`El estudiante con CI ${ci} ha alcanzado el máximo de áreas permitidas (${convocatoriaData.max_areas_por_estudiante}). Se omitirá la fila para el área: ${nombre_area}.`, row);
-              }
-            } else {
-              console.warn('Faltan campos obligatorios en la fila:', row);
-              // Puedes optar por omitir esta fila o mostrar un error al usuario
-            }
-          }
 
-          console.log('transformedData (datos transformados):', transformedData);
-          onDataScanned(transformedData);
-          setScanError(null);
-        } catch (error: any) {
-          setScanError('Error al leer el archivo Excel. Asegúrate de que el formato sea correcto.');
-          console.error('Error al leer Excel:', error);
+                const headers = rawData[0]?.map((header: any) => String(header).trim().toLowerCase()) || [];
+                console.log('Headers extraídos:', headers);
+                const dataRows = rawData.slice(1);
+                const transformedData: any[] = [];
+                const studentAreaCounts: { [ci: string]: number } = {};
+                const errors: string[] = []; // Array para almacenar los errores de validación
+
+                for (let i = 0; i < dataRows.length; i++) {
+                    const row = dataRows[i];
+                    console.log(`--- Procesando fila ${i + 2} ---`, row); // i + 2 porque la fila 0 son headers y empezamos desde la fila 1
+
+                    let isValidRow = true;
+                    const rowErrors: string[] = [];
+
+                    const nombre_area = row[0]?.trim();
+                    if (!nombre_area) {
+                        isValidRow = false;
+                        rowErrors.push('El campo "Nombre Área" es obligatorio.');
+                    }
+
+                    const nombre_nivel = row[1]?.trim();
+                    if (!nombre_nivel) {
+                        isValidRow = false;
+                        rowErrors.push('El campo "Nombre Nivel" es obligatorio.');
+                    }
+
+                    const nombres = row[3]?.trim();
+                    if (!nombres) {
+                        isValidRow = false;
+                        rowErrors.push('El campo "Nombres" es obligatorio.');
+                    } else if (!/^[a-zA-Z\s]+$/.test(nombres)) {
+                        isValidRow = false;
+                        rowErrors.push('El campo "Nombres" debe contener solo letras y espacios.');
+                    }
+
+                    const apellidos = row[4]?.trim();
+                    if (!apellidos) {
+                        isValidRow = false;
+                        rowErrors.push('El campo "Apellidos" es obligatorio.');
+                    } else if (!/^[a-zA-Z\s]+$/.test(apellidos)) {
+                      isValidRow = false;
+                      rowErrors.push('El campo "Apellidos" debe contener solo letras y espacios.');
+                    }
+
+                    const ci_raw = row[5];
+                    const ci = typeof ci_raw === 'number' ? ci_raw.toString() : ci_raw?.trim();
+                    if (!ci) {
+                        isValidRow = false;
+                        rowErrors.push('El campo "CI" es obligatorio.');
+                    } else if (!/^[0-9]+$/.test(ci)) {
+                      isValidRow = false;
+                      rowErrors.push('El campo "CI" debe contener solo números.');
+                    }
+
+                    const fecha_nacimiento_raw = row[6];
+                    let fecha_nacimiento = '';
+                    if (typeof fecha_nacimiento_raw === 'number') {
+                        fecha_nacimiento = excelDateToJSDate(fecha_nacimiento_raw);
+                    } else if (typeof fecha_nacimiento_raw === 'string') {
+                        fecha_nacimiento = fecha_nacimiento_raw.trim();
+                        // Puedes agregar una validación más estricta para el formato de fecha si es necesario
+                        if (fecha_nacimiento && !/^\d{4}-\d{2}-\d{2}$/.test(fecha_nacimiento)) {
+                          isValidRow = false;
+                          rowErrors.push('El campo "Fecha de Nacimiento" debe tener el formato YYYY-MM-DD.');
+                        }
+                    } else if (fecha_nacimiento_raw !== undefined && fecha_nacimiento_raw !== null && fecha_nacimiento_raw !== '') {
+                      isValidRow = false;
+                      rowErrors.push('El campo "Fecha de Nacimiento" tiene un formato incorrecto.');
+                    }
+
+                    const email = row[7]?.trim();
+                    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                      isValidRow = false;
+                      rowErrors.push('El campo "Email" tiene un formato inválido.');
+                    }
+
+                    const unidad_educativa_nombre = row[8]?.trim();
+                    if (!unidad_educativa_nombre) {
+                      isValidRow = false;
+                      rowErrors.push('El campo "Unidad Educativa" es obligatorio.');
+                    }
+
+                    const departamento = row[9]?.trim();
+                    if (!departamento) {
+                      isValidRow = false;
+                      rowErrors.push('El campo "Departamento" es obligatorio.');
+                    }
+
+                    const provincia = row[10]?.trim();
+                    if (!provincia) {
+                      isValidRow = false;
+                      rowErrors.push('El campo "Provincia" es obligatorio.');
+                    }
+
+                    const nombre_grado = row[11]?.trim();
+                    if (!nombre_grado) {
+                        isValidRow = false;
+                        rowErrors.push('El campo "Grado" es obligatorio.');
+                    }
+
+                    const tutor_legal_nombres = row[13]?.trim();
+                    if (!tutor_legal_nombres) {
+                      isValidRow = false;
+                      rowErrors.push('El campo "Nombres del Tutor Legal" es obligatorio.');
+                    } else if (!/^[a-zA-Z\s]+$/.test(tutor_legal_nombres)) {
+                      isValidRow = false;
+                      rowErrors.push('El campo "Nombres del Tutor Legal" debe contener solo letras y espacios.');
+                    }
+
+                    const tutor_legal_apellidos = row[14]?.trim();
+                    if (!tutor_legal_apellidos) {
+                      isValidRow = false;
+                      rowErrors.push('El campo "Apellidos del Tutor Legal" es obligatorio.');
+                    } else if (!/^[a-zA-Z\s]+$/.test(tutor_legal_apellidos)) {
+                      isValidRow = false;
+                      rowErrors.push('El campo "Apellidos del Tutor Legal" debe contener solo letras y espacios.');
+                    }
+
+                    const tutor_legal_ci_raw = row[15];
+                    const tutor_legal_ci = typeof tutor_legal_ci_raw === 'number' ? tutor_legal_ci_raw.toString() : tutor_legal_ci_raw?.trim();
+                    if (tutor_legal_ci && !/^[0-9]+$/.test(tutor_legal_ci)) {
+                      isValidRow = false;
+                      rowErrors.push('El campo "CI Tutor Legal" debe contener solo números.');
+                    }
+
+                    const tutor_legal_telefono_raw = row[16];
+                    const tutor_legal_telefono = typeof tutor_legal_telefono_raw === 'number' ? tutor_legal_telefono_raw.toString() : tutor_legal_telefono_raw?.trim();
+                    if (tutor_legal_telefono && !/^[0-9]+$/.test(tutor_legal_telefono)) {
+                      isValidRow = false;
+                      rowErrors.push('El campo "Teléfono Tutor Legal" debe contener solo números.');
+                    }
+
+                    const tutor_legal_email = row[17]?.trim();
+                    if (tutor_legal_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(tutor_legal_email)) {
+                      isValidRow = false;
+                      rowErrors.push('El campo "Email Tutor Legal" tiene un formato inválido.');
+                    }
+                    const tutor_legal_parentesco = row[18]?.trim();
+                    if (!tutor_legal_parentesco) {
+                      isValidRow = false;
+                      rowErrors.push('El campo "Parentesco del Tutor Legal" es obligatorio.');
+                    } else if (!/^[a-zA-Z\s]+$/.test(tutor_legal_parentesco)) {
+                      isValidRow = false;
+                      rowErrors.push('El campo "Nombres" debe contener solo letras y espacios.');
+                    }
+
+                    let tutor_academico_nombres = row[20]?.trim();
+                    let tutor_academico_apellidos = row[21]?.trim();
+                    const tutor_academico_ci_raw = row[22];
+                    let tutor_academico_ci = typeof tutor_academico_ci_raw === 'number' ? tutor_academico_ci_raw.toString() : tutor_academico_ci_raw?.trim();;
+                    const tutor_academico_telefono_raw = row[23];
+                    let tutor_academico_telefono = typeof tutor_academico_telefono_raw === 'number' ? tutor_academico_telefono_raw.toString() : tutor_academico_telefono_raw?.trim();
+                    let tutor_academico_email = row[24]?.trim();
+                    if (tutor_academico_nombres && tutor_academico_ci) { // Validar solo si hay nombre o CI
+                      if (!tutor_academico_nombres) {
+                          isValidRow = false;
+                          rowErrors.push('El campo "Nombres del Tutor Académico" es obligatorio si se proporciona información.');
+                      } else if (!/^[a-zA-Z\s]+$/.test(tutor_academico_nombres)) {
+                          isValidRow = false;
+                          rowErrors.push('El campo "Nombres del Tutor Académico" debe contener solo letras y espacios.');
+                      }
+                  
+                      if (!tutor_academico_apellidos) {
+                          isValidRow = false;
+                          rowErrors.push('El campo "Apellidos del Tutor Académico" son obligatorios si se proporciona información.');
+                      } else if (!/^[a-zA-Z\s]+$/.test(tutor_academico_apellidos)) {
+                          isValidRow = false;
+                          rowErrors.push('El campo "Apellidos del Tutor Académico" deben contener solo letras y espacios.');
+                      }
+                  
+                      if (tutor_academico_ci && !/^[0-9]+$/.test(tutor_academico_ci)) {
+                          isValidRow = false;
+                          rowErrors.push('El campo "CI Tutor Académico" debe contener solo números.');
+                      }
+                  
+                      if (tutor_academico_telefono && !/^[0-9]+$/.test(tutor_academico_telefono)) {
+                          isValidRow = false;
+                          rowErrors.push('El campo "Teléfono Tutor Académico" debe contener solo números.');
+                      }
+                  
+                      if (tutor_academico_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(tutor_academico_email)) {
+                          isValidRow = false;
+                          rowErrors.push('El campo "Email Tutor Académico" tiene un formato inválido.');
+                      }
+                  } else {
+                    tutor_academico_nombres = '';
+                    tutor_academico_apellidos = '';
+                    tutor_academico_telefono = '';
+                    tutor_academico_email = '';
+                    tutor_academico_ci = '';
+                  }
+                    console.log(rowErrors)
+
+                    if (!isValidRow) {
+                        errors.push(`Fila ${i + 2}: ${rowErrors.join(', ')}`);
+                        continue; // Saltar al siguiente ciclo si la fila no es válida
+                    }
+
+                    if (nombres && apellidos && ci && nombre_area && nombre_nivel && nombre_grado) {
+                        if (studentAreaCounts[ci] === undefined) {
+                            studentAreaCounts[ci] = 0;
+                        }
+
+                        if (studentAreaCounts[ci] < convocatoriaData.max_areas_por_estudiante) {
+                            try {
+                                const id_convocatoria_nivel_result = await buscarIdConvocatoriaNivel(
+                                    selectedConvocatoriaId,
+                                    nombre_area,
+                                    nombre_nivel,
+                                    nombre_grado
+                                );
+                                console.log('id_convocatoria_nivel_result', id_convocatoria_nivel_result);
+
+                                const id_grado_objeto = await obtenerIdGradoPorNombre(nombre_grado);
+                                console.log('Resultado de obtenerIdGradoPorNombre:', id_grado_objeto);
+                                const id_grado = id_grado_objeto?.id;
+                                console.log('id_grado después de la extracción:', id_grado);
+
+                                if (id_convocatoria_nivel_result && id_grado) { // Asegúrate de que id_grado también se encuentre
+                                    transformedData.push({
+                                        nombres: nombres,
+                                        apellidos: apellidos,
+                                        ci: ci,
+                                        fecha_nacimiento: fecha_nacimiento,
+                                        email: email,
+                                        id_grado: id_grado,
+                                        unidad_educativa: {
+                                            id_unidad_educativa: null, // No se proporciona en el Excel
+                                            nombre: unidad_educativa_nombre,
+                                            departamento: departamento,
+                                            provincia: provincia,
+                                        },
+                                        tutor_legal: {
+                                            nombres: tutor_legal_nombres,
+                                            apellidos: tutor_legal_apellidos,
+                                            ci: tutor_legal_ci,
+                                            telefono: tutor_legal_telefono,
+                                            email: tutor_legal_email,
+                                            parentesco: tutor_legal_parentesco,
+                                            es_el_mismo_estudiante: false, // TODO: Implementar lógica si es necesario
+                                        },
+                                        id_convocatoria: String(selectedConvocatoriaId),
+                                        areas_seleccionadas: [{ id_convocatoria_nivel: id_convocatoria_nivel_result }],
+                                        tutores_academicos: tutor_academico_nombres || tutor_academico_apellidos || tutor_academico_ci || tutor_academico_telefono || tutor_academico_email ? [{
+                                            id_convocatoria_nivel: id_convocatoria_nivel_result,
+                                            nombres: tutor_academico_nombres || '',
+                                            apellidos: tutor_academico_apellidos || '',
+                                            ci: tutor_academico_ci || '',
+                                            telefono: tutor_academico_telefono || '',
+                                            email: tutor_academico_email || '',
+                                        }] : [],
+                                    });
+                                    studentAreaCounts[ci]++;
+                                } else {
+                                    if (!id_convocatoria_nivel_result) {
+                                        errors.push(`Fila ${i + 2}: No se encontró configuración para Área=${nombre_area}, Nivel=${nombre_nivel}, Grado=${nombre_grado}.`);
+                                    }
+                                    if (!id_grado) {
+                                        errors.push(`Fila ${i + 2}: No se encontró el ID para el Grado="${nombre_grado}".`);
+                                    }
+                                }
+                            } catch (error) {
+                                console.error('Error al buscar información en la base de datos:', error);
+                                setScanError('Error al procesar los datos del archivo.');
+                                return;
+                            }
+                        } else {
+                            errors.push(`Fila ${i + 2}: El estudiante con CI ${ci} ha alcanzado el máximo de áreas permitidas (${convocatoriaData.max_areas_por_estudiante}).`);
+                        }
+                    } else {
+                        errors.push(`Fila ${i + 2}: Faltan campos obligatorios (Nombre Área, Nombre Nivel, Nombres, Apellidos, CI, Grado).`);
+                    }
+                }
+
+                if (errors.length > 0) {
+                    setScanError(`Se encontraron los siguientes errores en el archivo Excel:\n${errors.join('\n')}`);
+                    return;
+                }
+
+                console.log('transformedData (datos transformados):', transformedData);
+                onDataScanned(transformedData);
+                setScanError(null);
+            } catch (error: any) {
+                setScanError('Error al leer el archivo Excel. Asegúrate de que el formato sea correcto.');
+                console.error('Error al leer Excel:', error);
+            }
         }
-      }
     };
     reader.readAsBinaryString(selectedFile);
-  }, [selectedFile, onDataScanned, selectedConvocatoriaId, convocatoriaData]);
-
+  }, [selectedFile, onDataScanned, selectedConvocatoriaId, convocatoriaData, excelDateToJSDate, buscarIdConvocatoriaNivel, obtenerIdGradoPorNombre]);
   return (
     <div className='upload-scan-container'>
       <h2>Subir y Escanear Archivo Excel</h2>
@@ -394,7 +539,9 @@ const ExcelWorkflow = () => {
     try {
       const response = await inscribirEstudiante(dataToSend, () => {}); // La función openModal se llama DENTRO de inscribirEstudiante
       console.log('Respuesta de inscripción:', response);
-      alert(`Inscripción completada con éxito. Su código único es: ${dataToSend.codigo_unico}`);
+      toast.success(`Inscripción completada con éxito. Su código único es: ${dataToSend.codigo_unico}`, {
+        position: "top-right",
+      });
       setShowSummary(false);
       setScannedData([]);
       setSelectedConvocatoriaId(null);
@@ -403,13 +550,15 @@ const ExcelWorkflow = () => {
       setConvocatoriaData(null);
     } catch (error: any) {
       console.error('Error al inscribir estudiantes:', error);
-      alert("Opsie! , algo salio mal! " + error.response.data.message);
+      toast.error("Opsie! , algo salio mal! " + error.response.data.message, {
+        position: "top-right",
+      });
     }
   };
 
   return (
     <div className="registro-requisitos">
-      <h2>Configuracion de Campos Obligatorios por Convocatoria</h2>
+      <h2>Inscripcion mediante planilla Excel</h2>
 
       <div className="select-container">
         <label htmlFor="convocatoria">Seleccionar Convocatoria:</label>
@@ -446,6 +595,8 @@ const ExcelWorkflow = () => {
 
       {loadingConvocatorias && <div>Cargando convocatorias...</div>}
       {error && <div style={{ color: 'red' }}>Error: {error}</div>}
+
+      <ToastContainer />
     </div>
   );
 };
