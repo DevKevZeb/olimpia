@@ -51,15 +51,19 @@ export const buscarUnidadesEducativas = async (query: string) => {
  * Procesa la inscripción completa de un estudiante
  * @param data Datos completos del formulario de inscripción
  */
-export const inscribirEstudiante = async (data: any , openModal:any) => {
+export const inscribirEstudiante = async (data: any ) => {
   try {
     const response = await axiosInstance.post('/v1/public/inscripcion-completa', data);
-    openModal();
+    //openModal();
     return response.data?.data || response.data;
   } catch (error) {
     console.error('Error al inscribir estudiante:', error);
     console.error('Detalles del error de validación:', error.response?.data); // Loguea los detalles del error
-    alert("Opsie! , algo salio mal! " + error.response?.data?.message);
+    if(error.status == 409){
+      alert("Opsie! , Estudiante ya inscrito en materia - nivel" );
+    }else {
+      alert("Opsie! , algo salio mal! " + error.response?.data?.message);
+    }
     throw error;
   }
 };

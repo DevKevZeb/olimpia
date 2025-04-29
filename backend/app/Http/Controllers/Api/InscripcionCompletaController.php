@@ -321,6 +321,12 @@ class InscripcionCompletaController extends ApiController
                     ];
                     $tutorAcademico = TutorAcademico::create($tutorAcademicoData);
 
+                    if($this->estaInscritoArea( $estudiante->ci ,$areaSeleccionada['id_convocatoria_nivel']))
+                    {
+                       DB::rollBack();
+                       return $this->errorResponse('Error al procesar la inscripción: El estudiante ya esta inscrito en la materia ' , 409);
+                    }
+
                     DetalleListaInscripcion::create([
                         'id_lista' => $listaInscripcion->id_lista,
                         'id_estudiante' => $estudiante->id_estudiante,
@@ -365,6 +371,20 @@ class InscripcionCompletaController extends ApiController
         }
        
     }
+
+    public function estaInscritoArea($ci_estudiante, $id_categoria_nivel)
+    {
+       $inscripcion = DB::select('
+        SELECT id_detalle
+        FROM detalles_lista_inscripcion dli, estudiantes e
+        WHERE dli.id_estudiante = e.id_estudiante
+        AND e.ci = ?
+        AND dli.id_convocatoria_nivel = ?
+        ' , [$ci_estudiante, $id_categoria_nivel] );
+
+        return !empty($inscripcion);
+    }
+
     /**
      * Procesa la inscripción completa de un estudiante
      */

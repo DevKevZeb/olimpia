@@ -74,7 +74,7 @@ export default function Registration() {
 
       };
       const data = await inscribirEstudiante( JSON.stringify(datos) , openBoletaModal);
-
+      alert("Pre-inscripcion realizada satisfactoriamente! Yey! 🎉");
     } catch (error) {
       console.error("Error al obtener el código:", error);
       setIsLoading(false);
@@ -1976,7 +1976,7 @@ export default function Registration() {
                   onClick={() => {
                     console.log(estudiantes);
                     fetchCodigoUnico();
-                    openBoletaModal(); // Abre el modal con los detalles de la boleta
+                     // Abre el modal con los detalles de la boleta
                     // La funcionalidad de descarga se implementará posteriormente
                   }}
                 >

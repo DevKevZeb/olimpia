@@ -214,7 +214,7 @@ class OrdenPagoController extends ApiController
         $orden = OrdenPago::where( "codigo_unico" ,  $codigo)->first();
         
         if(!$orden){
-            return $this->errorResponse('Debe proporcionar un código', 422);
+            return $this->errorResponse('El codigo que usted a ingresado no existe', 404);
         }
         $montoTotal = $orden->monto_total;
         $orden = DB::select(
