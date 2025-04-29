@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Trophy, Phone, Mail, MapPin } from 'lucide-react';
+import { Phone, Mail, MapPin } from 'lucide-react';
+import logo from '../img/logo.png';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -15,10 +16,7 @@ export default function Layout({ children }: LayoutProps) {
           <div className="flex justify-between h-20 items-center">
             <div className="flex items-center">
               <Link to="/" className="flex items-center space-x-2">
-                <Trophy className="w-8 h-8 text-blue-600" />
-                <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
-                  Oh! SanSi
-                </span>
+                <img src={logo} alt="Oh! SanSi Logo" className="h-20 w-auto object-contain" />
               </Link>
             </div>
             <div className="flex items-center space-x-8">
