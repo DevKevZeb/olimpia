@@ -218,12 +218,12 @@ class OrdenPagoController extends ApiController
         }
         $montoTotal = $orden->monto_total;
         $orden = DB::select(
-            'SELECT e.ci, e.nombres, e.apellidos, ac.nombre_area, nc.nombre_nivel, ca.costo_inscripcion
+            'SELECT e.ci, e.nombres, e.apellidos, ac.nombre_area, nc.nombre_nivel, ca.costo_inscripcion 
             FROM ordenes_pago op, convocatoria_niveles cn, niveles_categoria nc, areas_competencia ac,
                 estudiantes e, convocatoria_areas ca, detalles_lista_inscripcion dli, listas_inscripcion li
             WHERE op.codigo_unico = ?
-            AND op.id_orden = li.id_lista
-            AND li.id_lista = dli.id_detalle
+            AND op.id_lista = li.id_lista
+            AND li.id_lista = dli.id_lista
             AND dli.id_convocatoria_nivel = cn.id_convocatoria_nivel
             AND dli.id_estudiante = e.id_estudiante
             AND cn.id_nivel = nc.id_nivel
