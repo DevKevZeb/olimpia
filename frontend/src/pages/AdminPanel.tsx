@@ -12,6 +12,8 @@ import {
   createNivelCategoria,
   setCostoGeneralConvocatoria
 } from '../api/adminConvocatoriaApi';
+import { CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/react/24/solid';
+import { useRef } from 'react';
 
 export default function AdminPanel() {
   // Estados para controlar qué formulario mostrar
@@ -78,6 +80,15 @@ export default function AdminPanel() {
   // Estado para mostrar el costo actual de la convocatoria seleccionada
   const [costoActualConvocatoria, setCostoActualConvocatoria] = useState<string | null>(null);
   const [mensajeCostoConvocatoria, setMensajeCostoConvocatoria] = useState('');
+
+  // Toast para feedback inmediato
+  const [toast, setToast] = useState({ show: false, type: '', message: '' });
+  const toastTimeout = useRef(null);
+  const showToast = (type, message) => {
+    setToast({ show: true, type, message });
+    if (toastTimeout.current) clearTimeout(toastTimeout.current);
+    toastTimeout.current = setTimeout(() => setToast({ show: false, type: '', message: '' }), 3000);
+  };
 
   // Cargar datos iniciales
   useEffect(() => {
@@ -604,6 +615,135 @@ export default function AdminPanel() {
   // NUEVO: Handler para accordion
   const toggleAccordion = (areaId) => {
     setAccordionOpen(prev => ({ ...prev, [areaId]: !prev[areaId] }));
+  };
+
+  // Guardado parcial por área
+  const handleGuardarArea = async (areaId) => {
+    // Filtrar niveles seleccionados para esta área
+    const nivelesArea = selectedNiveles.filter(n => n.id_area === areaId);
+    if (nivelesArea.length === 0) {
+      showToast('warning', 'Seleccione al menos un nivel para esta área.');
+      return;
+    }
+    // Validar grados
+    const nivelesValidos = nivelesArea.every(nivel => {
+      const key = `${areaId}-${nivel.id_nivel}`;
+      return nivelGrados[key] && nivelGrados[key].length > 0;
+    });
+    if (!nivelesValidos) {
+      showToast('warning', 'Todos los niveles deben tener al menos un grado seleccionado.');
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const nivelesData = nivelesArea.map(nivel => {
+        const key = `${areaId}-${nivel.id_nivel}`;
+        const gradosSeleccionados = nivelGrados[key] || [];
+        return {
+          id_nivel: nivel.id_nivel,
+          id_area: areaId,
+          id_grado_min: Math.min(...gradosSeleccionados),
+          id_grado_max: Math.max(...gradosSeleccionados)
+        };
+      });
+      const dataToSubmit = {
+        id_convocatoria: selectedConvocatoriaNiveles,
+        niveles: nivelesData
+      };
+      await asociarNivelesGrados(dataToSubmit);
+      showToast('success', 'Configuración guardada para el área.');
+      // Refrescar datos
+      setSelectedNiveles(selectedNiveles.filter(n => n.id_area !== areaId));
+      setNivelGrados(prev => {
+        const nuevo = { ...prev };
+        Object.keys(nuevo).forEach(k => { if (k.startsWith(`${areaId}-`)) delete nuevo[k]; });
+        return nuevo;
+      });
+      setTimeout(() => setSelectedConvocatoriaNiveles(selectedConvocatoriaNiveles), 500);
+    } catch (error) {
+      showToast('error', 'Error al guardar la configuración.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // NUEVO: Guardado masivo para áreas seleccionadas
+  const handleGuardarBatch = async () => {
+    if (selectedAreasBatch.length === 0) {
+      showToast('warning', 'Seleccione al menos un área.');
+      return;
+    }
+    // Validar que haya al menos un nivel seleccionado para cada área
+    const areasValidas = selectedAreasBatch.every(areaId =>
+      selectedNiveles.some(n => n.id_area === areaId)
+    );
+    if (!areasValidas) {
+      showToast('warning', 'Cada área seleccionada debe tener al menos un nivel.');
+      return;
+    }
+    // Validar grados para cada nivel de cada área
+    const nivelesValidos = selectedNiveles.every(nivel => {
+      const key = `${nivel.id_area}-${nivel.id_nivel}`;
+      return nivelGrados[key] && nivelGrados[key].length > 0;
+    });
+    if (!nivelesValidos) {
+      showToast('warning', 'Todos los niveles deben tener al menos un grado seleccionado.');
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const nivelesData = selectedNiveles.map(nivel => {
+        const key = `${nivel.id_area}-${nivel.id_nivel}`;
+        const gradosSeleccionados = nivelGrados[key] || [];
+        return {
+          id_nivel: nivel.id_nivel,
+          id_area: nivel.id_area,
+          id_grado_min: Math.min(...gradosSeleccionados),
+          id_grado_max: Math.max(...gradosSeleccionados)
+        };
+      });
+      const dataToSubmit = {
+        id_convocatoria: selectedConvocatoriaNiveles,
+        niveles: nivelesData
+      };
+      await asociarNivelesGrados(dataToSubmit);
+      showToast('success', 'Configuración guardada para las áreas seleccionadas.');
+      // Limpiar selección
+      setSelectedNiveles([]);
+      setNivelGrados({});
+      setSelectedAreasBatch([]);
+      // Refrescar datos de áreas y niveles asignados/disponibles
+      if (selectedConvocatoriaNiveles) {
+        setIsLoading(true);
+        Promise.all([
+          getAreasPorConvocatoria(selectedConvocatoriaNiveles),
+          getNivelesPorConvocatoria(selectedConvocatoriaNiveles),
+          getNivelesCategoria()
+        ]).then(([areasData, nivelesData, todosLosNiveles]) => {
+          const areasArray = Array.isArray(areasData) ? areasData : [];
+          const nivelesArray = Array.isArray(nivelesData) ? nivelesData : [];
+          const todosLosNivelesArray = Array.isArray(todosLosNiveles) ? todosLosNiveles : [];
+          setAreasConvocatoria(areasArray);
+          setNivelesAsignados(nivelesArray);
+          const nivelesDisponibles = {};
+          areasArray.forEach(area => {
+            const areaId = area.id_area;
+            const nivelesAsignadosAEstaArea = nivelesArray.filter(
+              nivel => nivel.id_area === areaId
+            );
+            const idsNivelesAsignados = nivelesAsignadosAEstaArea.map(n => n.id_nivel);
+            const nivelesDisponiblesParaEstaArea = todosLosNivelesArray.filter(
+              nivel => !idsNivelesAsignados.includes(nivel.id_nivel)
+            );
+            nivelesDisponibles[areaId] = nivelesDisponiblesParaEstaArea;
+          });
+          setNivelesDisponiblesPorArea(nivelesDisponibles);
+        }).finally(() => setIsLoading(false));
+      }
+    } catch (error) {
+      showToast('error', 'Error al guardar la configuración.');
+      setIsLoading(false);
+    }
   };
 
   // Renderizado de niveles disponibles para un área específica
@@ -1268,7 +1408,7 @@ export default function AdminPanel() {
             {/* NUEVO: Selección masiva de áreas */}
             {selectedConvocatoriaNiveles && areasConvocatoria.length > 0 && (
               <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-2">Selecciona áreas para configuración masiva</h3>
+                <h3 className="text-lg font-semibold mb-2">Selecciona áreas para configurar niveles y grados</h3>
                 <div className="flex flex-wrap gap-3 mb-2">
                   {areasConvocatoria.map(area => (
                     <label key={area.id_area} className={`px-3 py-2 rounded cursor-pointer border ${selectedAreasBatch.includes(area.id_area) ? 'bg-blue-100 border-blue-400' : 'bg-gray-50 border-gray-200'}`}>
@@ -1282,7 +1422,7 @@ export default function AdminPanel() {
                     </label>
                   ))}
                 </div>
-                {selectedAreasBatch.length > 1 && (
+                {selectedAreasBatch.length > 0 && (
                   <div className="p-3 bg-blue-50 border border-blue-200 rounded mb-2">
                     <span className="font-medium">Configuración masiva:</span> Los niveles y grados seleccionados se aplicarán a todas las áreas marcadas.
                   </div>
@@ -1290,7 +1430,7 @@ export default function AdminPanel() {
               </div>
             )}
             {/* NUEVO: Configuración masiva de niveles y grados */}
-            {selectedAreasBatch.length > 1 && (
+            {selectedAreasBatch.length > 0 && (
               <div className="mb-8 border rounded-lg p-4 bg-gray-50">
                 <h4 className="text-md font-semibold mb-2">Configurar niveles y grados para áreas seleccionadas</h4>
                 {/* Niveles disponibles (chips compactos) */}
@@ -1380,10 +1520,21 @@ export default function AdminPanel() {
                     </div>
                   );
                 })}
+                {/* Botón de guardado masivo */}
+                <div className="flex justify-end mt-4">
+                  <button
+                    type="button"
+                    disabled={isLoading}
+                    className={`px-5 py-2 rounded-md font-medium transition ${isLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 text-white'}`}
+                    onClick={handleGuardarBatch}
+                  >
+                    Guardar configuración de áreas seleccionadas
+                  </button>
+                </div>
               </div>
             )}
-            {/* Mostrar niveles ya asignados para todas las áreas (fuera del accordion) */}
-            {selectedConvocatoriaNiveles && areasConvocatoria.length > 0 && (
+            {/* Mostrar niveles ya asignados para todas las áreas (fuera del formulario de configuración masiva) SOLO si hay al menos un área con niveles configurados */}
+            {selectedConvocatoriaNiveles && areasConvocatoria.length > 0 && nivelesAsignados.some(n => n.id_area) && (
               <div className="mb-8">
                 <h3 className="text-xl font-bold mb-4">Niveles ya configurados por área</h3>
                 <div className="flex flex-wrap gap-4">
@@ -1391,8 +1542,11 @@ export default function AdminPanel() {
                     const nivelesDeEstaArea = nivelesAsignados.filter(nivel => nivel.id_area === area.id_area);
                     if (nivelesDeEstaArea.length === 0) return null;
                     return (
-                      <div key={`niveles-asignados-${area.id_area}`} className="border rounded-lg p-3 bg-blue-50 min-w-[220px]">
-                        <div className="font-semibold text-blue-900 mb-2">{area.nombre_area}</div>
+                      <div key={`niveles-asignados-${area.id_area}`} className="border rounded-lg p-3 bg-blue-50 min-w-[220px] flex flex-col">
+                        <div className="flex items-center gap-2 font-semibold text-blue-900 mb-2">
+                          {area.nombre_area}
+                          <CheckCircleIcon className="w-5 h-5 text-green-500" title="Área configurada" />
+                        </div>
                         <div className="flex flex-wrap gap-2">
                           {nivelesDeEstaArea.map(nivel => (
                             <span key={`nivel-asignado-${nivel.id_convocatoria_nivel}`} className="bg-blue-200 text-blue-900 px-3 py-1 rounded-full text-xs font-medium flex flex-col items-center">
@@ -1407,78 +1561,6 @@ export default function AdminPanel() {
                 </div>
               </div>
             )}
-            {/* Accordion para configuración individual (estilo compacto tipo chips) */}
-            {selectedConvocatoriaNiveles && areasConvocatoria.length > 0 && (
-              <div className="mb-8">
-                <h3 className="text-xl font-bold mb-4">Configuración individual por área</h3>
-                <div className="space-y-4">
-                  {areasConvocatoria.map(area => (
-                    <div key={`config-${area.id_area}`} className="border rounded-lg">
-                      <div className="flex items-center justify-between p-4 cursor-pointer bg-gray-100" onClick={() => toggleAccordion(area.id_area)}>
-                        <h4 className="text-lg font-semibold">{area.nombre_area}</h4>
-                        <span>{accordionOpen[area.id_area] ? '▲' : '▼'}</span>
-                      </div>
-                      {accordionOpen[area.id_area] && (
-                        <div className="p-4">
-                          <div className="mb-4">
-                            <h5 className="font-medium text-gray-700 mb-3">Selecciona niveles para {area.nombre_area}</h5>
-                            {/* Niveles disponibles (chips compactos) */}
-                            <div className="flex flex-wrap gap-2 mb-4">
-                              {(nivelesDisponiblesPorArea[area.id_area] || []).map(nivel => {
-                                const isSelected = selectedNiveles.some(n => n.id_nivel === nivel.id_nivel && n.id_area === area.id_area);
-                                const autoGrado = getAutoGradoForNivel(nivel.nombre_nivel);
-                                return (
-                                  <button
-                                    key={`indiv-nivel-${area.id_area}-${nivel.id_nivel}`}
-                                    type="button"
-                                    className={`px-4 py-2 rounded-full border text-sm font-medium flex items-center gap-2 transition-all ${isSelected ? 'bg-green-100 border-green-500 text-green-800' : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-blue-50 hover:border-blue-400'}`}
-                                    onClick={() => handleNivelSelect(nivel.id_nivel, area.id_area)}
-                                  >
-                                    <span>{nivel.nombre_nivel}</span>
-                                    {autoGrado && isSelected && (
-                                      <span className="ml-2 px-2 py-0.5 rounded bg-green-200 text-green-900 text-xs font-semibold border border-green-300">
-                                        {autoGrado.nombre_grado}
-                                      </span>
-                                    )}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
-                          {/* Grados para cada nivel seleccionado (solo si no es automático) */}
-                          {selectedNiveles.filter(n => n.id_area === area.id_area).map(selectedNivel => {
-                            const nivel = niveles.find(n => n.id_nivel === selectedNivel.id_nivel);
-                            const autoGrado = getAutoGradoForNivel(nivel?.nombre_nivel || '');
-                            if (autoGrado) return null;
-                            return (
-                              <div key={`indiv-grados-${area.id_area}-${selectedNivel.id_nivel}`} className="mb-4">
-                                <h6 className="font-medium text-gray-700 mb-2">Selecciona grados para {nivel?.nombre_nivel}</h6>
-                                <div className="flex flex-wrap gap-2">
-                                  {grados.map(grado => {
-                                    const key = `${area.id_area}-${selectedNivel.id_nivel}`;
-                                    const isSelected = (nivelGrados[key] || []).includes(grado.id_grado);
-                                    return (
-                                      <button
-                                        key={`indiv-grado-${area.id_area}-${selectedNivel.id_nivel}-${grado.id_grado}`}
-                                        type="button"
-                                        className={`px-3 py-1 rounded-full border text-xs font-medium transition-all ${isSelected ? 'bg-purple-100 border-purple-500 text-purple-800' : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-purple-50 hover:border-purple-400'}`}
-                                        onClick={() => handleGradoSelect(grado.id_grado, area.id_area, selectedNivel.id_nivel)}
-                                      >
-                                        {grado.nombre_grado}
-                                      </button>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
             {selectedConvocatoriaNiveles && areasConvocatoria.length === 0 && (
               <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-md">
                 <p className="text-yellow-700">
@@ -1486,15 +1568,18 @@ export default function AdminPanel() {
                 </p>
               </div>
             )}
-            <div className="flex justify-end mt-8">
-              <button
-                type="submit"
-                disabled={isLoading || areasConvocatoria.length === 0 || selectedNiveles.length === 0}
-                className={`px-6 py-3 rounded-md font-medium transition ${isLoading || areasConvocatoria.length === 0 || selectedNiveles.length === 0 ? 'bg-gray-400 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 text-white'}`}
-              >
-                {isLoading ? 'Configurando...' : 'Configurar Niveles y Grados'}
-              </button>
-            </div>
+            {/* Al final del formulario de configuración masiva, agregar botón "Aceptar" para cerrar el formulario */}
+            {selectedConvocatoriaNiveles && (
+              <div className="flex justify-end mt-8">
+                <button
+                  type="button"
+                  className="px-6 py-3 rounded-md font-medium transition bg-gray-600 hover:bg-gray-700 text-white"
+                  onClick={() => setShowConfigurarNivelesForm(false)}
+                >
+                  Aceptar
+                </button>
+              </div>
+            )}
           </form>
         </div>
       )}
@@ -1654,6 +1739,17 @@ export default function AdminPanel() {
               </table>
             </div>
           )}
+        </div>
+      )}
+      {/* Toast de feedback */}
+      {toast.show && (
+        <div className={`fixed top-6 right-6 z-50 px-6 py-3 rounded shadow-lg flex items-center gap-3 text-white transition-all animate-fade-in-down
+          ${toast.type === 'success' ? 'bg-green-600' : toast.type === 'error' ? 'bg-red-600' : 'bg-yellow-500'}`}
+        >
+          {toast.type === 'success' && <CheckCircleIcon className="w-6 h-6" />}
+          {toast.type === 'error' && <ExclamationCircleIcon className="w-6 h-6" />}
+          {toast.type === 'warning' && <ExclamationCircleIcon className="w-6 h-6" />}
+          <span className="font-medium">{toast.message}</span>
         </div>
       )}
     </div>
