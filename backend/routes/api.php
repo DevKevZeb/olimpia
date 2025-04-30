@@ -58,6 +58,9 @@ Route::prefix('v1')->group(function () {
     // Estudiantes
     Route::apiResource('estudiantes', EstudianteController::class);
     Route::get('estudiantes/search', [EstudianteController::class, 'search']);
+    Route::get('searchByCI', [EstudianteController::class, 'searchByCI']);
+    
+
 
     // Inscripciones
     Route::apiResource('inscripciones', InscripcionController::class);

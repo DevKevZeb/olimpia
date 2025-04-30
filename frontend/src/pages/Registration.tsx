@@ -108,13 +108,18 @@ export default function Registration() {
     try {
       const  datos = {
         lista_inscripcion:estudiantes,
-          id_convocatoria:"1",
+          id_convocatoria:convocatoria.id.toString(),
           codigo_unico: codigo_unico
 
       };
+<<<<<<< HEAD
       console.log("Datos a enviar al back:", datos);
       const data = await inscribirEstudiante( JSON.stringify(datos) , openBoletaModal);
 
+=======
+      let data = await inscribirEstudiante( JSON.stringify(datos) );
+      alert("Pre-inscripcion realizada satisfactoriamente! Yey! 🎉 \n  su codigo de inscripcion es: " + codigo_unico);
+>>>>>>> 8d7a67c60ab2283f83bbcd97a8d2ae4e36d3e573
     } catch (error) {
       console.error("Error al obtener el código:", error);
       setIsLoading(false);
@@ -2141,7 +2146,7 @@ export default function Registration() {
                   onClick={() => {
                     console.log(estudiantes);
                     fetchCodigoUnico();
-                    openBoletaModal(); // Abre el modal con los detalles de la boleta
+                     // Abre el modal con los detalles de la boleta
                     // La funcionalidad de descarga se implementará posteriormente
                   }}
                 >

@@ -13,7 +13,7 @@ const BoletaInfo: React.FC<Props> = ({componentRef, estudiantes , costoTotalGene
 
   
   return (
-    <div ref={componentRef} className=" -z-10 border rounded-lg p-4 mb-4 bg-gray-50">
+    <div ref={componentRef} className="absolute -z-10 border rounded-lg p-4 mb-4 bg-gray-50">
     <h4 className="font-medium text-gray-800 mb-3">Detalle de Estudiantes</h4>
     <div className="border-t border-b py-2">
       <div className="grid grid-cols-12 gap-2 mb-2 text-sm font-medium">
