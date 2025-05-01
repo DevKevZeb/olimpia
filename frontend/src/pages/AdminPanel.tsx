@@ -15,6 +15,14 @@ import {
 import { CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/react/24/solid';
 import { useRef } from 'react';
 
+// Utilidad para formatear nombre: primera letra mayúscula, resto minúscula
+function formatNombre(str) {
+  if (!str) return '';
+  // Quitar espacios extra y poner solo la primera letra en mayúscula, el resto minúscula
+  const s = str.normalize('NFC').trim();
+  return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+}
+
 export default function AdminPanel() {
   // Estados para controlar qué formulario mostrar
   const [showCrearConvocatoriaForm, setShowCrearConvocatoriaForm] = useState(false);
@@ -281,16 +289,14 @@ export default function AdminPanel() {
   // Manejadores para el formulario de Crear Convocatoria
   const handleInputChangeConvocatoria = (e) => {
     const { name, value } = e.target;
-    
-    // Resetear el error específico al cambiar el valor del campo
-    setFormErrors(prev => ({
-      ...prev,
-      [name]: ''
-    }));
-    
+    let newValue = value;
+    if (name === 'nombre') {
+      newValue = formatNombre(value);
+    }
+    setFormErrors(prev => ({ ...prev, [name]: '' }));
     setFormDataConvocatoria({
       ...formDataConvocatoria,
-      [name]: value,
+      [name]: newValue,
     });
   };
 
@@ -304,13 +310,14 @@ export default function AdminPanel() {
     };
     let esValido = true;
 
-    // Validar nombre duplicado
+    // Validar nombre duplicado (case-sensitive y accent-sensitive)
+    const nombreActual = formDataConvocatoria.nombre.normalize('NFC').trim();
     const nombreDuplicado = convocatorias.some(
-      convocatoria => convocatoria.nombre.toLowerCase() === formDataConvocatoria.nombre.toLowerCase().trim()
+      convocatoria => (convocatoria.nombre || '').normalize('NFC').trim() === nombreActual
     );
     
     if (nombreDuplicado) {
-      errores.nombre = "Ya existe una convocatoria con este nombre";
+      errores.nombre = "Ya existe una convocatoria con este nombre (incluyendo acentos y mayúsculas).";
       esValido = false;
     }
 
@@ -824,6 +831,14 @@ export default function AdminPanel() {
     // Validaciones
     if (!nuevoNivel.trim()) {
       setNivelError('El nombre del nivel no puede estar vacío');
+      return;
+    }
+    
+    // Validar duplicado (case-sensitive y accent-sensitive)
+    const nombreActual = nuevoNivel.normalize('NFC').trim();
+    const duplicado = niveles.some(n => (n.nombre_nivel || '').normalize('NFC').trim() === nombreActual);
+    if (duplicado) {
+      setNivelError('Ya existe un nivel con ese nombre (incluyendo acentos y mayúsculas).');
       return;
     }
     
@@ -1589,7 +1604,19 @@ export default function AdminPanel() {
         <div className="bg-white rounded-lg shadow-lg p-8">
           <h2 className="text-2xl font-bold mb-6">Crear Nuevo Nivel</h2>
           <p className="text-gray-600 mb-6">Agrega un nuevo nivel al catálogo del sistema</p>
-          
+          {/* Mostrar niveles ya existentes */}
+          {niveles.length > 0 && (
+            <div className="mb-4">
+              <h3 className="text-md font-semibold mb-2 text-gray-700">Niveles ya creados:</h3>
+              <div className="flex flex-wrap gap-2">
+                {niveles.map(nivel => (
+                  <span key={nivel.id_nivel} className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-xs font-medium">
+                    {nivel.nombre_nivel}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
           {nivelError && (
             <div className="p-3 mb-4 bg-red-50 border border-red-200 text-red-700 rounded-md">
               {nivelError}
@@ -1602,7 +1629,10 @@ export default function AdminPanel() {
               <input
                 type="text"
                 value={nuevoNivel}
-                onChange={(e) => setNuevoNivel(e.target.value)}
+                onChange={(e) => {
+                  setNivelError('');
+                  setNuevoNivel(formatNombre(e.target.value));
+                }}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2"
                 required
                 maxLength={100}
