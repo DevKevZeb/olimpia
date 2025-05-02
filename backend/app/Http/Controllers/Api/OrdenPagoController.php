@@ -213,12 +213,19 @@ class OrdenPagoController extends ApiController
         
         $orden = OrdenPago::where( "codigo_unico" ,  $codigo)->first();
         
+        
         if(!$orden){
             return $this->errorResponse('El codigo que usted a ingresado no existe', 404);
         }
+
+        $responsable = [
+            "nombre" => $orden->responsable_nombre,
+            "ci" => $orden->responsable_ci,
+            "email" => $orden->responsable_email, 
+        ];
         $montoTotal = $orden->monto_total;
         $orden = DB::select(
-            'SELECT e.ci, e.nombres, e.apellidos, ac.nombre_area, nc.nombre_nivel, ca.costo_inscripcion 
+            'SELECT e.ci, e.nombres, e.apellidos, ac.nombre_area, nc.nombre_nivel, ca.costo_inscripcion
             FROM ordenes_pago op, convocatoria_niveles cn, niveles_categoria nc, areas_competencia ac,
                 estudiantes e, convocatoria_areas ca, detalles_lista_inscripcion dli, listas_inscripcion li
             WHERE op.codigo_unico = ?
@@ -239,9 +246,11 @@ class OrdenPagoController extends ApiController
         }
         
         return $this->successResponse(
-            [ "orden" => $orden,
-            "monto_total" => $montoTotal
-        ],
+            [ 
+                "orden" => $orden,
+                "monto_total" => $montoTotal,
+                "responsable" => $responsable 
+            ],
             'Orden de pago obtenida correctamente'
         );
     }

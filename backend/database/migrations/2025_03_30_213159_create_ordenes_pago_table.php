@@ -11,6 +11,9 @@ return new class extends Migration
         Schema::create('ordenes_pago', function (Blueprint $table) {
             $table->id('id_orden');
             $table->string('codigo_unico', 20)->unique();
+            $table->string('responsable_nombre', 50);
+            $table->string('responsable_ci', 10);
+            $table->string('responsable_email', 50);
             $table->enum('tipo_origen', ['individual', 'lista']);
             $table->foreignId('id_inscripcion')->nullable()->constrained('inscripciones', 'id_inscripcion');
             $table->foreignId('id_lista')->nullable()->constrained('listas_inscripcion', 'id_lista');

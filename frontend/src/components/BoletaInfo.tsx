@@ -2,18 +2,29 @@ import React from 'react';
 import { EstudianteFormData} from '../types/index';
 
 interface Props {
-  componentRef: any 
+  componentRef: any
+  responsable: {
+    correo: string, 
+    ci: string,
+    nombre: string
+  }
   estudiantes: EstudianteFormData[] , 
   costoTotalGeneral:number, 
 }
 
 
 
-const BoletaInfo: React.FC<Props> = ({componentRef, estudiantes , costoTotalGeneral}) => {
+const BoletaInfo: React.FC<Props> = ({componentRef, estudiantes , costoTotalGeneral, responsable}) => {
 
   
   return (
     <div ref={componentRef} className="absolute -z-10 border rounded-lg p-4 mb-4 bg-gray-50">
+    <h4 className="font-medium text-gray-800 mb-3">Responsable a pagar</h4>
+    <div  className="row-span-4">
+            <div className="">Nombre: {responsable.nombre}</div>
+            <div className="row-span-4">CI: {responsable.ci} </div>
+          </div>
+    
     <h4 className="font-medium text-gray-800 mb-3">Detalle de Estudiantes</h4>
     <div className="border-t border-b py-2">
       <div className="grid grid-cols-12 gap-2 mb-2 text-sm font-medium">

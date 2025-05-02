@@ -85,7 +85,8 @@ class InscripcionCompletaController extends ApiController
         $validator = Validator::make($request->all(), [
             'lista_inscripcion' => 'required|array',
             'id_convocatoria' => 'required|string',
-            'codigo_unico' => 'required|string'
+            'boleta_info' => 'required|array'
+            // 'codigo_unico' => 'required|string'
     ]);
 
         Log::info("esto nos llega" . json_encode($request->all()));
@@ -347,8 +348,14 @@ class InscripcionCompletaController extends ApiController
         
         try{
             // 5. Crear orden de pago
+            $boleta_info = $request->boleta_info; 
+
+            Log::info( " BOLETAAA "  . json_encode($boleta_info));
             $ordenPago = OrdenPago::create([
-                'codigo_unico' => $request->codigo_unico,
+                'codigo_unico' => $boleta_info['codigo_unico'],
+                'responsable_email' => $boleta_info['responsable_correo'],
+                'responsable_nombre' => $boleta_info['responsable_nombre'],
+                'responsable_ci' => $boleta_info['responsable_ci'],
                 'tipo_origen' => 'lista',
                 'id_inscripcion' => null, // Asociamos a la primera inscripción
                 'id_lista' => $listaInscripcion->id_lista,

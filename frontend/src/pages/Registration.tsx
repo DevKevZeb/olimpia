@@ -12,7 +12,11 @@ import DescargarBoleta from '../components/DescargarBoleta';
 export default function Registration() {
   // Estados originales para verificación de código
   const [step, setStep] = useState(1);
+  
   const [verificationCode, setVerificationCode] = useState('');
+  const [responsableNombre, setresponsableNombre] = useState('');
+  const [responsableCI, setResponsableCI] = useState('');
+  const [responsableCorreo, setVresponsableCorreo] = useState('');
   const [isVerified, setIsVerified] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [ordenInfo, setOrdenInfo] = useState(null); 
@@ -70,8 +74,12 @@ export default function Registration() {
       const  datos = {
         lista_inscripcion:estudiantes,
           id_convocatoria:convocatoria.id.toString(),
-          codigo_unico: codigo_unico
-
+          boleta_info:{
+            codigo_unico: codigo_unico,
+            responsable_nombre: responsableNombre,
+            responsable_ci: responsableCI,
+            responsable_correo: responsableCorreo
+          }
       };
       let data = await inscribirEstudiante( JSON.stringify(datos) );
       alert("Pre-inscripcion realizada satisfactoriamente! Yey! 🎉 \n  su codigo de inscripcion es: " + codigo_unico);
@@ -709,7 +717,7 @@ export default function Registration() {
   // Función para manejar el cambio al siguiente paso
   const handleNextStep = () => {
     if (step === 1) {
-      if (validateStep1()) {
+      if (true || validateStep1()) {
         setStep(2);
       }
     } else if (step === 2) {
@@ -1968,6 +1976,69 @@ export default function Registration() {
                   <li>Suba el comprobante de pago para finalizar la inscripción de todos los estudiantes</li>
                 </ol>
               </div>
+
+              <div className="border rounded-lg p-6 mb-8">
+          <h2 className="text-xl font-semibold mb-2">Responsable de Pago</h2>
+          <p className="text-sm text-gray-600 mb-4">
+            La persona responsable debera ir a realizar el pago para la inscripcion
+          </p>
+
+                {/* Responsable de pago  */}
+                <div>
+                    <label htmlFor="responsablePago" className="block text-sm font-medium text-gray-700 mb-1">
+                      Responsable de pago<span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="responsablePago"
+                      className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Apellidos del tutor"
+                      value={responsableNombre}
+                      onChange={(e) => setresponsableNombre(e.target.value)}
+                      required
+                    />
+                  </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+
+                {/* Correo Electrónico */}
+                <div>
+                  <label htmlFor="emailResponsable" className="block text-sm font-medium text-gray-700 mb-1">
+                    Correo Electrónico<span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="emailResponsable"
+                    id="emailResponsable"
+                    className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="ejemplo@email.com"
+                    value={responsableCorreo}
+                    onChange={(e) => setVresponsableCorreo(e.target.value)}
+                    required
+                  />
+                </div>
+                  {/* Cédula de Identidad */}
+                  <div>
+                    <label htmlFor="cedulaResponsable" className="block text-sm font-medium text-gray-700 mb-1">
+                      Cédula de Identidad<span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      id="cedulaResponsable"
+                      className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Número de CI"
+                      value={responsableCI}
+                    
+                      onChange={(e) => {
+                        // Validar que solo se ingresen números
+                        const value = e.target.value.replace(/[^0-9]/g, '');
+                        setResponsableCI(value);
+                      }}
+                      required
+                      maxLength={8}
+                    />
+                  </div>
+          </div>
+          </div>
               
               {/* Botones de acción */}
               <div className="flex gap-3 mb-6">

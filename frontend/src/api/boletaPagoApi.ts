@@ -87,6 +87,10 @@ const createNewEstudiante = (): EstudianteFormData => {
 
     return {
       estudiantes:form,
-      costoTotalGeneral:data.monto_total
+      costoTotalGeneral:data.monto_total,
+      responsable: {
+        nombre: data.responsable.nombre,
+        ci: data.responsable.ci,
+      }
     };
   }

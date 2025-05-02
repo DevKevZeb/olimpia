@@ -6,6 +6,8 @@ import html2canvas from 'html2canvas';
 import BoletaInfo from './BoletaInfo';
 import { EstudianteFormData} from '../types/index';
 
+
+
 export default function DescargarBoleta() {
   const componentRef = useRef<HTMLDivElement>(null);
 
@@ -14,11 +16,13 @@ export default function DescargarBoleta() {
   const [errorMessageBoleta, setErrorMessageBoleta] = useState(''); // Error para sección "Completar Inscripción"
   const [boletaErrorMessage, setBoletaErrorMessage] = useState(''); // Error para sección "descargar boleta"
   const [isVerified, setIsVerified] = useState(false);
-  
-
   const [estudiantes, setEstudiantes] = useState<EstudianteFormData[]>([]);
   const [costoTotalGeneral ,setCostoTotalGeneral ] = useState(0);
-
+  const [responsable, setResponsable] = useState<any>({
+    nombre:'',
+    ci: '' ,
+    email: '',
+}); 
      // Función para manejar la verificación del código
      const handleDescargarBoleta = async (data) => {
 
@@ -36,6 +40,7 @@ export default function DescargarBoleta() {
           const data = await descargarBoleta(codigoBoleta);
           setEstudiantes(data.estudiantes);
           setCostoTotalGeneral(data.costoTotalGeneral);
+          setResponsable(data.responsable);
           // Almacenar la información de la orden
           setTimeout(() => {
               generatePDF();
@@ -124,7 +129,7 @@ export default function DescargarBoleta() {
                 </div>
               </div>
             { (<BoletaInfo componentRef={componentRef}
-                  estudiantes={estudiantes} costoTotalGeneral={costoTotalGeneral}
+                  estudiantes={estudiantes} costoTotalGeneral={costoTotalGeneral} responsable={responsable}
                 />) }
           </div>
       )   

@@ -21,6 +21,9 @@ class OrdenPago extends Model
         'fecha_emision',
         'fecha_vencimiento',
         'estado',
+        'responsable_email' ,
+        'responsable_nombre' ,
+        'responsable_ci' ,
     ];
 
     protected $casts = [

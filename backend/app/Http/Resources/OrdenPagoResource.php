@@ -17,6 +17,9 @@ class OrdenPagoResource extends JsonResource
         return [
             'id' => $this->id_orden,
             'codigo_unico' => $this->codigo_unico,
+            'responsable_email' => $this->responsable_correo,
+            'responsable_nombre' => $this->responsable_nombre,
+            'responsable_ci' => $this->responsable_ci,
             'tipo_origen' => $this->tipo_origen,
             'id_inscripcion' => $this->id_inscripcion,
             'id_lista' => $this->id_lista,
