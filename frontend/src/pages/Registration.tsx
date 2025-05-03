@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Calendar, Check, ChevronRight, Upload, X, AlertCircle, Plus, Trash2, Copy, Users } from 'lucide-react';
 import { verificarCodigoOrden, subirComprobantePago } from '../api/comprobantePagoApi';
-import BoletaInfo from '../components/BoletaInfo'
 import { PDFDownloadLink, Document, Page } from '@react-pdf/renderer';
 
-import { getDatosInscripcion, getAreasPorGrado, inscribirEstudiante, buscarUnidadesEducativas } from '../api/inscripcionCompletaApi';
+import { getDatosInscripcion, getAreasPorGrado, inscribirEstudiante, buscarUnidadesEducativas, getUser } from '../api/inscripcionCompletaApi';
 import { EstudianteFormData} from '../types/index';
 import DescargarBoleta from '../components/DescargarBoleta';
 
@@ -125,8 +124,20 @@ export default function Registration() {
     
   };
 
+  const handleCIChange = async (ci: string, type: string ) => {
+
+    const data = {
+      'ci':ci,
+      'type':type
+    }
+
+
+    const user = await getUser(data);
+    return user;
+  }
+
   // Función para cerrar el modal de la boleta de pago y resetear
-  const closeBoletaModal = () => {``
+  const closeBoletaModal = () => {
     setIsBoletaModalOpen(false);
     
     // Resetear datos y redirigir al step 1
@@ -738,8 +749,50 @@ export default function Registration() {
     }
   };
 
+  const handleStudentInfoLoaded = async (ci:string ) => {
+    if(ci.length < 8) {
+      return;
+    }
+    const user = await handleCIChange(ci,'estudiantes');
+
+    const newFormData = { ...formData, 
+      ['ci']: user.ci , 
+      ['nombres']: user.nombres , 
+      ['apellidos']: user.apellidos , 
+      ['email']: user.email , 
+     };
+     
+    setFormData(newFormData);
+    setFormErrors({ ...formErrors, [name]: '' });
+    updateActiveStudent(newFormData, areas_seleccionadas);
+  }
+  
+  const handleTutorLoaded = async (ci:string ) => {
+    if(ci.length < 8) {
+      return;
+    }
+    const user = await handleCIChange(ci,'tutores_legales');
+     const newFormData = { 
+      ...formData, 
+      ['tutor_legal']: { 
+        ...formData['tutor_legal'], 
+        ['ci']: user.ci , 
+        ['nombres']: user.nombres , 
+        ['apellidos']: user.apellidos , 
+        ['email']: user.email ,
+        ['telefono']: user.telefono ,
+      } 
+    };
+    setFormData(newFormData);
+    setFormErrors({ ...formErrors, [parent]: { ...formErrors[parent], [child]: '' } });
+    updateActiveStudent(newFormData, areas_seleccionadas);
+  }
+
+
   // Función para manejar cambios en los inputs del formulario
   const handleFormChange = (field, value) => {
+
+    console.log("**" + field);
     const newFormData = { ...formData, [field]: value };
     setFormData(newFormData);
     setFormErrors({ ...formErrors, [name]: '' });
@@ -756,7 +809,7 @@ export default function Registration() {
       } 
     };
     setFormData(newFormData);
-    setFormErrors({ ...formErrors, [parent]: { ...formErrors[parent], [child]: '' } });
+ //   setFormErrors({ ...formErrors, [parent]: { ...formErrors[parent], [child]: '' } });
     updateActiveStudent(newFormData, areas_seleccionadas);
   };
 
@@ -1214,8 +1267,37 @@ export default function Registration() {
                   <p className="text-red-700 text-sm">{formErrorMessage}</p>
                 </div>
               )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                              {/* Cédula de Identidad */}
+                              <div>
+                  <label htmlFor="cedula" className="block text-sm font-medium text-gray-700 mb-1">
+                    Cédula de Identidad<span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    id="cedula"
+                    className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Número de CI"
+                    value={formData.ci}
+                    onChange={(e) => {
+                      handleFormChange('ci', e.target.value);
+                      handleStudentInfoLoaded(e.target.value);
+                    }}
+                    onKeyPress={(event) => {
+                      if (event.target.value.length >= 8 && event.key !== 'Backspace' && event.key !== 'Delete' && !(event.ctrlKey && (event.key === 'c' || event.key === 'v'))) {
+                        event.preventDefault();
+                      }
+                    }}
+                    required
+                    min="0" 
+                    step="1"
+                    maxLength={8}
+                  />
+                  {formErrors.ci && <p className="text-red-500 text-xs mt-1">{formErrors.ci}</p>}
+                </div>
+
+
                 {/* Nombres */}
                 <div>
                   <label htmlFor="nombres" className="block text-sm font-medium text-gray-700 mb-1">
@@ -1252,30 +1334,7 @@ export default function Registration() {
                   {formErrors.apellidos && <p className="text-red-500 text-xs mt-1">{formErrors.apellidos}</p>}
                 </div>
 
-                {/* Cédula de Identidad */}
-                <div>
-                  <label htmlFor="cedula" className="block text-sm font-medium text-gray-700 mb-1">
-                    Cédula de Identidad<span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    id="cedula"
-                    className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Número de CI"
-                    value={formData.ci}
-                    onChange={(e) => handleFormChange('ci', e.target.value)}
-                    onKeyPress={(event) => {
-                      if (event.target.value.length >= 8 && event.key !== 'Backspace' && event.key !== 'Delete' && !(event.ctrlKey && (event.key === 'c' || event.key === 'v'))) {
-                        event.preventDefault();
-                      }
-                    }}
-                    required
-                    min="0" 
-                    step="1"
-                    maxLength={8}
-                  />
-                  {formErrors.ci && <p className="text-red-500 text-xs mt-1">{formErrors.ci}</p>}
-                </div>
+
 
                 {/* Fecha de Nacimiento */}
                 <div>
@@ -1444,6 +1503,29 @@ export default function Registration() {
                 <h4 className="text-base font-semibold mb-1">Tutor Legal</h4>
                 <p className="text-xs text-gray-500 mb-4">Información del tutor legal (obligatorio)</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+
+                                    {/* Cédula de Identidad */}
+                                    <div>
+                    <label htmlFor="cedulaTutorLegal" className="block text-sm font-medium text-gray-700 mb-1">
+                      Cédula de Identidad<span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      id="cedulaTutorLegal"
+                      className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Número de CI"
+                      value={formData.tutor_legal.ci}
+                    
+                      onChange={(e) => {
+                        // Validar que solo se ingresen números
+                        const value = e.target.value.replace(/[^0-9]/g, '');
+                        handleNestedChange('tutor_legal', 'ci', value);
+                        handleTutorLoaded(value);
+                      }}
+                      required
+                      maxLength={8}
+                    />
+                  </div>
                   {/* Nombres */}
                   <div>
                     <label htmlFor="nombresTutorLegal" className="block text-sm font-medium text-gray-700 mb-1">
@@ -1476,27 +1558,7 @@ export default function Registration() {
                     />
                   </div>
 
-                  {/* Cédula de Identidad */}
-                  <div>
-                    <label htmlFor="cedulaTutorLegal" className="block text-sm font-medium text-gray-700 mb-1">
-                      Cédula de Identidad<span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      id="cedulaTutorLegal"
-                      className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Número de CI"
-                      value={formData.tutor_legal.ci}
-                    
-                      onChange={(e) => {
-                        // Validar que solo se ingresen números
-                        const value = e.target.value.replace(/[^0-9]/g, '');
-                        handleNestedChange('tutor_legal', 'ci', value);
-                      }}
-                      required
-                      maxLength={8}
-                    />
-                  </div>
+
 
                   {/* Parentesco */}
                   <div>
@@ -1718,6 +1780,26 @@ export default function Registration() {
                           Información del tutor académico para {area.area_nombre} - {area.nivel_nombre} (opcional)
                         </p>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+
+                                                  {/* Cédula de Identidad */}
+                        <div>
+                          <label htmlFor={`ci_${area.id_convocatoria_nivel}`} className="block text-sm font-medium text-gray-700 mb-1">
+                            Cédula de Identidad
+                          </label>
+                          <input
+                            type="text"
+                            id={`ci_${area.id_convocatoria_nivel}`}
+                            className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Ingrese solo números"
+                            value={tutorIndex >= 0 && formData.tutores_academicos[tutorIndex].ci ? formData.tutores_academicos[tutorIndex].ci : ''}
+                            onChange={(e) => {
+                              // Validar que solo se ingresen números
+                              const value = e.target.value.replace(/[^0-9]/g, '');
+                              handleTutorAcademicoChange(tutorIndex, 'ci', value);
+                            }}
+                            maxLength={8}
+                          />
+                        </div>
                           {/* Nombres */}
                           <div>
                             <label htmlFor={`nombres_${area.id_convocatoria_nivel}`} className="block text-sm font-medium text-gray-700 mb-1">
@@ -1785,25 +1867,7 @@ export default function Registration() {
                           </div>
                         </div>
 
-                        {/* Cédula de Identidad */}
-                        <div>
-                          <label htmlFor={`ci_${area.id_convocatoria_nivel}`} className="block text-sm font-medium text-gray-700 mb-1">
-                            Cédula de Identidad
-                          </label>
-                          <input
-                            type="text"
-                            id={`ci_${area.id_convocatoria_nivel}`}
-                            className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="Ingrese solo números"
-                            value={tutorIndex >= 0 && formData.tutores_academicos[tutorIndex].ci ? formData.tutores_academicos[tutorIndex].ci : ''}
-                            onChange={(e) => {
-                              // Validar que solo se ingresen números
-                              const value = e.target.value.replace(/[^0-9]/g, '');
-                              handleTutorAcademicoChange(tutorIndex, 'ci', value);
-                            }}
-                            maxLength={8}
-                          />
-                        </div>
+
                       </div>
                     );
                   })}

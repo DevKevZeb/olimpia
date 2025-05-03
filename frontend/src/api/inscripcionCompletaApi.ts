@@ -67,3 +67,18 @@ export const inscribirEstudiante = async (data: any ) => {
     throw error;
   }
 };
+
+/**
+ * Procesa la inscripción completa de un estudiante
+ * @param data Datos completos del formulario de inscripción
+ */
+export const getUser = async (data: any, ) => {
+  try {
+    console.log("data " + data);
+    const response = await axiosInstance.get('/v1/search-by-ci', {params: data});
+    return response.data?.data.usuario || response.data.usuario;
+  } catch (error) {
+    console.error('Error al obtener informacion:', error);
+    console.error('Detalles del error de validación:', error.response?.data); // Loguea los detalles del error
+    throw error;
+  }};

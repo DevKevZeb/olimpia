@@ -181,7 +181,6 @@ class EstudianteController extends ApiController
         
         $telefono = $userType == 'estudiantes'  ? '' : ',telefono';
 
-        $query = 
         $user = DB::select('
         SELECT nombres, apellidos, ci, email, created_at '. $telefono .' 
         FROM ' . $userType . ' 
@@ -189,10 +188,10 @@ class EstudianteController extends ApiController
         ORDER BY created_at DESC
         LIMIT 1
         ', [$ci]);
-            
+        
         return $this->successResponse(
             [
-                'data' => $user,
+               'usuario' =>  reset($user)
             ],
             'Resultados de búsqueda obtenidos correctamente'
            );
