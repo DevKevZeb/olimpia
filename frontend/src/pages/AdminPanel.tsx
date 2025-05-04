@@ -12,9 +12,9 @@ import {
   createNivelCategoria,
   setCostoGeneralConvocatoria
 } from '../api/adminConvocatoriaApi';
-<<<<<<< HEAD
 import { CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/react/24/solid';
 import { useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 // Utilidad para formatear nombre: primera letra mayúscula, resto minúscula
 function formatNombre(str) {
@@ -22,14 +22,12 @@ function formatNombre(str) {
   // Quitar espacios extra y poner solo la primera letra en mayúscula, el resto minúscula
   const s = str.normalize('NFC').trim();
   return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
-=======
-import { useNavigate } from 'react-router-dom';
+}
 
 interface ButtonLinkProps {
   to: string;
   className?: string;
   children: React.ReactNode;
->>>>>>> jafet
 }
 
 export default function AdminPanel() {
@@ -1067,7 +1065,6 @@ export default function AdminPanel() {
           >
             {showConfigurarNivelesForm ? 'Cancelar' : 'Configurar Niveles'}
           </button>
-<<<<<<< HEAD
           
           <button 
             onClick={() => {
@@ -1112,11 +1109,9 @@ export default function AdminPanel() {
           >
             {showCostoGeneralForm ? 'Cancelar' : 'Agregar costo convocatoria'}
           </button>
-=======
 
           <BotonNavegarCamposObligatorios />
 
->>>>>>> jafet
         </div>
       </div>
 

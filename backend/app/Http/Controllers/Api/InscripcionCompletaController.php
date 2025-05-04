@@ -88,13 +88,8 @@ class InscripcionCompletaController extends ApiController
         $validator = Validator::make($request->all(), [
             'lista_inscripcion' => 'required|array',
             'id_convocatoria' => 'required|string',
-<<<<<<< HEAD
-            'boleta_info' => 'required|array'
-            // 'codigo_unico' => 'required|string'
-=======
             'codigo_unico' => 'required|string',
             'encargado_pago' => 'required|array'
->>>>>>> jafet
     ]);
 
         Log::info("esto nos llega" . json_encode($request->all()));

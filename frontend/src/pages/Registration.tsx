@@ -843,9 +843,6 @@ export default function Registration() {
   // Función para manejar el cambio al siguiente paso
   const handleNextStep = () => {
     if (step === 1) {
-<<<<<<< HEAD
-      if (true || validateStep1()) {
-=======
       if (validateStep1()) {
         const camposObligatoriosVacios = [];
         const dataToSend = { ...formData };
@@ -895,7 +892,6 @@ export default function Registration() {
   
         setFormErrorMessage('');
         console.log("Datos a enviar:", dataToSend);
->>>>>>> jafet
         setStep(2);
       }
     } else if (step === 2) {
