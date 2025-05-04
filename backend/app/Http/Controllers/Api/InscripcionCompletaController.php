@@ -13,11 +13,14 @@ use Illuminate\Http\Request;
 use App\Models\TutorAcademico;
 use App\Models\UnidadEducativa;
 use App\Models\ListaInscripcion;
+use App\Models\EncargadoPago;
 use App\Models\ConvocatoriaNivel;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use App\Models\DetalleListaInscripcion;
 use Illuminate\Support\Facades\Validator;
+use App\Mail\CodigoUnicoPago;
 
 class InscripcionCompletaController extends ApiController
 {
@@ -85,8 +88,13 @@ class InscripcionCompletaController extends ApiController
         $validator = Validator::make($request->all(), [
             'lista_inscripcion' => 'required|array',
             'id_convocatoria' => 'required|string',
+<<<<<<< HEAD
             'boleta_info' => 'required|array'
             // 'codigo_unico' => 'required|string'
+=======
+            'codigo_unico' => 'required|string',
+            'encargado_pago' => 'required|array'
+>>>>>>> jafet
     ]);
 
         Log::info("esto nos llega" . json_encode($request->all()));
@@ -117,6 +125,7 @@ class InscripcionCompletaController extends ApiController
                 'nombres' => 'required|string|max:100',
                 'apellidos' => 'required|string|max:100',
                 'ci' => 'required|string|max:20',
+                'genero' => 'nullable|string|max:20',
                 'fecha_nacimiento' => 'nullable|required|date',
                 'email' => 'nullable|email|max:100',
                 'id_grado' => 'required|exists:grados,id_grado',
@@ -152,6 +161,12 @@ class InscripcionCompletaController extends ApiController
                 'tutores_academicos.*.ci' => 'nullable|string|max:20',
                 'tutores_academicos.*.telefono' => 'nullable|string|max:20',
                 'tutores_academicos.*.email' => 'nullable|email|max:100',
+
+                //Datos de encargados de pago
+                'encargado_pago.*.ci_encargado' => 'required|string|max:20',
+                'encargado_pago.*.nombres_encargado' => 'required|string|max:100',
+                'encargado_pago.*.apellidos_encargado' => 'required|string|max:100',
+                'encargado_pago.*.email_encargado' => 'required|email|max:100',
             ]);
 
             if ($validator->fails()) {
@@ -260,12 +275,18 @@ class InscripcionCompletaController extends ApiController
                     $estudianteProvincia = 'No Especificado'; // Tu valor genérico
                 }
 
+                $estudianteGenero = $request->genero ?? '';
+                if ($estudianteGenero === "") {
+                    $estudianteGenero = 'No Especificado'; // Tu valor genérico
+                }
+
                 print($idUnidadEducativa);
 
                 $estudianteData = [
                     'nombres' => $inscripcion['nombres'],
                     'apellidos' => $inscripcion['apellidos'],
                     'ci' => $inscripcion['ci'],
+                    'genero' => $estudianteGenero,
                     'fecha_nacimiento' => $inscripcion['fecha_nacimiento'], // Aunque es nullable|required, lo dejamos tal cual para no romper la validación
                     'id_unidad_educativa' => $idUnidadEducativa, // Este ya se maneja en la lógica anterior
                     'id_grado' => $inscripcion['id_grado'],
@@ -365,8 +386,20 @@ class InscripcionCompletaController extends ApiController
                 'estado' => 'pendiente',
             ]);
 
+            // 6. Crear el encargado de pago
+            $encargadoPago = EncargadoPago::create([
+                'id_lista' => $listaInscripcion->id_lista,
+                'nombres' => $request->encargado_pago['nombres_encargado'],
+                'apellidos' => $request->encargado_pago['apellidos_encargado'],
+                'ci' => $request->encargado_pago['ci_encargado'],
+                'email' => $request->encargado_pago['email_encargado'],
+            ]);
+            
             DB::commit();
-
+            
+            // 7. Enviar correo electrónico al encargado de pago
+            Mail::to($encargadoPago->email)->send(new CodigoUnicoPago($request->codigo_unico, $encargadoPago->nombres));
+            
             return $this->successResponse([
                 'estudiante' => $estudiante,
                 'inscripciones' => $listaInscripcion,  
@@ -402,6 +435,7 @@ class InscripcionCompletaController extends ApiController
             'nombres' => 'required|string|max:100',
             'apellidos' => 'required|string|max:100',
             'ci' => 'required|string|max:20',
+            'genero' => 'nullable|string|max:20',
             'fecha_nacimiento' => 'nullable|required|date',
             'email' => 'nullable|email|max:100',
             'id_grado' => 'required|exists:grados,id_grado',
@@ -437,6 +471,12 @@ class InscripcionCompletaController extends ApiController
             'tutores_academicos.*.ci' => 'nullable|string|max:20',
             'tutores_academicos.*.telefono' => 'required|string|max:20',
             'tutores_academicos.*.email' => 'nullable|email|max:100',
+
+            //Datos de encargados de pago
+            'encargado_pago.*.ci_encargado' => 'required|string|max:20',
+            'encargado_pago.*.nombres_encargado' => 'required|string|max:100',
+            'encargado_pago.*.apellidos_encargado' => 'required|string|max:100',
+            'encargado_pago.*.email_encargado' => 'required|email|max:100',
         ]);
 
         if ($validator->fails()) {
@@ -558,10 +598,16 @@ class InscripcionCompletaController extends ApiController
                 $estudianteProvincia = 'No Especificado'; // Tu valor genérico
             }
 
+            $estudianteGenero = $request->genero ?? '';
+            if ($estudianteGenero === "") {
+                $estudianteGenero = 'No Especificado'; // Tu valor genérico
+            }
+
             $estudianteData = [
                 'nombres' => $request->nombres,
                 'apellidos' => $request->apellidos,
                 'ci' => $request->ci,
+                'genero' => $estudianteGenero,
                 'fecha_nacimiento' => $request->fecha_nacimiento, // Igual que en inscribirEstudiante
                 'id_unidad_educativa' => $idUnidadEducativa, // Ya se maneja
                 'id_grado' => $request->id_grado,
@@ -650,7 +696,20 @@ class InscripcionCompletaController extends ApiController
                 'estado' => 'pendiente',
             ]);
 
+            // 6. Crear el encargado de pago
+            $encargadoPago = EncargadoPago::create([
+                'id_lista' => $listaInscripcion->id_lista,
+                'nombres' => $request->encargado_pago['nombres_encargado'],
+                'apellidos' => $request->encargado_pago['apellidos_encargado'],
+                'ci' => $request->encargado_pago['ci_encargado'],
+                'email' => $request->encargado_pago['email_encargado'],
+            ]);
+
             DB::commit();
+
+            // 7. Enviar correo electrónico al encargado de pago
+            Mail::to($encargadoPago->email)->send(new CodigoUnicoPago($request->codigo_unico, $encargadoPago->nombres));
+
 
             return $this->successResponse([
                 'estudiante' => $estudiante,

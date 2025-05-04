@@ -26,6 +26,7 @@ class ExcelController extends Controller
         $sheet->setCellValue($columnIndex++ . '1', 'Nombres del Estudiante');
         $sheet->setCellValue($columnIndex++ . '1', 'Apellidos del Estudiante');
         $sheet->setCellValue($columnIndex++ . '1', 'CI del Estudiante');
+        $sheet->setCellValue($columnIndex++ . '1', 'Genero');     
         $sheet->setCellValue($columnIndex++ . '1', 'Fecha de Nacimiento (YYYY-MM-DD)');
         $sheet->setCellValue($columnIndex++ . '1', 'Email del Estudiante');
         $sheet->setCellValue($columnIndex++ . '1', 'Unidad Educativa');

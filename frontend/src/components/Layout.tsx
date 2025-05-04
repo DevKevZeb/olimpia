@@ -33,6 +33,12 @@ export default function Layout({ children }: LayoutProps) {
                 Inscripción
               </Link>
               <Link 
+                to="/registroexcel" 
+                className="text-gray-700 hover:text-blue-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-200 hover:bg-blue-50"
+              >
+                Inscripción excel
+              </Link>
+              <Link 
                 to="/admin" 
                 className="text-gray-700 hover:text-blue-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-200 hover:bg-blue-50"
               >

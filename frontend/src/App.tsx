@@ -5,7 +5,7 @@ import Home from './pages/Home';
 import Registration from './pages/Registration';
 import AdminPanel from './pages/AdminPanel';
 import CamposObligatorios from './pages/CamposObligatorios';
-import RegistroExcel from './pages/RegistroExcel'
+import RegistroExcel from './pages/RegistroExcel';
 
 function App() {
   return (

@@ -12,6 +12,7 @@ import {
   createNivelCategoria,
   setCostoGeneralConvocatoria
 } from '../api/adminConvocatoriaApi';
+<<<<<<< HEAD
 import { CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/react/24/solid';
 import { useRef } from 'react';
 
@@ -21,6 +22,14 @@ function formatNombre(str) {
   // Quitar espacios extra y poner solo la primera letra en mayúscula, el resto minúscula
   const s = str.normalize('NFC').trim();
   return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+=======
+import { useNavigate } from 'react-router-dom';
+
+interface ButtonLinkProps {
+  to: string;
+  className?: string;
+  children: React.ReactNode;
+>>>>>>> jafet
 }
 
 export default function AdminPanel() {
@@ -96,6 +105,23 @@ export default function AdminPanel() {
     setToast({ show: true, type, message });
     if (toastTimeout.current) clearTimeout(toastTimeout.current);
     toastTimeout.current = setTimeout(() => setToast({ show: false, type: '', message: '' }), 3000);
+  };
+
+  const BotonNavegarCamposObligatorios = () => {
+    const navigate = useNavigate();
+  
+    const handleClick = () => {
+      navigate('/camposobligatorios');
+    };
+  
+    return (
+      <button
+        onClick={handleClick}
+        className="px-4 py-2 rounded-md font-medium text-sm transition-colors duration-200 text-white bg-indigo-600 hover:bg-indigo-700"
+      >
+        Configurar Campos Obligatorios
+      </button>
+    );
   };
 
   // Cargar datos iniciales
@@ -1041,6 +1067,7 @@ export default function AdminPanel() {
           >
             {showConfigurarNivelesForm ? 'Cancelar' : 'Configurar Niveles'}
           </button>
+<<<<<<< HEAD
           
           <button 
             onClick={() => {
@@ -1085,6 +1112,11 @@ export default function AdminPanel() {
           >
             {showCostoGeneralForm ? 'Cancelar' : 'Agregar costo convocatoria'}
           </button>
+=======
+
+          <BotonNavegarCamposObligatorios />
+
+>>>>>>> jafet
         </div>
       </div>
 

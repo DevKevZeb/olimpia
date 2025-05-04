@@ -36,4 +36,9 @@ class ListaInscripcion extends Model
     {
         return $this->hasMany(OrdenPago::class, 'id_lista');
     }
+
+    public function encargadoPago()
+    {
+        return $this->hasMany(EncargadoPago::class, 'id_lista');
+    }
 }

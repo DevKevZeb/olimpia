@@ -5,6 +5,8 @@ import { PDFDownloadLink, Document, Page } from '@react-pdf/renderer';
 
 import { getDatosInscripcion, getAreasPorGrado, inscribirEstudiante, buscarUnidadesEducativas, getUser } from '../api/inscripcionCompletaApi';
 import { EstudianteFormData} from '../types/index';
+import { RequisitoConvocatoria } from '../types/RequisitoConvocatoria'; 
+import { fetchRequisitosConvocatoria } from '../api/requisitoConvocatoria';
 import DescargarBoleta from '../components/DescargarBoleta';
 
 
@@ -67,6 +69,43 @@ export default function Registration() {
     areas_seleccionadas: [],
     tutores_academicos: [],
   });
+
+  //para cargar requisitos obligatorios
+  const [requisitosGuardados, setRequisitosGuardados] = useState<Record<string, { obligatorio: boolean; valor: any | undefined }>>({});
+  const [loadingRequisitos, setLoadingRequisitos] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+
+  useEffect(() => {
+      const loadRequisitos = async () => {
+        if (convocatoria) {
+          setLoadingRequisitos(true);
+          try {
+            console.log('convocatoria', convocatoria.id)
+            const data = await fetchRequisitosConvocatoria(convocatoria.id);
+            const initialRequisitosGuardados: Record<string, { obligatorio: boolean; valor: any | undefined }> = {};
+            data.forEach((requisito) => {
+              const key = `${requisito.entidad}.${requisito.campo}`;
+              initialRequisitosGuardados[key] = {
+                obligatorio: requisito.es_obligatorio, // Usamos 'es_obligatorio'
+                valor: undefined, // Inicialmente no tenemos un valor por defecto desde la API en esta estructura
+              };
+            });
+            setRequisitosGuardados(initialRequisitosGuardados);
+            console.log('Contenido de requisitosGuardados después de cargar:', initialRequisitosGuardados);
+            setLoadingRequisitos(false);
+          } catch (error: any) {
+            setError('Error al cargar los requisitos: ' + error.message);
+            setLoadingRequisitos(false);
+            setRequisitosGuardados({});
+          }
+        } else {
+          setRequisitosGuardados({});
+        }
+      };
+  
+      loadRequisitos();
+  }, [convocatoria]);
   
   const fetchCodigoUnico = async () => {
     try {
@@ -111,8 +150,6 @@ export default function Registration() {
     setIsModalOpen(false);
     setSelectedStudentDetails(null);
   };
-
- 
 
   // Función para abrir el modal de la boleta de pago
   const openBoletaModal = async () => {
@@ -606,28 +643,9 @@ export default function Registration() {
   const validateStep1 = () => {
     let isValid = true;
     let currentErrors = {};
-    // Lista de campos obligatorios del estudiante
-    const requiredFields = [
-      { field: formData.nombres, name: 'Nombres' },
-      { field: formData.apellidos, name: 'Apellidos' },
-      { field: formData.ci, name: 'Cédula de Identidad' },
-      { field: formData.fecha_nacimiento, name: 'Fecha de Nacimiento' },
-      { field: formData.email, name: 'Correo Electrónico' },
-      { field: formData.id_grado, name: 'Grado' },
-      { field: formData.unidad_educativa.nombre, name: 'Unidad Educativa' },
-    ];
-    
-    // Campos obligatorios del tutor legal
-    const requiredTutorFields = [
-      { field: formData.tutor_legal.nombres, name: 'Nombres del Tutor Legal' },
-      { field: formData.tutor_legal.apellidos, name: 'Apellidos del Tutor Legal' },
-      { field: formData.tutor_legal.ci, name: 'CI del Tutor Legal' },
-      { field: formData.tutor_legal.email, name: 'Email del Tutor Legal' },
-      { field: formData.tutor_legal.telefono, name: 'Teléfono del Tutor Legal' },
-      { field: formData.tutor_legal.parentesco, name: 'Parentesco del Tutor Legal' },
-    ];
-    
-    // Validar campos del estudiante
+    setFormErrorMessage('');
+  
+    // 1. Validar campos del estudiante usando validateField
     const nombresError = validateField('nombres', formData.nombres);
     if (nombresError) {
       currentErrors.nombres = nombresError;
@@ -648,41 +666,138 @@ export default function Registration() {
       currentErrors.fecha_nacimiento = fechaNacimientoError;
       isValid = false;
     }
+    const emailError = validateField('email', formData.email);
+    if (emailError) {
+      currentErrors.email = emailError;
+      isValid = false;
+    }
+    const gradoError = validateField('id_grado', formData.id_grado);
+    if (gradoError) {
+      currentErrors.id_grado = gradoError;
+      isValid = false;
+    }
+    const unidadEducativaError = validateField('unidad_educativa.nombre', formData.unidad_educativa.nombre);
+    if (unidadEducativaError) {
+      currentErrors['unidad_educativa.nombre'] = unidadEducativaError;
+      isValid = false;
+    }
+  
+    // 2. Validar campos del tutor legal usando validateField
+    const tutorNombresError = validateField('tutor_legal.nombres', formData.tutor_legal.nombres);
+    if (tutorNombresError) {
+      currentErrors['tutor_legal.nombres'] = tutorNombresError;
+      isValid = false;
+    }
+    const tutorApellidosError = validateField('tutor_legal.apellidos', formData.tutor_legal.apellidos);
+    if (tutorApellidosError) {
+      currentErrors['tutor_legal.apellidos'] = tutorApellidosError;
+      isValid = false;
+    }
+    const tutorCiError = validateField('tutor_legal.ci', formData.tutor_legal.ci);
+    if (tutorCiError) {
+      currentErrors['tutor_legal.ci'] = tutorCiError;
+      isValid = false;
+    }
+    const tutorEmailError = validateField('tutor_legal.email', formData.tutor_legal.email);
+    if (tutorEmailError) {
+      currentErrors['tutor_legal.email'] = tutorEmailError;
+      isValid = false;
+    }
+    const tutorTelefonoError = validateField('tutor_legal.telefono', formData.tutor_legal.telefono);
+    if (tutorTelefonoError) {
+      currentErrors['tutor_legal.telefono'] = tutorTelefonoError;
+      isValid = false;
+    }
+    const tutorParentescoError = validateField('tutor_legal.parentesco', formData.tutor_legal.parentesco);
+    if (tutorParentescoError) {
+      currentErrors['tutor_legal.parentesco'] = tutorParentescoError;
+      isValid = false;
+    }
+  
+    // 3. Verificar campos obligatorios usando requisitosGuardados
+    const camposObligatoriosVacios = [];
+    const dataToSend = { ...formData };
 
-    // Verificar campos del estudiante
-    for (const { field, name } of requiredFields) {
-      if (!field || field.trim() === '') {
-        setFormErrorMessage(`El campo ${name} es obligatorio`);
-        return false;
+    const mensajesCamposObligatorios = {
+      'postulante.fecha_nacimiento': 'La fecha de nacimiento del estudiante',
+      'postulante.id_unidad_educativa': 'El nombre de la unidad educativa del estudiante',
+      'postulante.provincia': 'La provincia del estudiante',
+      'tutorLegal.telefono': 'El teléfono del tutor legal',
+      'tutorLegal.parentesco': 'El parentesco del tutor legal con el estudiante',
+      'postulante.departamento': 'El departamento del estudiante',
+      'postulante.id_grado' : 'El grado del estudiante',
+    };
+  
+    for (const key in requisitosGuardados) {
+      if (key.startsWith('tutorAcademico.')) {
+        continue; // Ignorar los campos del tutor académico
+      }
+  
+      const requisitoInfo = requisitosGuardados[key];
+      const [entidad, campo] = key.split('.');
+      let fieldValue;
+  
+      if (entidad === 'tutorLegal') {
+        fieldValue = dataToSend.tutor_legal[campo as keyof typeof dataToSend.tutor_legal];
+      } else if (entidad === 'unidad_educativa') {
+        fieldValue = dataToSend.unidad_educativa[campo as keyof typeof dataToSend.unidad_educativa];
+      } else if (entidad === 'postulante') {
+        if (campo === 'departamento') {
+          fieldValue = dataToSend.unidad_educativa.departamento;
+        } else if (campo === 'id_unidad_educativa') {
+          const nombreUnidadEducativaValue = dataToSend.unidad_educativa.nombre;
+          const idUnidadEducativaValue = dataToSend.unidad_educativa.id_unidad_educativa;
+          if (requisitoInfo?.obligatorio && (nombreUnidadEducativaValue?.trim() === '' && (idUnidadEducativaValue === null || idUnidadEducativaValue === undefined))) {
+            camposObligatoriosVacios.push(key);
+          }
+          continue; // Evitar la verificación general más adelante
+        } else if (campo === 'provincia') {
+          fieldValue = dataToSend.unidad_educativa.provincia;
+        } else {
+          fieldValue = dataToSend[campo as keyof typeof dataToSend];
+        }
+      } else {
+        fieldValue = dataToSend[campo as keyof typeof dataToSend];
+      }
+  
+      if (requisitoInfo?.obligatorio && (fieldValue === '' || fieldValue === null || fieldValue === undefined)) {
+        camposObligatoriosVacios.push(key);
+        isValid = false;
       }
     }
-    
-    // Verificar campos del tutor legal
-    for (const { field, name } of requiredTutorFields) {
-      if (!field || field.trim() === '') {
-        setFormErrorMessage(`El campo ${name} es obligatorio`);
-        return false;
-      }
+  
+    if (camposObligatoriosVacios.length > 0 && !formErrorMessage) {
+      setFormErrorMessage(`Por favor, complete los siguientes campos obligatorios: ${camposObligatoriosVacios.join(', ')}`);
     }
-    
-    // Validar formato de email del estudiante
+  
+    // 4. Validar formato de email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
+    if (formData.email && !emailRegex.test(formData.email)) {
       setFormErrorMessage('El formato del correo electrónico no es válido');
-      return false;
+      isValid = false;
+      currentErrors.email = 'El formato del correo electrónico no es válido';
     }
-    
-    // Validar formato de email del tutor legal
-    if (!emailRegex.test(formData.tutor_legal.email)) {
+    if (formData.tutor_legal.email && !emailRegex.test(formData.tutor_legal.email)) {
       setFormErrorMessage('El formato del correo electrónico del tutor legal no es válido');
-      return false;
+      isValid = false;
+      currentErrors['tutor_legal.email'] = 'El formato del correo electrónico del tutor legal no es válido';
     }
-    
-    // Si todo es válido
+
     setFormErrors(currentErrors);
-    setFormErrorMessage(isValid ? '' : 'Por favor, corrija los errores en el formulario.');
-    //setFormErrorMessage('');
-    //return true;
+  
+    if (!isValid) {
+      if (Object.keys(currentErrors).length > 0) {
+        setFormErrorMessage(Object.values(currentErrors)[0] as string);
+      } else if (camposObligatoriosVacios.length > 0) {
+        const mensajesEspecificos = camposObligatoriosVacios.map(key => mensajesCamposObligatorios[key] || key);
+        setFormErrorMessage(`Por favor, complete los siguientes campos obligatorios: ${mensajesEspecificos.join(', ')}`);
+      } else {
+        setFormErrorMessage('Por favor, corrija los errores en el formulario.');
+      }
+    } else {
+      setFormErrorMessage('');
+    }
+  
     return isValid;
   };
   
@@ -728,20 +843,71 @@ export default function Registration() {
   // Función para manejar el cambio al siguiente paso
   const handleNextStep = () => {
     if (step === 1) {
+<<<<<<< HEAD
       if (true || validateStep1()) {
+=======
+      if (validateStep1()) {
+        const camposObligatoriosVacios = [];
+        const dataToSend = { ...formData };
+  
+        for (const key in requisitosGuardados) {
+          if (key.startsWith('tutorAcademico.')) {
+            continue; // Ignorar los campos del tutor académico
+          }
+  
+          const requisitoInfo = requisitosGuardados[key];
+          const [entidad, campo] = key.split('.');
+          let fieldValue;
+  
+          if (entidad === 'tutorLegal') {
+            fieldValue = dataToSend.tutor_legal[campo as keyof typeof dataToSend.tutor_legal];
+          } else if (entidad === 'unidad_educativa') {
+            fieldValue = dataToSend.unidad_educativa[campo as keyof typeof dataToSend.unidad_educativa];
+          } else if (entidad === 'postulante') {
+            // Manejar los campos de postulante que están anidados dentro de unidad_educativa
+            if (campo === 'departamento') {
+              fieldValue = dataToSend.unidad_educativa.departamento;
+            } else if (campo === 'id_unidad_educativa') {
+              const nombreUnidadEducativaValue = dataToSend.unidad_educativa.nombre;
+              const idUnidadEducativaValue = dataToSend.unidad_educativa.id_unidad_educativa;
+              if (requisitoInfo?.obligatorio && (nombreUnidadEducativaValue?.trim() === '' && (idUnidadEducativaValue === null || idUnidadEducativaValue === undefined))) {
+                camposObligatoriosVacios.push(key);
+              }
+              continue; // Evitar la verificación general más adelante
+            } else if (campo === 'provincia') {
+              fieldValue = dataToSend.unidad_educativa.provincia;
+            } else {
+              fieldValue = dataToSend[campo as keyof typeof dataToSend];
+            }
+          } else {
+            fieldValue = dataToSend[campo as keyof typeof dataToSend];
+          }
+  
+          if (requisitoInfo?.obligatorio && (fieldValue === '' || fieldValue === null || fieldValue === undefined)) {
+            camposObligatoriosVacios.push(key);
+          }
+        }
+  
+        if (camposObligatoriosVacios.length > 0) {
+          setFormErrorMessage(`Por favor, complete los siguientes campos obligatorios: ${camposObligatoriosVacios.join(', ')}`);
+          return; // Detener el avance si hay campos obligatorios vacíos
+        }
+  
+        setFormErrorMessage('');
+        console.log("Datos a enviar:", dataToSend);
+>>>>>>> jafet
         setStep(2);
       }
     } else if (step === 2) {
-      // Verificar si al menos un estudiante tiene áreas seleccionadas
-      const hasSelectedAreas = estudiantes.some(e => 
+      const hasSelectedAreas = estudiantes.some(e =>
         e.areas_seleccionadas && e.areas_seleccionadas.length > 0
       );
-      
+  
       if (!hasSelectedAreas) {
         setFormErrorMessage('Debe seleccionar al menos un área para un estudiante');
         return;
       }
-      
+  
       setFormErrorMessage('');
       setStep(3);
     } else if (step === 3) {
