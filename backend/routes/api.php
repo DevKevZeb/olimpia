@@ -131,4 +131,7 @@ Route::prefix('v1')->group(function () {
     // Rutas para el excel
     Route::get('/excel/plantilla/{id_convocatoria}', [ExcelController::class, 'downloadTemplate']);
     Route::post('/buscar-convocatoria-nivel', [BuscarConvocatoriaNivelController::class, 'buscarIdConvocatoriaNivel']);
+
+    // Endpoint para asignar costo general a todas las áreas de una convocatoria
+    Route::post('/admin/convocatorias/{idConvocatoria}/set-costo-general', [ConvocatoriaAreaController::class, 'setCostoGeneral']);
 });
