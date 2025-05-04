@@ -19,7 +19,11 @@ const RegistroRequisitos: React.FC<Props> = ({ initialConvocatoriaId }) => {
   const camposTutorLegalObligatorios = ['ci', 'nombres', 'apellidos', 'email'];
   const camposTutorLegalOpcionales = ['telefono', 'parentesco'];
   const camposPostulanteObligatorios = ['ci', 'nombres', 'apellidos', 'email', 'id_grado'];
-  const camposPostulanteOpcionales = ['fecha_nacimiento', 'id_unidad_educativa', 'departamento', 'provincia'];
+  const camposPostulanteOpcionales = ['fecha_nacimiento', 'genero', 'id_unidad_educativa', 'departamento', 'provincia'];
+  //profesor 
+  const camposProfesorObligatorios = ['ci', 'nombres', 'apellidos', 'email'];
+  const camposProfesorOpcionales = ['telefono'];
+  const [profesorRequisitosMode, setProfesorRequisitosMode] = useState<'obligatorio' | 'opcional'>('obligatorio');
 
   useEffect(() => {
     const loadConvocatorias = async () => {
@@ -71,7 +75,8 @@ const RegistroRequisitos: React.FC<Props> = ({ initialConvocatoriaId }) => {
 
   const handleCheckboxChange = (entidad: string, campo: string, checked: boolean) => {
     if ((entidad === 'postulante' && camposPostulanteObligatorios.includes(campo)) ||
-        (entidad === 'tutorLegal' && camposTutorLegalObligatorios.includes(campo))) {
+        (entidad === 'tutorLegal' && camposTutorLegalObligatorios.includes(campo)) ||
+        (entidad === 'profesor' && camposProfesorObligatorios.includes(campo))) {
       return; // No permitir desmarcar campos obligatorios
     }
     setRequisitosGuardados((prev) => ({
@@ -80,7 +85,7 @@ const RegistroRequisitos: React.FC<Props> = ({ initialConvocatoriaId }) => {
     }));
   };
 
-  const handleSelectAll = (entidad: 'postulante' | 'tutorLegal' | 'tutorAcademico') => {
+  const handleSelectAll = (entidad: 'postulante' | 'tutorLegal' | 'profesor') => {
     setRequisitosGuardados((prev) => {
       const newState = { ...prev };
       let camposToUpdate: string[] = [];
@@ -89,11 +94,14 @@ const RegistroRequisitos: React.FC<Props> = ({ initialConvocatoriaId }) => {
         camposToUpdate = [...camposPostulanteObligatorios, ...camposPostulanteOpcionales];
       } else if (entidad === 'tutorLegal') {
         camposToUpdate = [...camposTutorLegalObligatorios, ...camposTutorLegalOpcionales];
+      } else if (entidad === 'profesor') {
+        camposToUpdate = [...camposProfesorObligatorios, ...camposProfesorOpcionales];
       }
 
       camposToUpdate.forEach((campo) => {
         if (!(entidad === 'postulante' && camposPostulanteObligatorios.includes(campo)) &&
-            !(entidad === 'tutorLegal' && camposTutorLegalObligatorios.includes(campo))) {
+            !(entidad === 'tutorLegal' && camposTutorLegalObligatorios.includes(campo)) &&
+            !(entidad === 'profesor' && camposProfesorObligatorios.includes(campo))) {
           newState[`${entidad}.${campo}`] = true;
         }
       });
@@ -101,7 +109,7 @@ const RegistroRequisitos: React.FC<Props> = ({ initialConvocatoriaId }) => {
     });
   };
 
-  const handleDeselectAll = (entidad: 'postulante' | 'tutorLegal' | 'tutorAcademico') => {
+  const handleDeselectAll = (entidad: 'postulante' | 'tutorLegal' | 'profesor') => {
     setRequisitosGuardados((prev) => {
       const newState = { ...prev };
       let camposToUpdate: string[] = [];
@@ -110,6 +118,8 @@ const RegistroRequisitos: React.FC<Props> = ({ initialConvocatoriaId }) => {
         camposToUpdate = camposPostulanteOpcionales;
       } else if (entidad === 'tutorLegal') {
         camposToUpdate = camposTutorLegalOpcionales;
+      } else if (entidad === 'profesor') {
+        camposToUpdate = camposProfesorOpcionales;
       }
 
       camposToUpdate.forEach((campo) => {
@@ -124,6 +134,8 @@ const RegistroRequisitos: React.FC<Props> = ({ initialConvocatoriaId }) => {
       return camposPostulanteObligatorios.includes(campo);
     } else if (entidad === 'tutorLegal') {
       return camposTutorLegalObligatorios.includes(campo);
+    } else if (entidad === 'profesor') {
+      return camposProfesorObligatorios.includes(campo);
     }
     return false;
   };
@@ -161,6 +173,18 @@ const RegistroRequisitos: React.FC<Props> = ({ initialConvocatoriaId }) => {
     } catch (error: any) {
       setError('Error al guardar la configuración de requisitos: ' + error.message);
       setTimeout(() => setError(null), 3000);
+    }
+  };
+
+  const handleProfesorModeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const mode = event.target.value as 'obligatorio' | 'opcional';
+    setProfesorRequisitosMode(mode);
+    if (mode === 'opcional') {
+      const newState = { ...requisitosGuardados };
+      [...camposProfesorObligatorios, ...camposProfesorOpcionales].forEach((campo) => {
+        newState[`profesor.${campo}`] = false;
+      });
+      setRequisitosGuardados(newState);
     }
   };
 
@@ -254,6 +278,41 @@ const RegistroRequisitos: React.FC<Props> = ({ initialConvocatoriaId }) => {
                       type="checkbox"
                       checked={requisitosGuardados[`tutorLegal.${campo}`] || false}
                       onChange={(e) => handleCheckboxChange('tutorLegal', campo, e.target.checked)}
+                    />
+                    {campo}
+                  </label>
+                </div>
+              ))}
+
+              <h4>Del Profesor:
+                <select value={profesorRequisitosMode} onChange={handleProfesorModeChange}>
+                  <option value="obligatorio">Obligatorio</option>
+                  <option value="opcional">Opcional</option>
+                </select>
+              </h4>
+              <div className="seccion-acciones">
+                <button type="button" onClick={() => handleSelectAll('profesor')}>Seleccionar Todos</button>
+                <button type="button" onClick={() => handleDeselectAll('profesor')}>Deseleccionar Opcionales</button>
+              </div>
+              {camposProfesorObligatorios.map((campo) => (
+                <div className="requisito-checkbox obligatorio" key={`profesor.${campo}`}>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={true}
+                      disabled
+                    />
+                    {campo} <span className="obligatorio-tag">(Obligatorio)</span>
+                  </label>
+                </div>
+              ))}
+              {camposProfesorOpcionales.map((campo) => (
+                <div className="requisito-checkbox" key={`profesor.${campo}`}>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={requisitosGuardados[`profesor.${campo}`] || false}
+                      onChange={(e) => handleCheckboxChange('profesor', campo, e.target.checked)}
                     />
                     {campo}
                   </label>

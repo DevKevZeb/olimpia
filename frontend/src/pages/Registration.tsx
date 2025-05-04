@@ -112,14 +112,8 @@ export default function Registration() {
           codigo_unico: codigo_unico
 
       };
-<<<<<<< HEAD
-      console.log("Datos a enviar al back:", datos);
-      const data = await inscribirEstudiante( JSON.stringify(datos) , openBoletaModal);
-
-=======
       let data = await inscribirEstudiante( JSON.stringify(datos) );
       alert("Pre-inscripcion realizada satisfactoriamente! Yey! 🎉 \n  su codigo de inscripcion es: " + codigo_unico);
->>>>>>> 8d7a67c60ab2283f83bbcd97a8d2ae4e36d3e573
     } catch (error) {
       console.error("Error al obtener el código:", error);
       setIsLoading(false);
@@ -149,8 +143,6 @@ export default function Registration() {
     setIsModalOpen(false);
     setSelectedStudentDetails(null);
   };
-
- 
 
   // Función para abrir el modal de la boleta de pago
   const openBoletaModal = async () => {

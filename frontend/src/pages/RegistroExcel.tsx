@@ -10,6 +10,7 @@ import { inscribirEstudiante } from '../api/inscripcionCompletaApi';
 import DownloadTemplate from './DownloadTemplate';
 import 'react-toastify/dist/ReactToastify.css';
 import { toast, ToastContainer } from 'react-toastify';
+import FormularioEncargadoPago from './FormularioEncargadoPago';
 
 interface Convocatoria {
   id_convocatoria: number;
@@ -137,7 +138,13 @@ const UploadAndScan: React.FC<UploadAndScanProps> = ({ selectedConvocatoriaId, o
                       rowErrors.push('El campo "CI" debe contener solo números.');
                     }
 
-                    const fecha_nacimiento_raw = row[6];
+                    const genero = row[6]?.trim();
+                    if (!genero) {
+                        isValidRow = false;
+                        rowErrors.push('El campo "Genero" es obligatorio.');
+                    }
+
+                    const fecha_nacimiento_raw = row[7];
                     let fecha_nacimiento = '';
                     if (typeof fecha_nacimiento_raw === 'number') {
                         fecha_nacimiento = excelDateToJSDate(fecha_nacimiento_raw);
@@ -153,37 +160,37 @@ const UploadAndScan: React.FC<UploadAndScanProps> = ({ selectedConvocatoriaId, o
                       rowErrors.push('El campo "Fecha de Nacimiento" tiene un formato incorrecto.');
                     }
 
-                    const email = row[7]?.trim();
+                    const email = row[8]?.trim();
                     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
                       isValidRow = false;
                       rowErrors.push('El campo "Email" tiene un formato inválido.');
                     }
 
-                    const unidad_educativa_nombre = row[8]?.trim();
+                    const unidad_educativa_nombre = row[9]?.trim();
                     if (!unidad_educativa_nombre) {
                       isValidRow = false;
                       rowErrors.push('El campo "Unidad Educativa" es obligatorio.');
                     }
 
-                    const departamento = row[9]?.trim();
+                    const departamento = row[10]?.trim();
                     if (!departamento) {
                       isValidRow = false;
                       rowErrors.push('El campo "Departamento" es obligatorio.');
                     }
 
-                    const provincia = row[10]?.trim();
+                    const provincia = row[11]?.trim();
                     if (!provincia) {
                       isValidRow = false;
                       rowErrors.push('El campo "Provincia" es obligatorio.');
                     }
 
-                    const nombre_grado = row[11]?.trim();
+                    const nombre_grado = row[12]?.trim();
                     if (!nombre_grado) {
                         isValidRow = false;
                         rowErrors.push('El campo "Grado" es obligatorio.');
                     }
 
-                    const tutor_legal_nombres = row[13]?.trim();
+                    const tutor_legal_nombres = row[14]?.trim();
                     if (!tutor_legal_nombres) {
                       isValidRow = false;
                       rowErrors.push('El campo "Nombres del Tutor Legal" es obligatorio.');
@@ -192,7 +199,7 @@ const UploadAndScan: React.FC<UploadAndScanProps> = ({ selectedConvocatoriaId, o
                       rowErrors.push('El campo "Nombres del Tutor Legal" debe contener solo letras y espacios.');
                     }
 
-                    const tutor_legal_apellidos = row[14]?.trim();
+                    const tutor_legal_apellidos = row[15]?.trim();
                     if (!tutor_legal_apellidos) {
                       isValidRow = false;
                       rowErrors.push('El campo "Apellidos del Tutor Legal" es obligatorio.');
@@ -201,26 +208,26 @@ const UploadAndScan: React.FC<UploadAndScanProps> = ({ selectedConvocatoriaId, o
                       rowErrors.push('El campo "Apellidos del Tutor Legal" debe contener solo letras y espacios.');
                     }
 
-                    const tutor_legal_ci_raw = row[15];
+                    const tutor_legal_ci_raw = row[16];
                     const tutor_legal_ci = typeof tutor_legal_ci_raw === 'number' ? tutor_legal_ci_raw.toString() : tutor_legal_ci_raw?.trim();
                     if (tutor_legal_ci && !/^[0-9]+$/.test(tutor_legal_ci)) {
                       isValidRow = false;
                       rowErrors.push('El campo "CI Tutor Legal" debe contener solo números.');
                     }
 
-                    const tutor_legal_telefono_raw = row[16];
+                    const tutor_legal_telefono_raw = row[17];
                     const tutor_legal_telefono = typeof tutor_legal_telefono_raw === 'number' ? tutor_legal_telefono_raw.toString() : tutor_legal_telefono_raw?.trim();
                     if (tutor_legal_telefono && !/^[0-9]+$/.test(tutor_legal_telefono)) {
                       isValidRow = false;
                       rowErrors.push('El campo "Teléfono Tutor Legal" debe contener solo números.');
                     }
 
-                    const tutor_legal_email = row[17]?.trim();
+                    const tutor_legal_email = row[18]?.trim();
                     if (tutor_legal_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(tutor_legal_email)) {
                       isValidRow = false;
                       rowErrors.push('El campo "Email Tutor Legal" tiene un formato inválido.');
                     }
-                    const tutor_legal_parentesco = row[18]?.trim();
+                    const tutor_legal_parentesco = row[19]?.trim();
                     if (!tutor_legal_parentesco) {
                       isValidRow = false;
                       rowErrors.push('El campo "Parentesco del Tutor Legal" es obligatorio.');
@@ -229,13 +236,13 @@ const UploadAndScan: React.FC<UploadAndScanProps> = ({ selectedConvocatoriaId, o
                       rowErrors.push('El campo "Nombres" debe contener solo letras y espacios.');
                     }
 
-                    let tutor_academico_nombres = row[20]?.trim();
-                    let tutor_academico_apellidos = row[21]?.trim();
-                    const tutor_academico_ci_raw = row[22];
+                    let tutor_academico_nombres = row[21]?.trim();
+                    let tutor_academico_apellidos = row[22]?.trim();
+                    const tutor_academico_ci_raw = row[23];
                     let tutor_academico_ci = typeof tutor_academico_ci_raw === 'number' ? tutor_academico_ci_raw.toString() : tutor_academico_ci_raw?.trim();;
-                    const tutor_academico_telefono_raw = row[23];
+                    const tutor_academico_telefono_raw = row[24];
                     let tutor_academico_telefono = typeof tutor_academico_telefono_raw === 'number' ? tutor_academico_telefono_raw.toString() : tutor_academico_telefono_raw?.trim();
-                    let tutor_academico_email = row[24]?.trim();
+                    let tutor_academico_email = row[25]?.trim();
                     if (tutor_academico_nombres && tutor_academico_ci) { // Validar solo si hay nombre o CI
                       if (!tutor_academico_nombres) {
                           isValidRow = false;
@@ -306,6 +313,7 @@ const UploadAndScan: React.FC<UploadAndScanProps> = ({ selectedConvocatoriaId, o
                                         nombres: nombres,
                                         apellidos: apellidos,
                                         ci: ci,
+                                        genero: genero,
                                         fecha_nacimiento: fecha_nacimiento,
                                         email: email,
                                         id_grado: id_grado,
@@ -391,6 +399,47 @@ const UploadAndScan: React.FC<UploadAndScanProps> = ({ selectedConvocatoriaId, o
 const DataSummary = ({ scannedData, onCancel, onSave }: { scannedData: any[]; onCancel: () => void; onSave: (data: any) => void }) => {
   console.log("DataSummary recibió scannedData transformado:", scannedData);
   const headers = scannedData[0] ? Object.keys(scannedData[0]) : [];
+  const [showPagoForm, setShowPagoForm] = useState(false);
+  const [pagoFormData, setPagoFormData] = useState<Record<string, any>>({
+    ci_encargado: '',
+    nombres_encargado: '',
+    apellidos_encargado: '',
+    email_encargado: '',
+  });
+  const [isPagoFormValid, setIsPagoFormValid] = useState(false); // Nuevo estado para la validez
+
+  const handlePagoFormInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = event.target;
+    setPagoFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
+
+  const handleMostrarFormularioPago = () => {
+    setShowPagoForm(true);
+  };
+
+  const handlePagoFormValidityChange = (isValid: boolean) => {
+    setIsPagoFormValid(isValid);
+  };
+
+  const handleGuardarInscripcion = () => {
+    if (scannedData.length > 0 && isPagoFormValid) {
+      const codigo_unico = `OCEP-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
+      const dataConPago = {
+        lista_inscripcion: scannedData,
+        id_convocatoria: scannedData[0]?.id_convocatoria,
+        codigo_unico: codigo_unico,
+        encargado_pago: pagoFormData,
+      };
+      onSave(dataConPago);
+    } else if (!isPagoFormValid) {
+      alert('Por favor, completa todos los campos del formulario del encargado de pago.');
+    } else {
+      alert('No hay datos para inscribir.');
+    }
+  };
 
   const handleSave = () => {
     if (scannedData.length > 0) {
@@ -466,8 +515,21 @@ const DataSummary = ({ scannedData, onCancel, onSave }: { scannedData: any[]; on
       </div>
       <div className="actions"> {/* Aplica la clase aquí */}
         <button onClick={onCancel}>Volver</button>
-        <button onClick={handleSave}>Inscribir Estudiantes</button>
+        <button onClick={handleMostrarFormularioPago}>Inscribir Estudiantes</button>
       </div>
+
+      {showPagoForm && (
+        <div className="formulario-pago-container">
+          <FormularioEncargadoPago
+            formData={pagoFormData}
+            onInputChange={handlePagoFormInputChange}
+            onFormValidityChange={handlePagoFormValidityChange} // Pasa la función de validez
+          />
+          <button onClick={handleGuardarInscripcion} disabled={!isPagoFormValid}>
+            Guardar Inscripción con Datos de Pago
+          </button>
+        </div>
+      )}
     </div>
   );
 };
@@ -537,7 +599,7 @@ const ExcelWorkflow = () => {
   const handleInscribir = async (dataToSend: any) => {
     console.log('Datos a enviar al backend:', dataToSend);
     try {
-      const response = await inscribirEstudiante(dataToSend, () => {}); // La función openModal se llama DENTRO de inscribirEstudiante
+      const response = await inscribirEstudiante(dataToSend); // La función openModal se llama DENTRO de inscribirEstudiante
       console.log('Respuesta de inscripción:', response);
       toast.success(`Inscripción completada con éxito. Su código único es: ${dataToSend.codigo_unico}`, {
         position: "top-right",
