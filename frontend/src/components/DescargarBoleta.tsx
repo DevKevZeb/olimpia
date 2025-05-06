@@ -18,7 +18,7 @@ export default function DescargarBoleta() {
   const [isVerified, setIsVerified] = useState(false);
   const [estudiantes, setEstudiantes] = useState<EstudianteFormData[]>([]);
   const [costoTotalGeneral ,setCostoTotalGeneral ] = useState(0);
-  const [responsable, setResponsable] = useState<any>({
+  const [encargado, setencargado] = useState<any>({
     nombre:'',
     ci: '' ,
     email: '',
@@ -40,7 +40,7 @@ export default function DescargarBoleta() {
           const data = await descargarBoleta(codigoBoleta);
           setEstudiantes(data.estudiantes);
           setCostoTotalGeneral(data.costoTotalGeneral);
-          setResponsable(data.responsable);
+          setencargado(data.encargado);
           // Almacenar la información de la orden
           setTimeout(() => {
               generatePDF();
@@ -129,7 +129,7 @@ export default function DescargarBoleta() {
                 </div>
               </div>
             { (<BoletaInfo componentRef={componentRef}
-                  estudiantes={estudiantes} costoTotalGeneral={costoTotalGeneral} responsable={responsable}
+                  estudiantes={estudiantes} costoTotalGeneral={costoTotalGeneral} encargado={encargado}
                 />) }
           </div>
       )   

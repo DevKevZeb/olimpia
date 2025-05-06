@@ -3,7 +3,7 @@ import { EstudianteFormData} from '../types/index';
 
 interface Props {
   componentRef: any
-  responsable: {
+  encargado: {
     correo: string, 
     ci: string,
     nombre: string
@@ -14,17 +14,17 @@ interface Props {
 
 
 
-const BoletaInfo: React.FC<Props> = ({componentRef, estudiantes , costoTotalGeneral, responsable}) => {
+const BoletaInfo: React.FC<Props> = ({componentRef, estudiantes , costoTotalGeneral, encargado}) => {
 
   
   return (
     <div ref={componentRef} className="absolute -z-10 border rounded-lg p-4 mb-4 bg-gray-50">
-    <h4 className="font-medium text-gray-800 mb-3">Responsable a pagar</h4>
+    <h4 className="font-medium text-gray-800 mb-3">encargado a pagar</h4>
     <div  className="flex flex-row">
-            <div className="font-medium text-gray-800 ">Nombre: </div> <p> {responsable.nombre}</p>
+            <div className="font-medium text-gray-800 ">Nombre: </div> <p> {encargado.nombre}</p>
           </div>
     <div  className="flex flex-row">
-            <div className="font-medium text-gray-800 ">CI: </div> <p> {responsable.ci}</p>
+            <div className="font-medium text-gray-800 ">CI: </div> <p> {encargado.ci}</p>
           </div>
     
     <h4 className="font-medium text-gray-800 mb-3">Detalle de Estudiantes</h4>

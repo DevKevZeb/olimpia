@@ -426,7 +426,7 @@ const DataSummary = ({ scannedData, onCancel, onSave }: { scannedData: any[]; on
 
   const handleGuardarInscripcion = () => {
     if (scannedData.length > 0 && isPagoFormValid) {
-      const codigo_unico = `OCEP-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
+      const codigo_unico = `O-SANSI-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
       const dataConPago = {
         lista_inscripcion: scannedData,
         id_convocatoria: scannedData[0]?.id_convocatoria,
@@ -443,7 +443,7 @@ const DataSummary = ({ scannedData, onCancel, onSave }: { scannedData: any[]; on
 
   const handleSave = () => {
     if (scannedData.length > 0) {
-        const codigo_unico = `OCEP-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
+        const codigo_unico = `O-SANSI-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
         onSave({ lista_inscripcion: scannedData, id_convocatoria: scannedData[0]?.id_convocatoria, codigo_unico: codigo_unico });
     } else {
         alert('No hay datos para inscribir.');

@@ -364,14 +364,9 @@ class InscripcionCompletaController extends ApiController
         
         try{
             // 5. Crear orden de pago
-            $boleta_info = $request->boleta_info; 
 
-            Log::info( " BOLETAAA "  . json_encode($boleta_info));
             $ordenPago = OrdenPago::create([
-                'codigo_unico' => $boleta_info['codigo_unico'],
-                'responsable_email' => $boleta_info['responsable_correo'],
-                'responsable_nombre' => $boleta_info['responsable_nombre'],
-                'responsable_ci' => $boleta_info['responsable_ci'],
+                'codigo_unico' => $request->codigo_unico,
                 'tipo_origen' => 'lista',
                 'id_inscripcion' => null, // Asociamos a la primera inscripción
                 'id_lista' => $listaInscripcion->id_lista,
@@ -393,7 +388,7 @@ class InscripcionCompletaController extends ApiController
             DB::commit();
             
             // 7. Enviar correo electrónico al encargado de pago
-            Mail::to($encargadoPago->email)->send(new CodigoUnicoPago($request->codigo_unico, $encargadoPago->nombres));
+           Mail::to($encargadoPago->email)->send(new CodigoUnicoPago($request->codigo_unico, $encargadoPago->nombres));
             
             return $this->successResponse([
                 'estudiante' => $estudiante,

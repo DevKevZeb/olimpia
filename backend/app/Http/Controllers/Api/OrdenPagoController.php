@@ -7,6 +7,7 @@ use App\Models\Inscripcion;
 use App\Models\ListaInscripcion;
 use Illuminate\Http\Request;
 use App\Http\Resources\OrdenPagoResource;
+use App\Models\EncargadoPago;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
@@ -217,11 +218,16 @@ class OrdenPagoController extends ApiController
         if(!$orden){
             return $this->errorResponse('El codigo que usted a ingresado no existe', 404);
         }
+        
+        $encargado = EncargadoPago::where("id_lista", $orden->id_lista)->first(); 
+        if(!$encargado){
+            return $this->errorResponse('El codigo que usted a ingresado no existe', 404);
+        }
 
-        $responsable = [
-            "nombre" => $orden->responsable_nombre,
-            "ci" => $orden->responsable_ci,
-            "email" => $orden->responsable_email, 
+        $encargado = [
+            "nombre" => $encargado->nombres . " " . $encargado->apellidos,
+            "ci" => $encargado->ci,
+            "email" => $encargado->email, 
         ];
         $montoTotal = $orden->monto_total;
         $orden = DB::select(
@@ -249,7 +255,7 @@ class OrdenPagoController extends ApiController
             [ 
                 "orden" => $orden,
                 "monto_total" => $montoTotal,
-                "responsable" => $responsable 
+                "encargado" => $encargado 
             ],
             'Orden de pago obtenida correctamente'
         );

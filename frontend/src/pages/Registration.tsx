@@ -15,9 +15,10 @@ export default function Registration() {
   const [step, setStep] = useState(1);
   
   const [verificationCode, setVerificationCode] = useState('');
-  const [responsableNombre, setresponsableNombre] = useState('');
-  const [responsableCI, setResponsableCI] = useState('');
-  const [responsableCorreo, setVresponsableCorreo] = useState('');
+  const [encargadoApellido, setencargadoApellido] = useState('');
+  const [encargadoNombre, setencargadoNombre] = useState('');
+  const [encargadoCI, setencargadoCI] = useState('');
+  const [encargadoCorreo, setVencargadoCorreo] = useState('');
   const [isVerified, setIsVerified] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [ordenInfo, setOrdenInfo] = useState(null); 
@@ -28,7 +29,7 @@ export default function Registration() {
   const [formErrors, setFormErrors] = useState({});
   const [errorMessage, setErrorMessage] = useState(''); // Error para sección "Completar Inscripción"
   const [formErrorMessage, setFormErrorMessage] = useState(''); // Error para sección "Proceso de Inscripción"
-  const codigo_unico = `OCEP-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
+  const codigo_unico = `O-SANSI-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
   // Estados para la inscripción
   const [isLoading, setIsLoading] = useState(false);
   const [convocatoria, setConvocatoria] = useState(null);
@@ -112,12 +113,13 @@ export default function Registration() {
       const  datos = {
         lista_inscripcion:estudiantes,
           id_convocatoria:convocatoria.id.toString(),
-          boleta_info:{
-            codigo_unico: codigo_unico,
-            responsable_nombre: responsableNombre,
-            responsable_ci: responsableCI,
-            responsable_correo: responsableCorreo
-          }
+          codigo_unico: codigo_unico,
+          encargado_pago: {
+            ci_encargado: encargadoCI,
+            nombres_encargado: encargadoNombre,
+            apellidos_encargado: encargadoApellido,
+            email_encargado: encargadoCorreo
+        }, 
       };
       let data = await inscribirEstudiante( JSON.stringify(datos) );
       alert("Pre-inscripcion realizada satisfactoriamente! Yey! 🎉 \n  su codigo de inscripcion es: " + codigo_unico);
@@ -982,7 +984,7 @@ export default function Registration() {
       case 'apellidos':
         if (value.length > 50) {
           error = 'El campo debe contener menos de 50 caracteres.';
-        } else if (!/^[a-zA-Z\s]*$/.test(value)) {
+        } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]*$/.test(value)) {
           error = 'No se permiten números ni caracteres especiales.';
         }
         break;
@@ -2204,60 +2206,77 @@ export default function Registration() {
               </div>
 
               <div className="border rounded-lg p-6 mb-8">
-          <h2 className="text-xl font-semibold mb-2">Responsable de Pago</h2>
+          <h2 className="text-xl font-semibold mb-2">encargado de Pago</h2>
           <p className="text-sm text-gray-600 mb-4">
-            La persona responsable debera ir a realizar el pago para la inscripcion
+            La persona encargado debera ir a realizar el pago para la inscripcion
           </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
 
-                {/* Responsable de pago  */}
+                {/* encargado de pago nombres */}
                 <div>
-                    <label htmlFor="responsablePago" className="block text-sm font-medium text-gray-700 mb-1">
-                      Responsable de pago<span className="text-red-500">*</span>
+                    <label htmlFor="encargadoPago" className="block text-sm font-medium text-gray-700 mb-1">
+                      encargado de pago<span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
-                      id="responsablePago"
+                      id="encargadoPago"
                       className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Apellidos del tutor"
-                      value={responsableNombre}
-                      onChange={(e) => setresponsableNombre(e.target.value)}
+                      value={encargadoNombre}
+                      onChange={(e) => setencargadoNombre(e.target.value)}
                       required
                     />
+                  </div>
+                {/* encargado de pago apellidos */}
+                <div>
+                    <label htmlFor="encargadoPago_apellido" className="block text-sm font-medium text-gray-700 mb-1">
+                      encargado de pago<span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="encargadoPago_apellido"
+                      className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Apellidos del tutor"
+                      value={encargadoApellido}
+                      onChange={(e) => setencargadoApellido(e.target.value)}
+                      required
+                    />
+                  </div>
                   </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
 
                 {/* Correo Electrónico */}
                 <div>
-                  <label htmlFor="emailResponsable" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="emailencargado" className="block text-sm font-medium text-gray-700 mb-1">
                     Correo Electrónico<span className="text-red-500">*</span>
                   </label>
                   <input
-                    type="emailResponsable"
-                    id="emailResponsable"
+                    type="emailencargado"
+                    id="emailencargado"
                     className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
                     placeholder="ejemplo@email.com"
-                    value={responsableCorreo}
-                    onChange={(e) => setVresponsableCorreo(e.target.value)}
+                    value={encargadoCorreo}
+                    onChange={(e) => setVencargadoCorreo(e.target.value)}
                     required
                   />
                 </div>
                   {/* Cédula de Identidad */}
                   <div>
-                    <label htmlFor="cedulaResponsable" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label htmlFor="cedulaencargado" className="block text-sm font-medium text-gray-700 mb-1">
                       Cédula de Identidad<span className="text-red-500">*</span>
                     </label>
                     <input
                       type="number"
-                      id="cedulaResponsable"
+                      id="cedulaencargado"
                       className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Número de CI"
-                      value={responsableCI}
+                      value={encargadoCI}
                     
                       onChange={(e) => {
                         // Validar que solo se ingresen números
                         const value = e.target.value.replace(/[^0-9]/g, '');
-                        setResponsableCI(value);
+                        setencargadoCI(value);
                       }}
                       required
                       maxLength={8}
