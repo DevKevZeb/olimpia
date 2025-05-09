@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { createNivelCategoria } from '../api/adminConvocatoriaApi';
+import FormInput from '../components/FormInput';
 
 export default function CrearNivelPage({ onNivelCreado }) {
   const [nuevoNivel, setNuevoNivel] = useState('');
@@ -34,18 +35,15 @@ export default function CrearNivelPage({ onNivelCreado }) {
     <div className="bg-white rounded-lg shadow-lg p-8 mt-8">
       <h2 className="text-2xl font-bold mb-6">Crear Nuevo Nivel de Categoría</h2>
       <form onSubmit={handleCrearNivel}>
-        <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-2">Nombre del Nivel</label>
-          <input
-            type="text"
-            value={nuevoNivel}
-            onChange={e => setNuevoNivel(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-4 py-2"
-            maxLength={50}
-            required
-          />
-          {nivelError && <p className="mt-1 text-sm text-red-600">{nivelError}</p>}
-        </div>
+        <FormInput
+          label="Nombre del Nivel"
+          type="text"
+          value={nuevoNivel}
+          onChange={e => setNuevoNivel(e.target.value)}
+          maxLength={50}
+          required
+          error={nivelError}
+        />
         <div className="flex justify-end mt-8">
           <button
             type="submit"

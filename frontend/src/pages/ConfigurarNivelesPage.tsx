@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { getConvocatoriasActivas, getAreasPorConvocatoria, getNivelesPorConvocatoria, getNivelesCategoria, getGrados, asociarNivelesGrados } from '../api/adminConvocatoriaApi';
+import { getAreasPorConvocatoria, getNivelesPorConvocatoria, getNivelesCategoria, getGrados, asociarNivelesGrados } from '../api/adminConvocatoriaApi';
+import FormInput from '../components/FormInput';
+import FormSelect from '../components/FormSelect';
+import { useConvocatorias } from '../hooks/useConvocatorias';
 
 export default function ConfigurarNivelesPage() {
-  const [convocatorias, setConvocatorias] = useState([]);
+  const { convocatorias, loading: loadingConvocatorias } = useConvocatorias();
   const [areasConvocatoria, setAreasConvocatoria] = useState([]);
   const [nivelesAsignados, setNivelesAsignados] = useState([]);
   const [niveles, setNiveles] = useState([]);
@@ -12,10 +15,6 @@ export default function ConfigurarNivelesPage() {
   const [selectedNiveles, setSelectedNiveles] = useState([]);
   const [nivelGrados, setNivelGrados] = useState({});
   const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   useEffect(() => {
     if (selectedConvocatoria) {
@@ -49,16 +48,6 @@ export default function ConfigurarNivelesPage() {
       setNivelGrados({});
     }
   }, [selectedConvocatoria]);
-
-  const fetchData = async () => {
-    setIsLoading(true);
-    try {
-      const convocatoriasResponse = await getConvocatoriasActivas();
-      setConvocatorias(Array.isArray(convocatoriasResponse) ? convocatoriasResponse : []);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleNivelSelect = (nivelId, areaId) => {
     const isSelected = selectedNiveles.some(n => n.id_nivel === nivelId && n.id_area === areaId);
@@ -120,22 +109,20 @@ export default function ConfigurarNivelesPage() {
     <div className="bg-white rounded-lg shadow-lg p-8 mt-8">
       <h2 className="text-2xl font-bold mb-6">Configurar Niveles y Grados</h2>
       <form onSubmit={handleConfigurarNiveles}>
-        <div className="mb-6">
-          <label className="block text-gray-700 font-medium mb-2">Seleccionar Convocatoria</label>
-          <select
-            value={selectedConvocatoria}
-            onChange={e => setSelectedConvocatoria(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-4 py-2"
-            required
-          >
-            <option value="">-- Seleccione una convocatoria --</option>
-            {convocatorias.map(convocatoria => (
-              <option key={convocatoria.id_convocatoria} value={convocatoria.id_convocatoria}>
-                {convocatoria.nombre}
-              </option>
-            ))}
-          </select>
-        </div>
+        <FormSelect
+          label="Seleccionar Convocatoria"
+          value={selectedConvocatoria}
+          onChange={e => setSelectedConvocatoria(e.target.value)}
+          required
+          disabled={loadingConvocatorias}
+        >
+          <option value="">-- Seleccione una convocatoria --</option>
+          {(convocatorias || []).map(convocatoria => (
+            <option key={convocatoria.id_convocatoria} value={convocatoria.id_convocatoria}>
+              {convocatoria.nombre}
+            </option>
+          ))}
+        </FormSelect>
         {selectedConvocatoria && areasConvocatoria.length > 0 && areasConvocatoria.map(area => (
           <div key={area.id_area} className="mb-8 border-b pb-6">
             <h3 className="text-lg font-semibold mb-2">Área: {area.nombre_area}</h3>

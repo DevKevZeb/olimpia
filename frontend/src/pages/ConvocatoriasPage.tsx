@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { getConvocatoriasActivas, crearConvocatoria } from '../api/adminConvocatoriaApi';
-import CrearConvocatoriaForm from '../components/CrearConvocatoriaForm';
+import { crearConvocatoria } from '../api/adminConvocatoriaApi';
 import { CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/react/24/solid';
+import FormInput from '../components/FormInput';
+import FormSelect from '../components/FormSelect';
+import { useConvocatorias } from '../hooks/useConvocatorias';
 
 function formatNombre(str) {
   if (!str) return '';
@@ -10,7 +12,7 @@ function formatNombre(str) {
 }
 
 export default function ConvocatoriasPage() {
-  const [convocatorias, setConvocatorias] = useState([]);
+  const { convocatorias, loading } = useConvocatorias();
   const [isLoading, setIsLoading] = useState(false);
   const [showCrearConvocatoriaForm, setShowCrearConvocatoriaForm] = useState(false);
   const [formDataConvocatoria, setFormDataConvocatoria] = useState({
@@ -32,22 +34,6 @@ export default function ConvocatoriasPage() {
     setToast({ show: true, type, message });
     if (toastTimeout.current) clearTimeout(toastTimeout.current);
     toastTimeout.current = setTimeout(() => setToast({ show: false, type: '', message: '' }), 3000);
-  };
-
-  useEffect(() => {
-    fetchConvocatorias();
-  }, []);
-
-  const fetchConvocatorias = async () => {
-    setIsLoading(true);
-    try {
-      const data = await getConvocatoriasActivas();
-      setConvocatorias(Array.isArray(data) ? data : []);
-    } catch (error) {
-      showToast('error', 'Error al cargar las convocatorias.');
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   const handleInputChangeConvocatoria = (e) => {
@@ -132,7 +118,6 @@ export default function ConvocatoriasPage() {
         estado: 'planificada',
       });
       setShowCrearConvocatoriaForm(false);
-      fetchConvocatorias();
     } catch (error) {
       if (error.response && error.response.data && error.response.data.message) {
         setFormErrors(prev => ({...prev, general: `Error: ${error.response.data.message}`}));
@@ -160,17 +145,72 @@ export default function ConvocatoriasPage() {
         </button>
       </div>
       {showCrearConvocatoriaForm && (
-        <CrearConvocatoriaForm
-          formData={formDataConvocatoria}
-          formErrors={formErrors}
-          isLoading={isLoading}
-          onChange={handleInputChangeConvocatoria}
-          onSubmit={handleCrearConvocatoria}
-        />
+        <form onSubmit={handleCrearConvocatoria} className="space-y-6">
+          <FormInput
+            label="Nombre"
+            type="text"
+            name="nombre"
+            value={formDataConvocatoria.nombre}
+            onChange={handleInputChangeConvocatoria}
+            maxLength={50}
+            required
+            error={formErrors.nombre}
+          />
+          <FormInput
+            label="Fecha de Inicio"
+            type="date"
+            name="fecha_inicio_inscripcion"
+            value={formDataConvocatoria.fecha_inicio_inscripcion}
+            onChange={handleInputChangeConvocatoria}
+            required
+            error={formErrors.fecha_inicio_inscripcion}
+          />
+          <FormInput
+            label="Fecha de Fin"
+            type="date"
+            name="fecha_fin_inscripcion"
+            value={formDataConvocatoria.fecha_fin_inscripcion}
+            onChange={handleInputChangeConvocatoria}
+            required
+            error={formErrors.fecha_fin_inscripcion}
+          />
+          <FormInput
+            label="Máximo de Áreas por Estudiante"
+            type="number"
+            name="max_areas_por_estudiante"
+            value={formDataConvocatoria.max_areas_por_estudiante}
+            onChange={handleInputChangeConvocatoria}
+            min="1"
+            required
+          />
+          <FormSelect
+            label="Estado"
+            name="estado"
+            value={formDataConvocatoria.estado}
+            onChange={handleInputChangeConvocatoria}
+            required
+          >
+            <option value="planificada">Planificada</option>
+            <option value="abierta">Abierta</option>
+            <option value="cerrada">Cerrada</option>
+            <option value="finalizada">Finalizada</option>
+          </FormSelect>
+          <div className="flex justify-end mt-8">
+            <button
+              type="submit"
+              disabled={isLoading}
+              className={`px-6 py-3 rounded-md font-medium transition ${
+                isLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 text-white'
+              }`}
+            >
+              {isLoading ? 'Creando...' : 'Crear Convocatoria'}
+            </button>
+          </div>
+        </form>
       )}
       <div className="bg-white rounded-lg shadow-lg p-8 mt-8">
         <h2 className="text-2xl font-bold mb-6">Convocatorias Existentes</h2>
-        {isLoading ? (
+        {loading ? (
           <div className="flex justify-center items-center h-40">
             <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
           </div>

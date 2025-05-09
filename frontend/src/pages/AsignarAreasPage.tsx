@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { getConvocatoriasActivas, getAreasCompetencia, getAreasPorConvocatoria, asociarAreas } from '../api/adminConvocatoriaApi';
+import { getAreasCompetencia, getAreasPorConvocatoria, asociarAreas } from '../api/adminConvocatoriaApi';
 import AsignarAreasForm from '../components/AsignarAreasForm';
+import { useConvocatorias } from '../hooks/useConvocatorias';
 
 export default function AsignarAreasPage() {
-  const [convocatorias, setConvocatorias] = useState([]);
+  const { convocatorias, loading: loadingConvocatorias } = useConvocatorias();
   const [areas, setAreas] = useState([]);
   const [selectedConvocatoria, setSelectedConvocatoria] = useState('');
   const [areasAsignadas, setAreasAsignadas] = useState([]);
@@ -35,8 +36,6 @@ export default function AsignarAreasPage() {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const convocatoriasResponse = await getConvocatoriasActivas();
-      setConvocatorias(Array.isArray(convocatoriasResponse) ? convocatoriasResponse : []);
       const areasResponse = await getAreasCompetencia();
       setAreas(Array.isArray(areasResponse) ? areasResponse : []);
     } finally {
@@ -75,12 +74,12 @@ export default function AsignarAreasPage() {
 
   return (
     <AsignarAreasForm
-      convocatorias={convocatorias}
-      areas={areas}
-      areasAsignadas={areasAsignadas}
-      areasDisponibles={areasDisponibles}
+      convocatorias={convocatorias || []}
+      areas={areas || []}
+      areasAsignadas={areasAsignadas || []}
+      areasDisponibles={areasDisponibles || []}
       selectedConvocatoria={selectedConvocatoria}
-      selectedAreas={selectedAreas}
+      selectedAreas={selectedAreas || []}
       isLoading={isLoading}
       onConvocatoriaChange={e => {
         setSelectedConvocatoria(e.target.value);

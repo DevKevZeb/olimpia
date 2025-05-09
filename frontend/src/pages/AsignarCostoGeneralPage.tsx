@@ -1,7 +1,16 @@
 import React, { useState } from 'react';
 import { setCostoGeneralConvocatoria, getAreasPorConvocatoria } from '../api/adminConvocatoriaApi';
+import FormInput from '../components/FormInput';
+import FormSelect from '../components/FormSelect';
+import { useConvocatorias } from '../hooks/useConvocatorias';
 
-export default function AsignarCostoGeneralPage({ convocatorias, onCostoAsignado }) {
+// Reutilizar FormInput, FormSelect y useConvocatorias en más páginas
+// Ejemplo: ConvocatoriasPage, CrearNivelPage, etc.
+// Puedes replicar el patrón aplicado en AsignarCostoGeneralPage para reducir duplicación y mejorar clean code en todos los formularios y selects de tu dashboard.
+// Si quieres que lo aplique en una página específica, indícalo y lo implemento directamente.
+
+export default function AsignarCostoGeneralPage({ onCostoAsignado }) {
+  const { convocatorias, loading: loadingConvocatorias } = useConvocatorias();
   const [selectedConvocatoria, setSelectedConvocatoria] = useState('');
   const [costoGeneral, setCostoGeneral] = useState('');
   const [costoActual, setCostoActual] = useState(null);
@@ -70,39 +79,35 @@ export default function AsignarCostoGeneralPage({ convocatorias, onCostoAsignado
     <div className="bg-white rounded-lg shadow-lg p-8 mt-8">
       <h2 className="text-2xl font-bold mb-6">Asignar Costo General a Áreas</h2>
       <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-2">Seleccionar Convocatoria</label>
-          <select
-            value={selectedConvocatoria}
-            onChange={handleConvocatoriaChange}
-            className="w-full border border-gray-300 rounded-lg px-4 py-2"
-            required
-          >
-            <option value="">-- Seleccione una convocatoria --</option>
-            {(convocatorias || []).map(convocatoria => (
-              <option key={convocatoria.id_convocatoria} value={convocatoria.id_convocatoria}>
-                {convocatoria.nombre}
-              </option>
-            ))}
-          </select>
-        </div>
+        <FormSelect
+          label="Seleccionar Convocatoria"
+          value={selectedConvocatoria}
+          onChange={handleConvocatoriaChange}
+          required
+          error={error && !selectedConvocatoria ? error : ''}
+          disabled={loadingConvocatorias}
+        >
+          <option value="">-- Seleccione una convocatoria --</option>
+          {(convocatorias || []).map(convocatoria => (
+            <option key={convocatoria.id_convocatoria} value={convocatoria.id_convocatoria}>
+              {convocatoria.nombre}
+            </option>
+          ))}
+        </FormSelect>
         {mensajeCosto && <div className="mb-2 text-sm text-gray-500">{mensajeCosto}</div>}
         {costoActual !== null && (
           <div className="mb-2 text-sm text-blue-700">Costo actual: <b>{costoActual}</b></div>
         )}
-        <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-2">Costo General</label>
-          <input
-            type="number"
-            value={costoGeneral}
-            onChange={e => setCostoGeneral(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-4 py-2"
-            min="0"
-            step="0.01"
-            required
-          />
-        </div>
-        {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+        <FormInput
+          label="Costo General"
+          type="number"
+          value={costoGeneral}
+          onChange={e => setCostoGeneral(e.target.value)}
+          min="0"
+          step="0.01"
+          required
+          error={error && selectedConvocatoria ? error : ''}
+        />
         <div className="flex justify-end mt-8">
           <button
             type="submit"

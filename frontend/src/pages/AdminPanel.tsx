@@ -45,7 +45,7 @@ export default function AdminPanel() {
       {/* Sidebar */}
       <aside className="w-64 bg-white border-r shadow-sm hidden md:flex flex-col">
         <div className="h-20 flex items-center justify-center border-b">
-          <span className="text-2xl font-bold text-blue-700">Admin Dashboard</span>
+          <span className="text-2xl font-bold text-blue-700">Administrador</span>
         </div>
         <nav className="flex-1 py-6">
           <ul className="space-y-2">
