@@ -1,0 +1,251 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { getConvocatoriasActivas, crearConvocatoria } from '../api/adminConvocatoriaApi';
+import CrearConvocatoriaForm from '../components/CrearConvocatoriaForm';
+import { CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/react/24/solid';
+
+function formatNombre(str) {
+  if (!str) return '';
+  const s = str.normalize('NFC').trim();
+  return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+}
+
+export default function ConvocatoriasPage() {
+  const [convocatorias, setConvocatorias] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showCrearConvocatoriaForm, setShowCrearConvocatoriaForm] = useState(false);
+  const [formDataConvocatoria, setFormDataConvocatoria] = useState({
+    nombre: '',
+    fecha_inicio_inscripcion: '',
+    fecha_fin_inscripcion: '',
+    max_areas_por_estudiante: 2,
+    estado: 'planificada',
+  });
+  const [formErrors, setFormErrors] = useState({
+    nombre: '',
+    fecha_inicio_inscripcion: '',
+    fecha_fin_inscripcion: '',
+    general: ''
+  });
+  const [toast, setToast] = useState({ show: false, type: '', message: '' });
+  const toastTimeout = useRef(null);
+  const showToast = (type, message) => {
+    setToast({ show: true, type, message });
+    if (toastTimeout.current) clearTimeout(toastTimeout.current);
+    toastTimeout.current = setTimeout(() => setToast({ show: false, type: '', message: '' }), 3000);
+  };
+
+  useEffect(() => {
+    fetchConvocatorias();
+  }, []);
+
+  const fetchConvocatorias = async () => {
+    setIsLoading(true);
+    try {
+      const data = await getConvocatoriasActivas();
+      setConvocatorias(Array.isArray(data) ? data : []);
+    } catch (error) {
+      showToast('error', 'Error al cargar las convocatorias.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleInputChangeConvocatoria = (e) => {
+    const { name, value } = e.target;
+    let newValue = value;
+    if (name === 'nombre') {
+      newValue = formatNombre(value);
+    }
+    setFormErrors(prev => ({ ...prev, [name]: '' }));
+    setFormDataConvocatoria({
+      ...formDataConvocatoria,
+      [name]: newValue,
+    });
+  };
+
+  const validarFormularioConvocatoria = () => {
+    const errores = {
+      nombre: '',
+      fecha_inicio_inscripcion: '',
+      fecha_fin_inscripcion: '',
+      general: ''
+    };
+    let esValido = true;
+    const nombreActual = formDataConvocatoria.nombre.normalize('NFC').trim();
+    const nombreDuplicado = convocatorias.some(
+      convocatoria => (convocatoria.nombre || '').normalize('NFC').trim() === nombreActual
+    );
+    if (nombreDuplicado) {
+      errores.nombre = "Ya existe una convocatoria con este nombre (incluyendo acentos y mayúsculas).";
+      esValido = false;
+    }
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    const [yearInicio, monthInicio, dayInicio] = formDataConvocatoria.fecha_inicio_inscripcion.split('-').map(Number);
+    const [yearFin, monthFin, dayFin] = formDataConvocatoria.fecha_fin_inscripcion.split('-').map(Number);
+    const fechaInicio = new Date(yearInicio, monthInicio - 1, dayInicio, 0, 0, 0, 0);
+    const fechaFin = new Date(yearFin, monthFin - 1, dayFin, 0, 0, 0, 0);
+    const hoyString = hoy.toDateString();
+    const inicioString = fechaInicio.toDateString();
+    if (fechaInicio < hoy && inicioString !== hoyString) {
+      errores.fecha_inicio_inscripcion = "La fecha de inicio no puede ser anterior a la fecha actual";
+      esValido = false;
+    }
+    if (fechaFin < hoy && fechaFin.toDateString() !== hoyString) {
+      errores.fecha_fin_inscripcion = "La fecha de fin no puede ser anterior a la fecha actual";
+      esValido = false;
+    }
+    if (fechaInicio > fechaFin) {
+      errores.fecha_fin_inscripcion = "La fecha de fin debe ser igual o posterior a la fecha de inicio";
+      esValido = false;
+    }
+    setFormErrors(errores);
+    return esValido;
+  };
+
+  const handleCrearConvocatoria = async (e) => {
+    e.preventDefault();
+    setFormErrors({
+      nombre: '',
+      fecha_inicio_inscripcion: '',
+      fecha_fin_inscripcion: '',
+      general: ''
+    });
+    if (!formDataConvocatoria.nombre || 
+        !formDataConvocatoria.fecha_inicio_inscripcion || 
+        !formDataConvocatoria.fecha_fin_inscripcion) {
+      setFormErrors(prev => ({...prev, general: 'Por favor complete todos los campos requeridos'}));
+      return;
+    }
+    if (!validarFormularioConvocatoria()) {
+      return;
+    }
+    setIsLoading(true);
+    try {
+      await crearConvocatoria(formDataConvocatoria);
+      showToast('success', 'Convocatoria creada exitosamente');
+      setFormDataConvocatoria({
+        nombre: '',
+        fecha_inicio_inscripcion: '',
+        fecha_fin_inscripcion: '',
+        max_areas_por_estudiante: 2,
+        estado: 'planificada',
+      });
+      setShowCrearConvocatoriaForm(false);
+      fetchConvocatorias();
+    } catch (error) {
+      if (error.response && error.response.data && error.response.data.message) {
+        setFormErrors(prev => ({...prev, general: `Error: ${error.response.data.message}`}));
+      } else {
+        setFormErrors(prev => ({...prev, general: 'Error al crear la convocatoria. Por favor, inténtelo de nuevo.'}));
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <h1 className="text-3xl font-bold text-gray-900">Gestión de Convocatorias</h1>
+        <button
+          onClick={() => setShowCrearConvocatoriaForm(!showCrearConvocatoriaForm)}
+          className={`px-4 py-2 rounded-md font-medium transition ${
+            showCrearConvocatoriaForm
+              ? 'bg-red-500 hover:bg-red-600 text-white'
+              : 'bg-blue-600 hover:bg-blue-700 text-white'
+          }`}
+        >
+          {showCrearConvocatoriaForm ? 'Cancelar' : 'Crear Convocatoria'}
+        </button>
+      </div>
+      {showCrearConvocatoriaForm && (
+        <CrearConvocatoriaForm
+          formData={formDataConvocatoria}
+          formErrors={formErrors}
+          isLoading={isLoading}
+          onChange={handleInputChangeConvocatoria}
+          onSubmit={handleCrearConvocatoria}
+        />
+      )}
+      <div className="bg-white rounded-lg shadow-lg p-8 mt-8">
+        <h2 className="text-2xl font-bold mb-6">Convocatorias Existentes</h2>
+        {isLoading ? (
+          <div className="flex justify-center items-center h-40">
+            <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
+          </div>
+        ) : convocatorias.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-gray-500">No hay convocatorias disponibles.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fechas</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Áreas</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {convocatorias.map((convocatoria) => (
+                  <tr key={convocatoria.id_convocatoria}>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">{convocatoria.nombre}</div>
+                      <div className="text-xs text-gray-500">Máx. {convocatoria.max_areas_por_estudiante} áreas</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        Del {new Date(convocatoria.fecha_inicio_inscripcion).toLocaleDateString()}
+                      </div>
+                      <div className="text-sm text-gray-900">
+                        al {new Date(convocatoria.fecha_fin_inscripcion).toLocaleDateString()}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                        ${convocatoria.estado === 'abierta' ? 'bg-green-100 text-green-800' : 
+                          convocatoria.estado === 'cerrada' ? 'bg-red-100 text-red-800' : 
+                          convocatoria.estado === 'finalizada' ? 'bg-gray-100 text-gray-800' : 
+                          'bg-blue-100 text-blue-800'}`}>
+                        {convocatoria.estado.charAt(0).toUpperCase() + convocatoria.estado.slice(1)}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      {convocatoria.areas && convocatoria.areas.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {convocatoria.areas.map((areaItem) => (
+                            <span 
+                              key={`area-${convocatoria.id_convocatoria}-${areaItem.id_area}`}
+                              className="inline-block bg-blue-50 text-blue-700 px-2 py-1 rounded-full text-xs"
+                            >
+                              {areaItem.area ? areaItem.area.nombre_area : `Área ${areaItem.id_area}`}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-xs text-gray-500">Sin áreas asignadas</div>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+      {toast.show && (
+        <div className={`fixed top-6 right-6 z-50 px-6 py-3 rounded shadow-lg flex items-center gap-3 text-white transition-all animate-fade-in-down
+          ${toast.type === 'success' ? 'bg-green-600' : toast.type === 'error' ? 'bg-red-600' : 'bg-yellow-500'}`}
+        >
+          {toast.type === 'success' && <CheckCircleIcon className="w-6 h-6" />}
+          {toast.type === 'error' && <ExclamationCircleIcon className="w-6 h-6" />}
+          {toast.type === 'warning' && <ExclamationCircleIcon className="w-6 h-6" />}
+          <span className="font-medium">{toast.message}</span>
+        </div>
+      )}
+    </div>
+  );
+}
