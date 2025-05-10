@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { getEstudiantesPorConvocatoria } from '../api/reportesApi';
 import { getConvocatoriasActivas } from '../api/adminConvocatoriaApi';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import * as XLSX from 'xlsx';
 
 interface Convocatoria {
   id: number;
@@ -57,10 +60,35 @@ export default function ReporteConvocatoria() {
     }
   }, [selectedConvocatoria]);
 
+  // Exportar a PDF
+  const handleExportPDF = async () => {
+    const table = document.getElementById('tabla-estudiantes');
+    if (!table) return;
+    const canvas = await html2canvas(table);
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    // const pageHeight = pdf.internal.pageSize.getHeight(); // Eliminado porque no se usa
+    const imgProps = pdf.getImageProperties(imgData);
+    const pdfWidth = pageWidth - 40;
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+    pdf.addImage(imgData, 'PNG', 20, 20, pdfWidth, pdfHeight);
+    pdf.save('reporte_estudiantes_convocatoria.pdf');
+  };
+
+  // Exportar a Excel
+  const handleExportExcel = () => {
+    if (estudiantes.length === 0) return;
+    const ws = XLSX.utils.json_to_sheet(estudiantes);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Estudiantes');
+    XLSX.writeFile(wb, 'reporte_estudiantes_convocatoria.xlsx');
+  };
+
   return (
     <div>
       <h2 className="text-xl font-bold mb-4">Estudiantes Inscritos por Convocatoria</h2>
-      <div className="mb-4">
+      <div className="mb-4 flex flex-wrap gap-2 items-center">
         <label className="font-medium mr-2">Convocatoria:</label>
         <select
           className="border rounded px-3 py-2"
@@ -74,12 +102,30 @@ export default function ReporteConvocatoria() {
             </option>
           ))}
         </select>
+        {estudiantes.length > 0 && (
+          <>
+            <button
+              className="ml-2 px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+              onClick={handleExportPDF}
+              type="button"
+            >
+              Exportar PDF
+            </button>
+            <button
+              className="ml-2 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+              onClick={handleExportExcel}
+              type="button"
+            >
+              Exportar Excel
+            </button>
+          </>
+        )}
       </div>
       {loading && <div>Cargando...</div>}
       {error && <div className="text-red-600">{error}</div>}
       {estudiantes.length > 0 && (
         <div className="overflow-x-auto">
-          <table className="min-w-full border text-xs md:text-sm">
+          <table id="tabla-estudiantes" className="min-w-full border text-xs md:text-sm">
             <thead>
               <tr className="bg-gray-100">
                 <th className="border px-2 py-1">Nombres</th>
