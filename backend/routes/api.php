@@ -134,4 +134,7 @@ Route::prefix('v1')->group(function () {
 
     // Endpoint para asignar costo general a todas las áreas de una convocatoria
     Route::post('/admin/convocatorias/{idConvocatoria}/set-costo-general', [ConvocatoriaAreaController::class, 'setCostoGeneral']);
+
+    // Reportes
+    Route::get('/reportes/estudiantes-por-convocatoria', [\App\Http\Controllers\Api\ReporteEstudiantesConvocatoriaController::class, 'index']);
 });

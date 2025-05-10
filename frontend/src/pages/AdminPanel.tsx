@@ -5,6 +5,7 @@ import AsignarAreasPage from './AsignarAreasPage';
 import ConfigurarNivelesPage from './ConfigurarNivelesPage';
 import CrearNivelPage from './CrearNivelPage';
 import AsignarCostoGeneralPage from './AsignarCostoGeneralPage';
+import ReportesPage from './ReportesPage';
 
 function DashboardHome() {
   // Aquí podrías traer métricas/resúmenes del backend
@@ -37,6 +38,7 @@ const navItems = [
   { path: 'niveles', label: 'Configurar Niveles', icon: '🏷️' },
   { path: 'crear-nivel', label: 'Crear Nivel', icon: '➕' },
   { path: 'costos', label: 'Costo General', icon: '💲' },
+  { path: 'reportes', label: 'Reportes', icon: '📊' },
 ];
 
 export default function AdminPanel() {
@@ -77,6 +79,7 @@ export default function AdminPanel() {
           <Route path="niveles" element={<ConfigurarNivelesPage />} />
           <Route path="crear-nivel" element={<CrearNivelPage />} />
           <Route path="costos" element={<AsignarCostoGeneralPage />} />
+          <Route path="reportes/*" element={<ReportesPage />} />
           <Route path="*" element={<Navigate to="" replace />} />
         </Routes>
       </main>
