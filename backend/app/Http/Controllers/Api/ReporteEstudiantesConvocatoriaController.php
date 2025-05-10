@@ -65,4 +65,72 @@ class ReporteEstudiantesConvocatoriaController extends Controller
             'estudiantes' => $estudiantes
         ]);
     }
+
+    /**
+     * Devuelve el total de estudiantes inscritos por área para una convocatoria
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function inscritosPorArea(Request $request): JsonResponse
+    {
+        $convocatoriaId = $request->query('convocatoria_id');
+        if (!$convocatoriaId) {
+            return response()->json(['error' => 'convocatoria_id es requerido'], 422);
+        }
+
+        $convocatoria = \App\Models\Convocatoria::find($convocatoriaId);
+        if (!$convocatoria) {
+            return response()->json(['error' => 'Convocatoria no encontrada'], 404);
+        }
+
+        // Obtener los datos agrupados por área y los estudiantes de cada área
+        $areas = \DB::table('inscripciones')
+            ->join('estudiantes', 'inscripciones.id_estudiante', '=', 'estudiantes.id_estudiante')
+            ->join('convocatoria_niveles', 'inscripciones.id_convocatoria_nivel', '=', 'convocatoria_niveles.id_convocatoria_nivel')
+            ->join('convocatoria_areas', 'convocatoria_niveles.id_convocatoria_area', '=', 'convocatoria_areas.id_convocatoria_area')
+            ->join('areas_competencia', 'convocatoria_areas.id_area', '=', 'areas_competencia.id_area')
+            ->where('convocatoria_areas.id_convocatoria', $convocatoriaId)
+            ->select(
+                'areas_competencia.nombre_area',
+                'estudiantes.nombres',
+                'estudiantes.apellidos',
+                'estudiantes.ci',
+                'estudiantes.email',
+                'estudiantes.fecha_nacimiento'
+            )
+            ->orderBy('areas_competencia.nombre_area')
+            ->orderBy('estudiantes.apellidos')
+            ->orderBy('estudiantes.nombres')
+            ->get();
+
+        // Agrupar estudiantes por área
+        $reporte = [];
+        foreach ($areas as $row) {
+            $area = $row->nombre_area;
+            if (!isset($reporte[$area])) {
+                $reporte[$area] = [
+                    'nombre_area' => $area,
+                    'total_inscritos' => 0,
+                    'estudiantes' => []
+                ];
+            }
+            $reporte[$area]['total_inscritos']++;
+            $reporte[$area]['estudiantes'][] = [
+                'nombres' => $row->nombres,
+                'apellidos' => $row->apellidos,
+                'ci' => $row->ci,
+                'email' => $row->email,
+                'fecha_nacimiento' => $row->fecha_nacimiento
+            ];
+        }
+        $reporte = array_values($reporte);
+
+        return response()->json([
+            'convocatoria' => [
+                'id' => $convocatoria->id_convocatoria,
+                'nombre' => $convocatoria->nombre,
+            ],
+            'reporte' => $reporte
+        ]);
+    }
 }
