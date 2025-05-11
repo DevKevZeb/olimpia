@@ -6,6 +6,7 @@ import Registration from './pages/Registration';
 import AdminPanel from './pages/AdminPanel';
 import CamposObligatorios from './pages/CamposObligatorios';
 import RegistroExcel from './pages/RegistroExcel';
+import Reportes from './pages/ReportesConvocatoria';
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
           <Route path="/admin" element={<AdminPanel />} />
           <Route path="/camposobligatorios" element={<CamposObligatorios />} />
           <Route path="/registroexcel" element={<RegistroExcel />} />
+          <Route path="/reportes" element={<Reportes />} />
         </Routes>
       </Layout>
     </Router>

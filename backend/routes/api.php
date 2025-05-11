@@ -25,6 +25,7 @@ use App\Http\Controllers\Api\AdminConvocatoriaController;
 use App\Http\Controllers\Api\RequisitoConvocatoriaController;
 use App\Http\Controllers\Api\ExcelController;
 use App\Http\Controllers\Api\BuscarConvocatoriaNivelController;
+use App\Http\Controllers\Api\ReportesInscripcion;
 
 /*
 |--------------------------------------------------------------------------
@@ -134,4 +135,7 @@ Route::prefix('v1')->group(function () {
 
     // Endpoint para asignar costo general a todas las áreas de una convocatoria
     Route::post('/admin/convocatorias/{idConvocatoria}/set-costo-general', [ConvocatoriaAreaController::class, 'setCostoGeneral']);
+
+    //Obtener repotes
+    Route::get('/reportes/{campo}/{id}', [ReportesInscripcion::class, 'GetReporte']);
 });

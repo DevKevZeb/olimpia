@@ -90,7 +90,7 @@ class InscripcionCompletaController extends ApiController
             'id_convocatoria' => 'required|string',
             'codigo_unico' => 'required|string',
             'encargado_pago' => 'required|array'
-    ]);
+        ]);
 
         Log::info("esto nos llega" . json_encode($request->all()));
         if ($validator->fails()) {
