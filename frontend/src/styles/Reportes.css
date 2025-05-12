@@ -1,10 +1,15 @@
+.reporte-convocatoria {
+    padding: 20px;
+    max-width: 1100px;
+    margin: 0 auto;
+    font-family: 'Segoe UI', sans-serif;
+}
+
 .reporteTableContainer {
-    width: 100%;                /* Ocupa todo el ancho disponible */
-    overflow-x: auto;           /* Permite scroll horizontal */
-    overflow-y: auto;
+    width: 100%;
+    overflow-x: auto;
     max-height: 500px;
-    border-radius: 8px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    margin-top: 16px;
 }
 
 /* La tabla tiene un ancho grande fijo */

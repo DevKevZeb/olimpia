@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import Registration from './pages/Registration';
@@ -15,10 +15,11 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/inscripcion" element={<Registration />} />
-          <Route path="/admin" element={<AdminPanel />} />
+          <Route path="/admin/*" element={<AdminPanel />} />
           <Route path="/camposobligatorios" element={<CamposObligatorios />} />
           <Route path="/registroexcel" element={<RegistroExcel />} />
           <Route path="/reportes" element={<Reportes />} />
+          <Route path="*" element={<Navigate to="/admin/convocatorias" replace />} />
         </Routes>
       </Layout>
     </Router>

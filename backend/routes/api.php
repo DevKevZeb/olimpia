@@ -138,4 +138,7 @@ Route::prefix('v1')->group(function () {
 
     //Obtener repotes
     Route::get('/reportes/{campo}/{id}', [ReportesInscripcion::class, 'GetReporte']);
+    // Reportes
+    Route::get('/reportes/estudiantes-por-convocatoria', [\App\Http\Controllers\Api\ReporteEstudiantesConvocatoriaController::class, 'index']);
+    Route::get('/reportes/inscritos-por-area', [\App\Http\Controllers\Api\ReporteEstudiantesConvocatoriaController::class, 'inscritosPorArea']);
 });

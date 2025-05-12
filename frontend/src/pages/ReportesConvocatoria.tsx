@@ -335,7 +335,7 @@ const ReportesView = () => {
                                         <TableContainer
                                             component={Paper}
                                             className="reporteTableContainer"
-                                            sx={{ width: '100%', overflowX: 'auto', maxHeight: '500px', mt: 4 }}
+                                            sx={{ width: '100%', overflowX: 'auto', maxHeight: '400px', mt: 4 }}
                                         >
                                             <Table stickyHeader>
                                                 <TableHead>
