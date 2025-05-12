@@ -39,7 +39,7 @@ const navItems = [
   { path: 'niveles', label: 'Configurar Niveles', icon: '🏷️' },
   { path: 'crear-nivel', label: 'Crear Nivel', icon: '➕' },
   { path: 'costos', label: 'Costo General', icon: '💲' },
-  { path: 'camposobligatorios', label: 'Campos Obligatorios', icon: '☺' },
+  { path: 'camposobligatorios', label: 'Campos Obligatorios', icon: '📝' },
   { path: 'reportes', label: 'Reportes', icon: '📊' },
 ];
 

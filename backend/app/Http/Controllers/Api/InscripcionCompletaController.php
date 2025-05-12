@@ -205,7 +205,7 @@ class InscripcionCompletaController extends ApiController
 
                     if ($unidadEducativaDepartamento !== "" && $unidadEducativaProvincia !== "") {
                         $unidadEducativa = UnidadEducativa::create([
-                            'nombre' => 'Colegio No Especificado',
+                            'nombre' => $nombreParaGuardar,
                             'departamento' => $departamentoParaGuardar,
                             'provincia' => $provinciaParaGuardar,
                         ]);
@@ -523,7 +523,7 @@ class InscripcionCompletaController extends ApiController
 
                 if ($unidadEducativaDepartamento !== "" && $unidadEducativaProvincia !== "") {
                     $unidadEducativa = UnidadEducativa::create([
-                        'nombre' => 'Colegio No Especificado',
+                        'nombre' => $nombreParaGuardar,
                         'departamento' => $departamentoParaGuardar,
                         'provincia' => $provinciaParaGuardar,
                     ]);
