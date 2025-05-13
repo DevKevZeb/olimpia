@@ -60,16 +60,10 @@ class ReportesInscripcion extends ApiController
                     // Buscar la orden de pago asociada a la lista de inscripción
                     $ordenPago = OrdenPago::where('id_lista', $inscripcion->id_lista)->first();
 
-                    $estadoInscripcion = 'Pendiente de Pago'; // Estado por defecto
+                    $estadoInscripcion = 'Pendiente'; // Estado por defecto
 
                     if ($ordenPago) {
-                        // Aquí puedes definir los estados que consideras como "inscrito"
-                        if ($ordenPago->estado === 'Pagado' || $ordenPago->estado === 'Activo') {
-                            $estadoInscripcion = 'Inscrito';
-                        } else if ($ordenPago->estado === 'Vencido') {
-                            $estadoInscripcion = 'Pago Vencido';
-                        }
-                        // Puedes agregar más condiciones según los posibles estados de tu orden de pago
+                        $estadoInscripcion = $ordenPago->estado;
                     }
 
                     $resultados[] = [
