@@ -270,7 +270,7 @@ class InscripcionCompletaController extends ApiController
                     $estudianteProvincia = 'No Especificado'; // Tu valor genérico
                 }
 
-                $estudianteGenero = $inscripcion['nombres'] ?? '';
+                $estudianteGenero = $inscripcion['genero'] ?? '';
                 if ($estudianteGenero === "") {
                     $estudianteGenero = 'No Especificado'; // Tu valor genérico
                 }
