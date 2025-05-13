@@ -9,6 +9,43 @@ import { RequisitoConvocatoria } from '../types/RequisitoConvocatoria';
 import { fetchRequisitosConvocatoria } from '../api/requisitoConvocatoria';
 import DescargarBoleta from '../components/DescargarBoleta';
 
+// Tipos para la orden y comprobante
+interface ComprobantePago {
+  id: number;
+  numero_comprobante: string;
+  nombre_pagador: string;
+  fecha_pago: string;
+  monto_pagado: number;
+  datos_ocr?: {
+    nombre?: string;
+    numero_comprobante?: string;
+    fecha?: string;
+    monto?: number;
+    [key: string]: any;
+  };
+  estado_verificacion: string;
+}
+
+interface OrdenInfo {
+  orden: {
+    id: number;
+    codigo_unico: string;
+    monto_total: number;
+    fecha_emision: string;
+    fecha_vencimiento: string;
+    estado: string;
+    tipo_origen: string;
+    [key: string]: any;
+  };
+  estudiante?: {
+    nombre_completo: string;
+    ci: string;
+  };
+  unidad_educativa?: string;
+  estudiantes_count?: number;
+  comprobantes?: ComprobantePago[];
+  [key: string]: any;
+}
 
 export default function Registration() {
   // Estados originales para verificación de código
@@ -21,7 +58,7 @@ export default function Registration() {
   const [encargadoCorreo, setVencargadoCorreo] = useState('');
   const [isVerified, setIsVerified] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
-  const [ordenInfo, setOrdenInfo] = useState(null); 
+  const [ordenInfo, setOrdenInfo] = useState<OrdenInfo | null>(null); 
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
@@ -141,6 +178,13 @@ export default function Registration() {
   // Estado para el modal de la boleta de pago
   const [isBoletaModalOpen, setIsBoletaModalOpen] = useState(false);
 
+  // Estado para el modal de detalles del comprobante
+  const [isComprobanteModalOpen, setIsComprobanteModalOpen] = useState(false);
+  const [comprobanteDetails, setComprobanteDetails] = useState<ComprobantePago['datos_ocr'] | null>(null);
+
+  // Función para abrir el modal de detalles del comprobante
+  // Eliminar la función openComprobanteModal si ya no se usa
+  // const openComprobanteModal = () => { ... }
   // Función para abrir el modal con los detalles de un estudiante específico
   const openStudentDetailsModal = (estudiante: EstudianteFormData) => {
     setSelectedStudentDetails(estudiante);
@@ -565,17 +609,8 @@ export default function Registration() {
   };
 
   // Función para reiniciar el proceso
-  const resetVerification = () => {
-    setVerificationCode('');
-    setIsVerified(false);
-    setOrdenInfo(null);
-    setSelectedFile(null);
-    setUploadProgress(0);
-    setIsUploading(false);
-    setUploadComplete(false);
-    setErrorMessage('');
-  };
-
+  // Eliminar la función resetVerification si ya no se usa
+  // const resetVerification = () => { ... }
   // Función para manejar la selección de áreas
   const handleAreaSelect = (areaNivel) => {
     // Verificar si ya está seleccionada
@@ -1140,6 +1175,57 @@ export default function Registration() {
     setStep(1);
   };
 
+  // Función para limpiar el estado y permitir nueva inscripción tras éxito
+  const handleNuevaInscripcion = () => {
+    setIsVerified(false);
+    setUploadComplete(false);
+    setSelectedFile(null);
+    setUploadProgress(0);
+    setOrdenInfo(null);
+    setVerificationCode('');
+    setErrorMessage('');
+    setFormErrorMessage('');
+    setStep(1);
+    // Limpiar datos de encargado si aplica
+    setencargadoApellido('');
+    setencargadoNombre('');
+    setencargadoCI('');
+    setVencargadoCorreo('');
+    // Limpiar estudiantes y formulario
+    const newEstudiante = createNewEstudiante();
+    setEstudiantes([newEstudiante]);
+    setActiveStudentIndex(0);
+    setFormData({
+      nombres: '',
+      apellidos: '',
+      ci: '',
+      fecha_nacimiento: '',
+      email: '',
+      id_grado: '',
+      unidad_educativa: {
+        id_unidad_educativa: null,
+        nombre: '',
+        departamento: '',
+        provincia: '',
+      },
+      tutor_legal: {
+        nombres: '',
+        apellidos: '',
+        ci: '',
+        telefono: '',
+        email: '',
+        parentesco: '',
+        es_el_mismo_estudiante: false,
+      },
+      id_convocatoria: convocatoria ? convocatoria.id : '',
+      areas_seleccionadas: [],
+      tutores_academicos: [],
+    });
+    setSelectedAreas([]);
+    setCostoTotal(0);
+    setCostoTotalGeneral(0);
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="bg-white rounded-lg shadow-lg  p-8">
@@ -1322,19 +1408,13 @@ export default function Registration() {
                   <p className="text-blue-700 text-sm mb-4">
                     Su comprobante de pago ha sido recibido y su inscripción ha sido completada. Recibirá un correo electrónico con todos los detalles de su inscripción.
                   </p>
-                  <div className="flex justify-between">
-                    <button
-                      onClick={resetVerification}
-                      type="button"
-                      className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                    >
-                      Realizar otra inscripción
-                    </button>
+                  <div className="flex justify-end">
                     <button
                       type="button"
                       className="bg-blue-600 text-white px-4 py-1 text-sm rounded hover:bg-blue-700"
+                      onClick={handleNuevaInscripcion}
                     >
-                      Ver detalles
+                      Aceptar
                     </button>
                   </div>
                 </div>
@@ -2600,6 +2680,60 @@ export default function Registration() {
                   </button>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de detalles del comprobante */}
+      {isComprobanteModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 relative">
+            <button
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+              onClick={() => setIsComprobanteModalOpen(false)}
+            >
+              <X size={20} />
+            </button>
+            <h3 className="text-lg font-semibold mb-4">Detalles del Comprobante de Pago</h3>
+            {comprobanteDetails ? (
+              <>
+                <div className="space-y-2">
+                  <div>
+                    <span className="font-medium">Nombre del pagador:</span> {comprobanteDetails.nombre ? comprobanteDetails.nombre : <span className="text-red-500">No extraído</span>}
+                  </div>
+                  <div>
+                    <span className="font-medium">Número de comprobante:</span> {comprobanteDetails.numero_comprobante ? comprobanteDetails.numero_comprobante : <span className="text-red-500">No extraído</span>}
+                  </div>
+                  <div>
+                    <span className="font-medium">Fecha de pago:</span> {comprobanteDetails.fecha ? comprobanteDetails.fecha : <span className="text-red-500">No extraído</span>}
+                  </div>
+                  <div>
+                    <span className="font-medium">Monto pagado:</span> {comprobanteDetails.monto !== undefined && comprobanteDetails.monto !== null ? comprobanteDetails.monto : (ordenInfo?.orden?.monto_total ?? <span className="text-red-500">No extraído</span>)} Bs.
+                  </div>
+                </div>
+                {(!comprobanteDetails.nombre || !comprobanteDetails.numero_comprobante) && (
+                  <div className="mt-4 p-3 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 text-sm rounded">
+                    <b>Advertencia:</b> No se pudo extraer correctamente el nombre del pagador o el número de comprobante. Por favor, verifique que el comprobante sea legible y válido.
+                  </div>
+                )}
+                {comprobanteDetails.ocr_text && (
+                  <details className="mt-3">
+                    <summary className="cursor-pointer text-blue-600 underline">Ver texto OCR crudo</summary>
+                    <pre className="bg-gray-100 p-2 rounded text-xs mt-1 max-h-40 overflow-auto">{comprobanteDetails.ocr_text}</pre>
+                  </details>
+                )}
+              </>
+            ) : (
+              <p>No se encontraron detalles del comprobante.</p>
+            )}
+            <div className="flex justify-end mt-6">
+              <button
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                onClick={() => setIsComprobanteModalOpen(false)}
+              >
+                Cerrar
+              </button>
             </div>
           </div>
         </div>

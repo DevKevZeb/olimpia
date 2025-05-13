@@ -246,12 +246,14 @@ class ComprobantePagoController extends ApiController
                 'fecha_pago' => $fecha ? date('Y-m-d', strtotime(str_replace('/', '-', $fecha))) : now(),
                 'monto_pagado' => $orden->monto_total,
                 'pdf_comprobante' => $filePath,
-                'datos_ocr' => json_encode([
+                // Guardar datos_ocr como array asociativo, no como string JSON
+                'datos_ocr' => [
                     'ocr_text' => $ocrText,
                     'nombre' => $nombre,
                     'numero_comprobante' => $numero,
-                    'fecha' => $fecha
-                ]),
+                    'fecha' => $fecha,
+                    'monto' => $orden->monto_total
+                ],
                 'estado_verificacion' => 'pendiente',
             ]);
             $orden->update(['estado' => 'pagada']);
