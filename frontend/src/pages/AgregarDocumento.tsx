@@ -136,6 +136,7 @@ const AgregarDocumento: React.FC = () => {
                     setArchivo(file);
                   }}
                 />
+                <p>Si el área ya tenia un anexo asignado, este será reemplazado</p>
               </DialogContent>
               <DialogActions>
                 <Button onClick={() => setModalAbierto(null)}>Cancelar</Button>
