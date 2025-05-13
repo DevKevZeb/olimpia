@@ -26,6 +26,10 @@ use App\Http\Controllers\Api\RequisitoConvocatoriaController;
 use App\Http\Controllers\Api\ExcelController;
 use App\Http\Controllers\Api\BuscarConvocatoriaNivelController;
 use App\Http\Controllers\Api\ReportesInscripcion;
+use App\Http\Controllers\Api\AmpliarFechaController;
+use App\Http\Controllers\Api\AreaController;
+use App\Http\Controllers\Api\EstadoInscripcionController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -37,6 +41,12 @@ use App\Http\Controllers\Api\ReportesInscripcion;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
+Route::get('/estado-inscripcion/{ci}', [EstadoInscripcionController::class, 'show']);
+Route::post('/areas', [AreaController::class, 'store']);
+Route::get('/areas', [AreaController::class, 'index']);
+
+Route::get('/convocatorias', [AmpliarFechaController::class, 'index']);
+Route::put('/convocatorias/{id}/ampliar-fecha', [AmpliarFechaController::class, 'actualizarFecha']);
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();

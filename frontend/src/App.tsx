@@ -7,6 +7,7 @@ import AdminPanel from './pages/AdminPanel';
 import CamposObligatorios from './pages/CamposObligatorios';
 import RegistroExcel from './pages/RegistroExcel';
 import Reportes from './pages/ReportesConvocatoria';
+import EstadoInscripcion from './pages/EstadoInscripcion';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Route path="/camposobligatorios" element={<CamposObligatorios />} />
           <Route path="/registroexcel" element={<RegistroExcel />} />
           <Route path="/reportes" element={<Reportes />} />
+          <Route path="/estado-inscripcion" element={<EstadoInscripcion />} />
           <Route path="*" element={<Navigate to="/admin/convocatorias" replace />} />
         </Routes>
       </Layout>

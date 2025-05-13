@@ -7,6 +7,8 @@ import CrearNivelPage from './CrearNivelPage';
 import AsignarCostoGeneralPage from './AsignarCostoGeneralPage';
 import ReportesPage from './ReportesPage';
 import CamposObligatorios from './CamposObligatorios';
+import CrearAreas from './CrearAreas';
+import AmpliarFecha from './AmpliarFecha';
 
 function DashboardHome() {
   // Aquí podrías traer métricas/resúmenes del backend
@@ -35,8 +37,10 @@ function DashboardHome() {
 const navItems = [
   { path: '', label: 'Inicio', icon: '🏠' },
   { path: 'convocatorias', label: 'Convocatorias', icon: '📋' },
+  { path: 'ampliar-fecha', label: 'Ampliar Fecha', icon: '📅➕' },
   { path: 'areas', label: 'Asignar Áreas', icon: '🗂️' },
   { path: 'niveles', label: 'Configurar Niveles', icon: '🏷️' },
+  { path: 'crear-area', label: 'Crear Area', icon: '➕' },
   { path: 'crear-nivel', label: 'Crear Nivel', icon: '➕' },
   { path: 'costos', label: 'Costo General', icon: '💲' },
   { path: 'camposobligatorios', label: 'Campos Obligatorios', icon: '📝' },
@@ -77,9 +81,11 @@ export default function AdminPanel() {
         <Routes>
           <Route path="" element={<DashboardHome />} />
           <Route path="convocatorias" element={<ConvocatoriasPage />} />
+          <Route path="ampliar-fecha" element={<AmpliarFecha />} />
           <Route path="areas" element={<AsignarAreasPage />} />
           <Route path="niveles" element={<ConfigurarNivelesPage />} />
           <Route path="crear-nivel" element={<CrearNivelPage />} />
+          <Route path="crear-area" element={<CrearAreas />} />
           <Route path="costos" element={<AsignarCostoGeneralPage />} />
           <Route path="/camposobligatorios" element={<CamposObligatorios />} />
           <Route path="reportes/*" element={<ReportesPage />} />
