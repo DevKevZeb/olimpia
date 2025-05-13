@@ -44,6 +44,7 @@ export default function Home() {
       link.parentNode?.removeChild(link);
       window.URL.revokeObjectURL(link.href);
     } catch (error) {
+      alert("No existe un anexo para esta area aùn");
       console.error('Error downloading the PDF file:', error);
     }
   };
