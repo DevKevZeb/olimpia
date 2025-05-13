@@ -20,6 +20,34 @@ export default function Home() {
     fetchAreas();
   }, []);
 
+
+  const downloadPDF = async (id_area,  area_nombre) => {
+    try {
+   
+      const response = await axios.get(`http://localhost:8000/api/documentos/descargar/${id_area}` ,  {
+      responseType: 'blob', // Ensure binary data is handled correctly
+      });
+  
+      // Create a blob from the response
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+  
+      // Create a temporary download link
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.setAttribute('download', area_nombre + '-anexo.pdf'); // Desired file name
+  
+      // Trigger download
+      document.body.appendChild(link);
+      link.click();
+  
+      // Cleanup
+      link.parentNode?.removeChild(link);
+      window.URL.revokeObjectURL(link.href);
+    } catch (error) {
+      console.error('Error downloading the PDF file:', error);
+    }
+  };
+  
   return (
     <>
       {/* Hero Section (igual que antes) */}
@@ -60,7 +88,7 @@ export default function Home() {
                   <p className="text-gray-600 mb-4">{area.descripcion}</p>
                   <button
                     className="text-blue-600 hover:underline"
-                    onClick={() => alert('Descarga no disponible aún.')}
+                    onClick={() => downloadPDF(area.id_area, area.nombre_area)}
                   >
                     Descargar
                   </button>

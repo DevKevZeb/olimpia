@@ -14,6 +14,8 @@ class AreaCompetencia extends Model
     
     protected $fillable = [
         'nombre_area',
+        'descripcion',
+        'anexo',
     ];
 
     public function nivelesCategoria()

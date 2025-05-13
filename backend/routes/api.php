@@ -51,6 +51,7 @@ Route::post('/areas', [AreaController::class, 'store']);
 Route::get('/areas', [AreaController::class, 'index']);
 Route::get('/convocatorias/{id}/areas', [DocumentoController::class, 'obtenerAreasPorConvocatoria']);
 Route::post('/documentos/subir', [DocumentoController::class, 'subirDocumento']);
+Route::get('/documentos/descargar/{id_area}', [DocumentoController::class, 'descargarDocumento']);
 
 Route::get('/convocatorias', [AmpliarFechaController::class, 'index']);
 Route::put('/convocatorias/{id}/ampliar-fecha', [AmpliarFechaController::class, 'actualizarFecha']);
