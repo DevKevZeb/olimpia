@@ -11,6 +11,7 @@ return new class extends Migration
         Schema::create('areas_competencia', function (Blueprint $table) {
             $table->id('id_area');
             $table->string('nombre_area', 100)->unique();
+            $table->string('descripcion', 200);
             $table->timestamps();
         });
     }
