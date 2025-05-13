@@ -179,19 +179,19 @@ const ReporteConvocatoriaView = () => {
                   <Table stickyHeader>
                     <TableHead>
                       <TableRow>
-                        <TableCell>Estudiante Nombres</TableCell>
-                        <TableCell>Estudiante Apellidos</TableCell>
-                        <TableCell>Estudiante CI</TableCell>
-                        <TableCell>Estudiante Grado</TableCell>
-                        <TableCell>Unidad Educativa</TableCell>
-                        <TableCell>Departamento</TableCell>
-                        <TableCell>Tutor Nombre</TableCell>
-                        <TableCell>Tutor Apellido</TableCell>
-                        <TableCell>Tutor CI</TableCell>
+                        <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Estudiante Nombres</TableCell>
+                        <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Estudiante Apellidos</TableCell>
+                        <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Estudiante CI</TableCell>
+                        <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Estudiante Grado</TableCell>
+                        <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Unidad Educativa</TableCell>
+                        <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Departamento</TableCell>
+                        <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Tutor Nombre</TableCell>
+                        <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Tutor Apellido</TableCell>
+                        <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Tutor CI</TableCell>
                         {Object.keys(reporteData[0]).filter(key =>
                           !['id', 'estudiante', 'created_at', 'updated_at', 'fecha_registro'].includes(key)
                         ).map((header, index) => (
-                          <TableCell key={`extra_header_${index}`}>{header}</TableCell>
+                          <TableCell sx={{ color: 'black', fontWeight: 'bold' }} key={`extra_header_${index}`}>{header}</TableCell>
                         ))}
                       </TableRow>
                     </TableHead>
