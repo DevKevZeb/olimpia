@@ -31,6 +31,11 @@ export default function CrearNivelPage({ onNivelCreado }) {
     }
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.toUpperCase();
+    setNuevoNivel(value);
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-lg p-8 mt-8">
       <h2 className="text-2xl font-bold mb-6">Crear Nuevo Nivel de Categoría</h2>
@@ -39,7 +44,7 @@ export default function CrearNivelPage({ onNivelCreado }) {
           label="Nombre del Nivel"
           type="text"
           value={nuevoNivel}
-          onChange={e => setNuevoNivel(e.target.value)}
+          onChange={handleInputChange}
           maxLength={50}
           required
           error={nivelError}
