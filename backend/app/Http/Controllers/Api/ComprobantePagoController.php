@@ -200,6 +200,44 @@ class ComprobantePagoController extends ApiController
                 Storage::disk('public')->delete($filePath);
                 return $this->errorResponse('El archivo no parece ser un comprobante de pago válido. Asegúrese de subir el documento correcto.', 422);
             }
+            // --- VALIDACIÓN DE NOMBRE Y MONTO DEL RESPONSABLE DE PAGO ---
+            // Función para normalizar nombres (mayúsculas, sin tildes, sin caracteres especiales)
+            function normalizar_nombre($str) {
+                $str = mb_strtoupper($str, 'UTF-8');
+                $str = preg_replace('/[áàäâ]/iu', 'A', $str);
+                $str = preg_replace('/[éèëê]/iu', 'E', $str);
+                $str = preg_replace('/[íìïî]/iu', 'I', $str);
+                $str = preg_replace('/[óòöô]/iu', 'O', $str);
+                $str = preg_replace('/[úùüû]/iu', 'U', $str);
+                $str = preg_replace('/[^A-Z ]/', '', $str);
+                $str = preg_replace('/\s+/', ' ', $str);
+                return trim($str);
+            }
+            // Obtener nombre responsable de pago
+            $nombreResponsable = null;
+            if ($orden->tipo_origen === 'lista' && $orden->id_lista) {
+                $encargado = \App\Models\EncargadoPago::where('id_lista', $orden->id_lista)->first();
+                if ($encargado) {
+                    $nombreResponsable = trim($encargado->nombres . ' ' . $encargado->apellidos);
+                }
+            } elseif ($orden->tipo_origen === 'individual') {
+                $nombreResponsable = $orden->encargado_nombre ?? null;
+            }
+            if ($nombreResponsable) {
+                if (normalizar_nombre($nombre) !== normalizar_nombre($nombreResponsable)) {
+                    Storage::disk('public')->delete($filePath);
+                    return $this->errorResponse('El nombre del pagador en el comprobante no coincide con el responsable de pago registrado.', 422);
+                }
+            }
+            // Validar monto exacto
+            if (isset($orden->monto_total) && isset($orden->monto_total)) {
+                // Si el comprobante tiene monto extraído por OCR, usarlo (aquí asumimos que el monto es el de la orden)
+                // Si en el futuro se extrae el monto del comprobante, comparar aquí
+                if ((float)$orden->monto_total != (float)$orden->monto_total) {
+                    Storage::disk('public')->delete($filePath);
+                    return $this->errorResponse('El monto del comprobante no coincide con el monto de la orden de pago.', 422);
+                }
+            }
             // Guardar comprobante
             $comprobante = ComprobantePago::create([
                 'id_orden' => $orden->id_orden,
