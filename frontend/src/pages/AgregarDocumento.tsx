@@ -144,7 +144,7 @@ const AgregarDocumento: React.FC = () => {
                   onClick={() => handleSubirArchivo(area.id_area)}
                   disabled={!archivo}
                 >
-                  Agregar (pendiente)
+                  Agregar 
                 </Button>
               </DialogActions>
             </Dialog>
