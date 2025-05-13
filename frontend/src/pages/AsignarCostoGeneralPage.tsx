@@ -33,12 +33,16 @@ export default function AsignarCostoGeneralPage({ onCostoAsignado }) {
         }
         const costos = areas.map(a => a.costo_inscripcion);
         const todosNull = costos.every(c => c === null || c === undefined);
+        // Nueva lógica: si todos los costos son 0 (numérico o string)
+        const todosCero = costos.length > 0 && costos.every(c => c === 0 || c === '0' || c === 0.0 || c === '0.00');
         const unicos = Array.from(new Set(costos.filter(c => c !== null && c !== undefined)));
-        if (todosNull) {
+        if (todosNull || todosCero) {
           setMensajeCosto('Esta convocatoria no tiene un costo asignado.');
         } else if (unicos.length === 1) {
           setCostoActual(unicos[0]);
-          setCostoGeneral(unicos[0]);
+          // Asegurar que el valor sea string y entero
+          const val = unicos[0];
+          setCostoGeneral(Number.parseInt(String(val), 10).toString());
         } else {
           setMensajeCosto('Esta convocatoria tiene costos diferentes por área. Puede definir un costo general para unificarlos.');
         }
@@ -55,8 +59,13 @@ export default function AsignarCostoGeneralPage({ onCostoAsignado }) {
       setError('Debe seleccionar una convocatoria');
       return;
     }
-    if (!costoGeneral || isNaN(Number(costoGeneral)) || Number(costoGeneral) <= 0) {
-      setError('Ingrese un costo válido (> 0)');
+    if (!costoGeneral || isNaN(Number(costoGeneral)) || Number(costoGeneral) <= 0 || !Number.isInteger(Number(costoGeneral))) {
+      setError('Ingrese un costo válido (entero positivo > 0)');
+      return;
+    }
+    // Validar si el costo ingresado es igual al actual
+    if (costoActual !== null && Number(costoGeneral) === Number(costoActual)) {
+      setError('Ese costo ya está asignado a todas las áreas.');
       return;
     }
     setIsLoading(true);
@@ -96,15 +105,21 @@ export default function AsignarCostoGeneralPage({ onCostoAsignado }) {
         </FormSelect>
         {mensajeCosto && <div className="mb-2 text-sm text-gray-500">{mensajeCosto}</div>}
         {costoActual !== null && (
-          <div className="mb-2 text-sm text-blue-700">Costo actual: <b>{costoActual}</b></div>
+          <div className="mb-2 text-sm text-blue-700">Costo actual: <b>{parseInt(costoActual, 10)}</b></div>
         )}
         <FormInput
           label="Costo General"
           type="number"
           value={costoGeneral}
-          onChange={e => setCostoGeneral(e.target.value)}
-          min="0"
-          step="0.01"
+          onChange={e => {
+            // Solo permitir números enteros positivos
+            const val = e.target.value;
+            if (/^\d*$/.test(val)) {
+              setCostoGeneral(val);
+            }
+          }}
+          min="1"
+          step="1"
           required
           error={error && selectedConvocatoria ? error : ''}
         />

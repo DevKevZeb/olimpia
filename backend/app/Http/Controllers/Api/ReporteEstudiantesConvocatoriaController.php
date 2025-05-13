@@ -29,9 +29,9 @@ class ReporteEstudiantesConvocatoriaController extends Controller
         }
 
         // Consulta: estudiantes inscritos en la convocatoria
-        $estudiantes = DB::table('inscripciones')
-            ->join('estudiantes', 'inscripciones.id_estudiante', '=', 'estudiantes.id_estudiante')
-            ->join('convocatoria_niveles', 'inscripciones.id_convocatoria_nivel', '=', 'convocatoria_niveles.id_convocatoria_nivel')
+        $estudiantes = DB::table('detalles_lista_inscripcion')
+            ->join('estudiantes', 'detalles_lista_inscripcion.id_estudiante', '=', 'estudiantes.id_estudiante')
+            ->join('convocatoria_niveles', 'detalles_lista_inscripcion.id_convocatoria_nivel', '=', 'convocatoria_niveles.id_convocatoria_nivel')
             ->join('convocatoria_areas', 'convocatoria_niveles.id_convocatoria_area', '=', 'convocatoria_areas.id_convocatoria_area')
             ->join('areas_competencia', 'convocatoria_areas.id_area', '=', 'areas_competencia.id_area')
             ->join('niveles_categoria', 'convocatoria_niveles.id_nivel', '=', 'niveles_categoria.id_nivel')
@@ -49,8 +49,8 @@ class ReporteEstudiantesConvocatoriaController extends Controller
                 'unidades_educativas.provincia',
                 'areas_competencia.nombre_area',
                 'niveles_categoria.nombre_nivel',
-                'inscripciones.fecha_inscripcion',
-                'inscripciones.estado'
+                'detalles_lista_inscripcion.fecha_inscripcion',
+                'detalles_lista_inscripcion.estado'
             )
             ->where('convocatoria_areas.id_convocatoria', $convocatoriaId)
             ->orderBy('estudiantes.apellidos')
@@ -84,9 +84,9 @@ class ReporteEstudiantesConvocatoriaController extends Controller
         }
 
         // Obtener los datos agrupados por área y los estudiantes de cada área
-        $areas = \DB::table('inscripciones')
-            ->join('estudiantes', 'inscripciones.id_estudiante', '=', 'estudiantes.id_estudiante')
-            ->join('convocatoria_niveles', 'inscripciones.id_convocatoria_nivel', '=', 'convocatoria_niveles.id_convocatoria_nivel')
+        $areas = \DB::table('detalles_lista_inscripcion')
+            ->join('estudiantes', 'detalles_lista_inscripcion.id_estudiante', '=', 'estudiantes.id_estudiante')
+            ->join('convocatoria_niveles', 'detalles_lista_inscripcion.id_convocatoria_nivel', '=', 'convocatoria_niveles.id_convocatoria_nivel')
             ->join('convocatoria_areas', 'convocatoria_niveles.id_convocatoria_area', '=', 'convocatoria_areas.id_convocatoria_area')
             ->join('areas_competencia', 'convocatoria_areas.id_area', '=', 'areas_competencia.id_area')
             ->where('convocatoria_areas.id_convocatoria', $convocatoriaId)
