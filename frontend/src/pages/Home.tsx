@@ -1,6 +1,6 @@
 import React from 'react';
 import { Trophy, FlaskRound as Flask, Code, Calendar, Phone, Mail, MapPin } from 'lucide-react';
-
+import EstadoInscripcion from './EstadoInscripcion';
 export default function Home() {
   return (
     <>
@@ -19,6 +19,12 @@ export default function Home() {
           <button className="bg-blue-600 text-white px-6 py-3 rounded-md font-medium hover:bg-blue-700 transition">
             Iniciar Inscripción →
           </button>
+          <a
+            href="/estado-inscripcion"
+            className="bg-white text-blue-600 border border-blue-600 px-6 py-3 rounded-md font-medium hover:bg-blue-50 transition"
+          >
+            Estado de Inscripción
+          </a>
         </div>
       </div>
 
