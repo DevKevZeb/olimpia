@@ -8,6 +8,7 @@ import CamposObligatorios from './pages/CamposObligatorios';
 import RegistroExcel from './pages/RegistroExcel';
 import Reportes from './pages/ReportesConvocatoria';
 import EstadoInscripcion from './pages/EstadoInscripcion';
+import AgregarDocumento from './pages/AgregarDocumento';
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
           <Route path="/reportes" element={<Reportes />} />
           <Route path="/estado-inscripcion" element={<EstadoInscripcion />} />
           <Route path="*" element={<Navigate to="/admin/convocatorias" replace />} />
+          <Route path="/agregarDoc" element={<AgregarDocumento />} />
         </Routes>
       </Layout>
     </Router>
