@@ -10,8 +10,6 @@ return new class extends Migration
     {
         Schema::create('listas_inscripcion', function (Blueprint $table) {
             $table->id('id_lista');
-            $table->string('codigo_lista', 20)->nullable()->unique();
-            $table->foreignId('id_unidad_educativa')->nullable()->constrained('unidades_educativas', 'id_unidad_educativa');
             $table->dateTime('fecha_creacion');
             $table->timestamps();
         });

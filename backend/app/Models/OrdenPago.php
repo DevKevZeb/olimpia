@@ -15,7 +15,6 @@ class OrdenPago extends Model
     protected $fillable = [
         'codigo_unico',
         'tipo_origen',
-        'id_inscripcion',
         'id_lista',
         'monto_total',
         'fecha_emision',
@@ -30,11 +29,6 @@ class OrdenPago extends Model
         'fecha_emision' => 'datetime',
         'fecha_vencimiento' => 'date',
     ];
-
-    public function inscripcion()
-    {
-        return $this->belongsTo(Inscripcion::class, 'id_inscripcion');
-    }
 
     public function lista()
     {

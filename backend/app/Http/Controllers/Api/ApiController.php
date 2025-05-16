@@ -27,12 +27,20 @@ class ApiController extends Controller
     /**
      * Return error response
      */
-    public function errorResponse(string $message = null, int $code = 400): JsonResponse
+    public function errorResponse(string $message = null, int $code = 400, $errors = null): JsonResponse
     {
-        return response()->json([
+        $response = [
             'status' => 'Error',
             'message' => $message,
             'data' => null
-        ], $code);
+        ];
+
+        if ($code === 422 && $errors) {
+            $response['errors'] = $errors;
+        } elseif ($errors) {
+            $response['data'] = $errors; // Para otros tipos de errores, podrías incluir detalles en 'data' si lo deseas
+        }
+
+        return response()->json($response, $code);
     }
 }

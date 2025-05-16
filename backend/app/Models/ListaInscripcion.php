@@ -13,19 +13,12 @@ class ListaInscripcion extends Model
     protected $primaryKey = 'id_lista';
     
     protected $fillable = [
-        'codigo_lista',
-        'id_unidad_educativa',
         'fecha_creacion',
     ];
 
     protected $casts = [
         'fecha_creacion' => 'datetime',
     ];
-
-    public function unidadEducativa()
-    {
-        return $this->belongsTo(UnidadEducativa::class, 'id_unidad_educativa');
-    }
 
     public function detalles()
     {

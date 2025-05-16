@@ -612,9 +612,23 @@ const ExcelWorkflow = () => {
       setConvocatoriaData(null);
     } catch (error: any) {
       console.error('Error al inscribir estudiantes:', error);
-      toast.error("Opsie! , algo salio mal! " + error.response.data.message, {
-        position: "top-right",
-      });
+      console.error('Detalles del error de validación:', error.response?.data);
+
+      if (error.response?.status === 422 && error.response?.data?.errors) {
+          const errorMessages = Object.values(error.response.data.errors)
+              .flat()
+              .join('\n');
+          toast.error(`Opsie! , Errores en los datos:\n${errorMessages}`, {
+              position: "top-right",
+              autoClose: 5000,
+          });
+      } else if (error.response?.status === 409) {
+          alert("Opsie! , Estudiante ya inscrito en materia - nivel");
+      } else {
+          toast.error(`Opsie! , algo salió mal! ${error.response?.data?.message || error.message}`, {
+              position: "top-right",
+          });
+      }
     }
   };
 

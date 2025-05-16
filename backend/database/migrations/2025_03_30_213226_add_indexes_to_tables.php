@@ -8,10 +8,6 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::table('inscripciones', function (Blueprint $table) {
-            $table->index(['id_estudiante', 'id_convocatoria_nivel'], 'idx_estudiante_convocatoria');
-        });
-
         Schema::table('detalles_lista_inscripcion', function (Blueprint $table) {
             $table->index(['id_lista', 'id_estudiante'], 'idx_lista_estudiante');
         });
@@ -27,10 +23,6 @@ return new class extends Migration
 
     public function down()
     {
-        Schema::table('inscripciones', function (Blueprint $table) {
-            $table->dropIndex('idx_estudiante_convocatoria');
-        });
-
         Schema::table('detalles_lista_inscripcion', function (Blueprint $table) {
             $table->dropIndex('idx_lista_estudiante');
         });

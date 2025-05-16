@@ -12,7 +12,6 @@ return new class extends Migration
             $table->id('id_orden');
             $table->string('codigo_unico', 20)->unique();
             $table->enum('tipo_origen', ['individual', 'lista']);
-            $table->foreignId('id_inscripcion')->nullable()->constrained('inscripciones', 'id_inscripcion');
             $table->foreignId('id_lista')->nullable()->constrained('listas_inscripcion', 'id_lista');
             $table->decimal('monto_total', 10, 2);
             $table->dateTime('fecha_emision');

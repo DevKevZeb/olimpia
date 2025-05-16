@@ -5,7 +5,6 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AreasCompetenciaController;
 use App\Http\Controllers\Api\ConvocatoriaController;
 use App\Http\Controllers\Api\EstudianteController;
-use App\Http\Controllers\Api\InscripcionController;
 use App\Http\Controllers\Api\UnidadEducativaController;
 use App\Http\Controllers\Api\GradoController;
 use App\Http\Controllers\Api\NivelCategoriaController;
@@ -79,11 +78,6 @@ Route::prefix('v1')->group(function () {
     Route::get('estudiantes/search', [EstudianteController::class, 'search']);
     Route::get('search-by-ci', [EstudianteController::class, 'searchByCI']);
     
-
-
-    // Inscripciones
-    Route::apiResource('inscripciones', InscripcionController::class);
-
     // Unidades Educativas
     Route::apiResource('unidades-educativas', UnidadEducativaController::class);
 
