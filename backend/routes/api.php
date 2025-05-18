@@ -128,6 +128,7 @@ Route::prefix('v1')->group(function () {
 
     // Endpoints para el panel de administración de convocatorias
     Route::get('/admin/convocatorias-activas', [AdminConvocatoriaController::class, 'getConvocatoriasActivas']);
+    Route::get('/admin/convocatorias-planificadas', [AdminConvocatoriaController::class, 'getConvocatoriasPlanificadas']);
     Route::get('/admin/areas-competencia', [AdminConvocatoriaController::class, 'getAreasCompetencia']);
     Route::get('/admin/niveles-categoria', [AdminConvocatoriaController::class, 'getNivelesCategoria']);
     Route::get('/admin/grados', [AdminConvocatoriaController::class, 'getGrados']); // Ruta añadida para obtener grados

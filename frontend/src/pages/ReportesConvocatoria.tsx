@@ -109,7 +109,7 @@ const reportesInicial: ReporteItem[] = [
             }
             return rowData;
         },
-        fetchData: (id: string) => obtenerReportePorCampoId('convocatoria', parseInt(id)),
+        fetchData: (id: string) => obtenerReportePorCampoId('convocatoria', parseInt(id), {}),
     },
     {
         id: 'otro_reporte_1',
@@ -182,7 +182,7 @@ const ReportesView = () => {
                 setError(null);
                 setLoading(true);
                 try {
-                    const data = await obtenerReportePorCampoId('convocatoria', selectedConvocatoriaId);
+                    const data = await obtenerReportePorCampoId('convocatoria', selectedConvocatoriaId, {}      );
                     setReporteData(data);
                 } catch (err: any) {
                     console.error('Error al obtener el reporte de inscripciones:', err);
