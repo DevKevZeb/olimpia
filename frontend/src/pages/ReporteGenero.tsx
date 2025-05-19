@@ -41,27 +41,21 @@ interface ReporteInscripciones {
     [key: string]: any; // Para otras propiedades específicas de la inscripción
 }
 
-const ReporteDepartamento = () => {
+const ReporteGenero = () => {
     const [reporteData, setReporteData] = useState<ReporteInscripciones[] | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [convocatorias, setConvocatorias] = useState<Convocatoria[] | null>(null);
     const [selectedConvocatoriaId, setSelectedConvocatoriaId] = useState<number | ''>('');
-    const [selectedDepartamento, setSelectedDepartamento] = useState<string | ''>('');
+    const [selectedGenero, setSelectedGenero] = useState<string | ''>('');
     const [loadingConvocatorias, setLoadingConvocatorias] = useState(false);
     const [errorConvocatorias, setErrorConvocatorias] = useState<string | null>(null);
 
 
     const departamentos = [
-                  "La Paz",
-                  "Santa Cruz",
-                  "Cochabamba",
-                  "Oruro",
-                  "Potosí",
-                  "Tarija",
-                  "Beni",
-                  "Pando",
-                  "Chuquisaca",
+                  "Femenino",
+                  "Masculino",
+                  "Otro",
     ];
     useEffect(() => {
         const fetchConvocatorias = async () => {
@@ -83,13 +77,13 @@ const ReporteDepartamento = () => {
 
     useEffect(() => {
         const cargarReporte = async () => {
-            if (selectedConvocatoriaId && selectedDepartamento !== '') {
+            if (selectedConvocatoriaId && selectedGenero !== '') {
                 setReporteData(null);
                 setError(null);
                 setLoading(true);
                 try {
                     const params =  { 
-                      departamento: selectedDepartamento
+                      genero:selectedGenero
                      };
                     const data = await obtenerReportePorCampoId('departamento', selectedConvocatoriaId , params);
                     setReporteData(data as ReporteInscripciones[]);
@@ -104,15 +98,15 @@ const ReporteDepartamento = () => {
                 setReporteData(null);
             }
         };
-        console.log(selectedConvocatoriaId,  selectedDepartamento);
+        console.log(selectedConvocatoriaId,  selectedGenero);
         cargarReporte();
-    }, [selectedConvocatoriaId, selectedDepartamento]);
+    }, [selectedConvocatoriaId, selectedGenero]);
 
     const handleConvocatoriaChange = (event: ChangeEvent<{ value: number | '' }>) => {
         setSelectedConvocatoriaId(event.target.value);
     };
     const handleDepartamentoChange = (event: ChangeEvent<{ value: string | '' }>) => {
-        setSelectedDepartamento(event.target.value);
+        setSelectedGenero(event.target.value);
     };
 
     const manejarExportacion = () => {
@@ -185,7 +179,7 @@ const ReporteDepartamento = () => {
               <Select
                 labelId="select-departamentolabel"
                 id="select-departamento"
-                value={selectedDepartamento}
+                value={selectedGenero}
                 label="Seleccionar Departamento"
                 onChange={handleDepartamentoChange}
               >
@@ -271,4 +265,4 @@ const ReporteDepartamento = () => {
       
 }
 
-export default ReporteDepartamento;
+export default ReporteGenero;

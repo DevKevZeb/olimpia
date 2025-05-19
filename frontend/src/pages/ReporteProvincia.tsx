@@ -41,28 +41,78 @@ interface ReporteInscripciones {
     [key: string]: any; // Para otras propiedades específicas de la inscripción
 }
 
-const ReporteDepartamento = () => {
+const ReporteProvincia = () => {
     const [reporteData, setReporteData] = useState<ReporteInscripciones[] | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [convocatorias, setConvocatorias] = useState<Convocatoria[] | null>(null);
     const [selectedConvocatoriaId, setSelectedConvocatoriaId] = useState<number | ''>('');
-    const [selectedDepartamento, setSelectedDepartamento] = useState<string | ''>('');
+    const [selectedProvincia, setSelectedProvincia] = useState<string>('');
+    const [selectedDepartamento, setSelectedDepartamento] = useState<string>('');
     const [loadingConvocatorias, setLoadingConvocatorias] = useState(false);
     const [errorConvocatorias, setErrorConvocatorias] = useState<string | null>(null);
 
-
-    const departamentos = [
-                  "La Paz",
-                  "Santa Cruz",
-                  "Cochabamba",
-                  "Oruro",
-                  "Potosí",
-                  "Tarija",
-                  "Beni",
-                  "Pando",
-                  "Chuquisaca",
+    const departamentos: string[] = [
+      "La Paz",
+      "Cochabamba",
+      "Santa Cruz",
+      "Potosí",
+      "Chuquisaca",
+      "Oruro",
+      "Tarija",
+      "Beni",
+      "Pando"
     ];
+
+    const provincias : Record<string, string[]> = {
+    "" : [ "Seleccione un departamento primero"],
+    "La Paz": [
+    "Abel Iturralde", "Aroma", "Bautista Saavedra", "Caranavi", "Eliodoro Camacho",
+    "Franz Tamayo", "Gualberto Villarroel", "Ingavi", "Inquisivi", "José Ramón Loayza",
+    "Larecaja", "Los Andes", "Manco Kapac", "Muñecas", "Nor Yungas", "Omasuyos",
+    "Pacajes", "Pedro Domingo Murillo", "Sud Yungas"
+  ],
+  "Cochabamba": [
+    "Arani", "Arque", "Ayopaya", "Capinota", "Carrasco", "Cercado", "Chapare",
+    "Esteban Arce", "Germán Jordán", "Mizque", "Narciso Campero", "Punata",
+    "Quillacollo", "Tapacarí", "Tiraque"
+  ],
+  "Santa Cruz": [
+    "Andrés Ibáñez", "Ángel Sandoval", "Chiquitos", "Cordillera", "Florida",
+    "Germán Busch", "Guarayos", "Ichilo", "Ignacio Warnes", "Manuel María Caballero",
+    "Ñuflo de Chávez", "Obispo Santistevan", "Sara", "Vallegrande", "Velasco"
+  ],
+  "Potosí": [
+    "Alonso de Ibáñez", "Antonio Quijarro", "Bernardino Bilbao", "Charcas",
+    "Chayanta", "Cornelio Saavedra", "Daniel Campos", "Enrique Baldivieso",
+    "José María Linares", "Modesto Omiste", "Nor Chichas", "Nor Lípez",
+    "Rafael Bustillo", "Sud Chichas", "Sud Lípez", "Tomás Frías"
+  ],
+  "Chuquisaca": [
+    "Azurduy", "Belisario Boeto", "Hernando Siles", "Jaime Zudáñez",
+    "Juana Azurduy de Padilla", "Luis Calvo", "Nor Cinti", "Oropeza",
+    "Sud Cinti", "Tomina", "Yamparáez"
+  ],
+  "Oruro": [
+    "Abaroa", "Atahuallpa", "Carangas", "Cercado", "Eduardo Abaroa",
+    "Ladislao Cabrera", "Litoral", "Nor Carangas", "Poopó", "Sabaya",
+    "Sajama", "San Pedro de Totora", "Saucarí", "Sebastián Pagador",
+    "Sud Carangas", "Tomás Barrón"
+  ],
+  "Tarija": [
+    "Aniceto Arce", "Burdett O'Connor", "Cercado", "Eustaquio Méndez",
+    "Gran Chaco", "José María Avilés"
+  ],
+  "Beni": [
+    "Cercado", "Iténez", "José Ballivián", "Mamoré", "Marbán",
+    "Moxos", "Vaca Díez", "Yacuma"
+  ],
+  "Pando": [
+    "Abuná", "Federico Román", "Madre de Dios", "Manuripi", "Nicolás Suárez"
+  ]
+};
+
+    
     useEffect(() => {
         const fetchConvocatorias = async () => {
             setLoadingConvocatorias(true);
@@ -83,13 +133,14 @@ const ReporteDepartamento = () => {
 
     useEffect(() => {
         const cargarReporte = async () => {
-            if (selectedConvocatoriaId && selectedDepartamento !== '') {
+            if (selectedConvocatoriaId && selectedProvincia !== '') {
                 setReporteData(null);
                 setError(null);
                 setLoading(true);
                 try {
                     const params =  { 
-                      departamento: selectedDepartamento
+                      departamento:selectedDepartamento,
+                      provincia:selectedProvincia
                      };
                     const data = await obtenerReportePorCampoId('departamento', selectedConvocatoriaId , params);
                     setReporteData(data as ReporteInscripciones[]);
@@ -104,15 +155,18 @@ const ReporteDepartamento = () => {
                 setReporteData(null);
             }
         };
-        console.log(selectedConvocatoriaId,  selectedDepartamento);
+        console.log(selectedConvocatoriaId,  selectedProvincia);
         cargarReporte();
-    }, [selectedConvocatoriaId, selectedDepartamento]);
+    }, [selectedConvocatoriaId, selectedProvincia]);
 
     const handleConvocatoriaChange = (event: ChangeEvent<{ value: number | '' }>) => {
         setSelectedConvocatoriaId(event.target.value);
     };
     const handleDepartamentoChange = (event: ChangeEvent<{ value: string | '' }>) => {
         setSelectedDepartamento(event.target.value);
+    };
+    const handleProvinciaChange = (event: ChangeEvent<{ value: string | '' }>) => {
+        setSelectedProvincia(event.target.value);
     };
 
     const manejarExportacion = () => {
@@ -189,12 +243,33 @@ const ReporteDepartamento = () => {
                 label="Seleccionar Departamento"
                 onChange={handleDepartamentoChange}
               >
+
                 <MenuItem value="">
                   <em>Ninguna</em>
                 </MenuItem>
                   {departamentos.map((departamento) => (
                     <MenuItem key={departamento} value={departamento}>
                       {departamento}
+                    </MenuItem>
+                  ))}
+              </Select>
+
+               <Select
+                labelId="select-convocatoria-label"
+                id="select-convocatoria"
+                value={selectedProvincia}
+                label="Seleccionar Provincia"
+                onChange={handleProvinciaChange}
+              >
+                <MenuItem value="">
+                  <em>Ninguna</em>
+                </MenuItem>
+                {loadingConvocatorias && <MenuItem disabled>Cargando convocatorias...</MenuItem>}
+                {errorConvocatorias && <MenuItem disabled>{errorConvocatorias}</MenuItem>}
+                {convocatorias &&
+                    provincias[selectedDepartamento].map((provincia) => (
+                    <MenuItem key={provincia} value={provincia}>
+                      {provincia}
                     </MenuItem>
                   ))}
               </Select>
@@ -271,4 +346,4 @@ const ReporteDepartamento = () => {
       
 }
 
-export default ReporteDepartamento;
+export default ReporteProvincia;

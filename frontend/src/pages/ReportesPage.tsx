@@ -5,6 +5,8 @@ import ReporteAreas from './ReporteAreas';
 import ReporteNiveles from './ReporteNiveles';
 import ReporteUnidadEducativa from './ReporteUnidadEducativa';
 import ReporteDepartamento from './ReporteDepartamento';
+import ReporteProvincia from './ReporteProvincia';
+import ReporteGenero from './ReporteGenero';
 
 const reportNav = [
   { path: 'convocatoria', label: 'Por Convocatoria' },
@@ -12,6 +14,8 @@ const reportNav = [
   { path: 'niveles', label: 'Por Niveles/Categoría' },
   { path: 'unidad-educativa', label: 'Por Unidad Educativa' },
   { path: 'departamento', label: 'Por Departamento' },
+  { path: 'provincia', label: 'Por Provincia' },
+  { path: 'genero', label: 'Por Genero' },
 ];
 
 export default function ReportesPage() {
@@ -37,6 +41,8 @@ export default function ReportesPage() {
         <Route path="niveles" element={<ReporteNiveles />} />
         <Route path="unidad-educativa" element={<ReporteUnidadEducativa />} />
         <Route path="departamento" element={<ReporteDepartamento />} />
+        <Route path="provincia" element={<ReporteProvincia />} />
+        <Route path="genero" element={<ReporteGenero />} />
         <Route path="*" element={<Navigate to="convocatoria" replace />} />
       </Routes>
     </div>
