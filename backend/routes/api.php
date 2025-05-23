@@ -23,7 +23,7 @@ use App\Http\Controllers\Api\AdminDashboardController;
 use App\Http\Controllers\Api\AdminConvocatoriaController;
 use App\Http\Controllers\Api\RequisitoConvocatoriaController;
 use App\Http\Controllers\Api\ExcelController;
-use App\Http\Controllers\Api\BuscarConvocatoriaNivelController;
+use App\Http\Controllers\Api\ConvocatoriaConfigController;
 use App\Http\Controllers\Api\ReportesInscripcion;
 use App\Http\Controllers\Api\AmpliarFechaController;
 use App\Http\Controllers\Api\AreaController;
@@ -143,7 +143,7 @@ Route::prefix('v1')->group(function () {
 
     // Rutas para el excel
     Route::get('/excel/plantilla/{id_convocatoria}', [ExcelController::class, 'downloadTemplate']);
-    Route::post('/buscar-convocatoria-nivel', [BuscarConvocatoriaNivelController::class, 'buscarIdConvocatoriaNivel']);
+    Route::get('/convocatorianiveles/{id_convocatoria}', [ConvocatoriaConfigController::class, 'getAllConvocatoriaNiveles']);
 
     // Endpoint para asignar costo general a todas las áreas de una convocatoria
     Route::post('/admin/convocatorias/{idConvocatoria}/set-costo-general', [ConvocatoriaAreaController::class, 'setCostoGeneral']);

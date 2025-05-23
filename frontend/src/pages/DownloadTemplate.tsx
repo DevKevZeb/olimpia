@@ -27,9 +27,16 @@ const DownloadTemplate: React.FC<DownloadTemplateProps> = ({ selectedConvocatori
       <button onClick={handleDownload} disabled={!selectedConvocatoriaId}>
         Descargar Plantilla
       </button>
+        
       {!selectedConvocatoriaId && (
         <p style={{ color: 'orange' }}>Selecciona una convocatoria para descargar la plantilla.</p>
       )}
+      
+      <div>
+        <a href="/llenarexcel" >
+          Ir a la Guía de Llenado del Excel
+        </a>
+      </div>
     </div>
   );
 };

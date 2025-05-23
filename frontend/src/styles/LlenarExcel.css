@@ -1,0 +1,124 @@
+.Llenar-excel {
+    font-family: sans-serif;
+    padding: 20px;
+    background-color: #f4f4f4;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .Llenar-excel h2 {
+    color: #333;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  
+  .form-group {
+    margin-bottom: 20px;
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: 20px;
+    color: #555;
+    font-weight: bold;
+  }
+  
+  .form-group select {
+    width: calc(100% - 22px); /* Ajuste para el padding y borde */
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    appearance: none; /* Elimina los estilos nativos del navegador */
+    background-image: url('data:image/svg+xml;utf8,<svg fill="currentColor" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 1.5em;
+    cursor: pointer;
+  }
+  
+  .form-group select:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  }
+  
+  .areas-niveles-container {
+    margin-top: 25px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 15px;
+  }
+  
+  .areas-niveles-container h3 {
+    color: #333;
+    margin-top: 0;
+    margin-bottom: 18px;
+  }
+  
+  .areas-niveles-container table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid #ddd;
+    margin-bottom: 20px;
+  }
+  
+  .areas-niveles-container th,
+  .areas-niveles-container td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+  }
+  
+  .areas-niveles-container th {
+    background-color: #f0f0f0;
+    font-weight: bold;
+    color: #333;
+  }
+  
+  .areas-niveles-container tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+  
+  .recomendacion {
+    color: #090909;
+    font-style: italic;
+    margin-top: 15px;
+    font-size: 1.2em;
+    font-weight: bold;
+  }
+
+  .no-disponible {
+    color: #dc3545;
+    font-style: italic;
+    margin-top: 15px;
+  }
+
+  .Llenar-excel button {
+    padding: 12px 25px;
+    background-color: rgb(252, 113, 113); /* Establece el color de fondo por defecto */
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1.1em;
+    font-weight: bold;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    margin-top: 20px; /* Ajusta el margen superior para más espacio */
+    margin-left: 10px; /* Opcional: Añade un poco de margen a la izquierda */
+    margin-right: 10px; /* Opcional: Añade un poco de margen a la derecha */
+    display: inline-block; /* Evita que ocupe todo el ancho */
+}
+  
+.Llenar-excel button:hover {
+    background-color: red; /* Un rojo más oscuro al pasar el ratón */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+  
+.Llenar-excel button:focus {
+    outline: none;
+    box-shadow: 0 0 0 0.2rem rgba(255, 0, 0, 0.5); /* Sombra de enfoque roja */
+}

@@ -52,3 +52,14 @@
     margin-top: 15px;
     font-size: 0.9em;
 }
+
+a {
+    color: #007bff; /* Color azul típico de los enlaces */
+    text-decoration: underline; /* Subrayado para indicar que es un enlace */
+    cursor: pointer; /* Cambia el cursor al pasar por encima */
+}
+  
+a:hover {
+    color: #0056b3; /* Color más oscuro al pasar el ratón */
+    text-decoration: none; /* Opcional: quitar el subrayado al pasar el ratón */
+}

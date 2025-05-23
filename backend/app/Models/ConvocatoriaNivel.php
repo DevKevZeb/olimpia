@@ -5,7 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+use App\Models\Grado;
+use App\Models\ConvocatoriaArea;
+use App\Models\NivelCategoria;
+
 class ConvocatoriaNivel extends Model
+
 {
     use HasFactory;
 
