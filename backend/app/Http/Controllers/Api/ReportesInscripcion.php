@@ -345,7 +345,7 @@ class ReportesInscripcion extends ApiController
         private function getDataPorNivel($convocatoriaId, $area_id, $nivel_id)
  {
         $convocatoriaAreas = ConvocatoriaArea::where('id_convocatoria', $convocatoriaId)
-            ->where('id_area', $area_id) // id area
+            ->where('convocatoria_areas.id_area', $area_id) // id area
             ->join('areas_competencia', 'convocatoria_areas.id_area', '=', 'areas_competencia.id_area')
             ->get(['convocatoria_areas.id_convocatoria_area', 'areas_competencia.nombre_area']);
         Log::info(json_encode($convocatoriaAreas));
