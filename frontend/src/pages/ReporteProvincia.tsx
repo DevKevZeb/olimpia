@@ -235,9 +235,14 @@ const ReporteProvincia = () => {
                     </MenuItem>
                   ))}
               </Select>
-              <Divider></Divider>
+              </FormControl>
+
+         
+            <FormControl fullWidth margin="normal">
+
+              <InputLabel id="select-departamento-label">Seleccionar Departamento</InputLabel>
               <Select
-                labelId="select-departamentolabel"
+                labelId="select-departamento-label"
                 id="select-departamento"
                 value={selectedDepartamento}
                 label="Seleccionar Departamento"
@@ -253,10 +258,13 @@ const ReporteProvincia = () => {
                     </MenuItem>
                   ))}
               </Select>
+              </FormControl>
+            <FormControl fullWidth margin="normal">
 
+              <InputLabel id="select-provincia-label">Seleccionar Provincia</InputLabel>
                <Select
-                labelId="select-convocatoria-label"
-                id="select-convocatoria"
+                labelId="select-provincia-label"
+                id="select-provincia"
                 value={selectedProvincia}
                 label="Seleccionar Provincia"
                 onChange={handleProvinciaChange}

@@ -39,6 +39,17 @@ class ReportesInscripcion extends ApiController
             return $this->getDataPorProvincia($id,$provincia);
         }
 
+        if($campo == 'nivel' ){
+            $area_id = $request->query('area_id');
+            $nivel_id = $request->query('nivel_id');
+            return $this->getDataPorNivel($id,$area_id,$nivel_id);
+        }
+
+        if($campo == 'unidad_educativa' ){
+            $unidad_educativa = $request->query('unidad_educativa');
+            return $this->getDataPorUnidadEducativa($id,$unidad_educativa);
+        }
+
         return $this->errorResponse('Campo no válido', 400);
     }
 
@@ -293,6 +304,151 @@ class ReportesInscripcion extends ApiController
                     if($inscripcion->estudiante->unidadEducativa->departamento !== $departamento)
                     {
                         continue;
+                    }
+                    $resultados[] = [
+                        'estudiante' => [
+                            'nombres' => $inscripcion->estudiante->nombres ?? null,
+                            'apellidos' => $inscripcion->estudiante->apellidos ?? null,
+                            'ci' => $inscripcion->estudiante->ci ?? null,
+                            'grado' => $inscripcion->estudiante->grado->nombre_grado ?? null,
+                            'unidad_educativa' => [
+                                'nombre' => $inscripcion->estudiante->unidadEducativa->nombre ?? null,
+                                'departamento' => $inscripcion->estudiante->unidadEducativa->departamento ?? null,
+                            ],
+                            'tutor_legal' => [
+                                'nombre' => $inscripcion->estudiante->tutorLegal->nombres ?? null,
+                                'apellido' => $inscripcion->estudiante->tutorLegal->apellidos ?? null,
+                                'ci' => $inscripcion->estudiante->tutorLegal->ci ?? null,
+                            ],
+                        ],
+                        'estado_inscripcion' => $estadoInscripcion,
+                        'areas_inscritas' => $convocatoriaArea->nombre_area ?? null,
+                        'fecha_inscripcion' => $inscripcion->fecha_registro ?? null, // Usamos fecha_registro de detalles_lista_inscripcion
+                    ];
+                }
+            }
+        }
+        return $this->successResponse($resultados, 'Datos de la convocatoria obtenidos exitosamente.');
+    }
+
+    
+    private function getDataPorNivel($convocatoriaId, $area_id, $nivel_id)
+    {
+        $convocatoriaAreas = ConvocatoriaArea::where('id_convocatoria', $convocatoriaId)
+          //  ->where('areas_competencia.id_area', $area_id)
+            ->join('areas_competencia', 'convocatoria_areas.id_area', '=', 'areas_competencia.id_area')
+            ->get(['convocatoria_areas.id_convocatoria_area', 'areas_competencia.nombre_area']);
+
+        if ($convocatoriaAreas->isEmpty()) {
+            return $this->successResponse([], 'No se encontraron áreas de convocatoria para el ID proporcionado.');
+        }
+
+        $resultados = [];
+        foreach ($convocatoriaAreas as $convocatoriaArea) {
+            if($nivel_id)
+                $convocatoriaNiveles = ConvocatoriaNivel::where('id_convocatoria_area', $convocatoriaArea->id_convocatoria_area);
+            //        ->where('id_nivel', $nivel_id);
+            else
+                $convocatoriaNiveles = ConvocatoriaNivel::where('id_convocatoria_area', $convocatoriaArea->id_convocatoria_area)->get(['id_convocatoria_nivel']);
+
+            if (empty($convocatoriaNiveles)) {
+                continue;
+            }
+
+            foreach ($convocatoriaNiveles as $convocatoriaNivel) {
+                $listaInscripciones = DetalleListaInscripcion::where('id_convocatoria_nivel', $nivel_id)
+
+                    // ->where('id_convocatoria_nivel', $nivel_id)
+                    ->with(['estudiante' => function ($query) {
+                        $query->select(['id_estudiante', 'nombres', 'apellidos', 'ci', 'id_grado', 'id_unidad_educativa', 'id_tutor_legal'])
+                            ->with(['grado:id_grado,nombre_grado', 'unidadEducativa:id_unidad_educativa,nombre,departamento', 'tutorLegal:id_tutor_legal,nombres,apellidos,ci']);
+                    }])
+                    ->select(['id_detalle', 'id_estudiante', 'id_lista', 'fecha_registro']) // Seleccionamos id_lista
+                    ->get();
+
+                if (empty($listaInscripciones)) {
+                    continue;
+                }
+
+                foreach ($listaInscripciones as $inscripcion) {
+                    // Buscar la orden de pago asociada a la lista de inscripción
+                    $ordenPago = OrdenPago::where('id_lista', $inscripcion->id_lista)->first();
+
+                    $estadoInscripcion = 'Pendiente'; // Estado por defecto
+
+                    if ($ordenPago) {
+                        $estadoInscripcion = $ordenPago->estado;
+                    }
+
+                    $resultados[] = [
+                        'estudiante' => [
+                            'nombres' => $inscripcion->estudiante->nombres ?? null,
+                            'apellidos' => $inscripcion->estudiante->apellidos ?? null,
+                            'ci' => $inscripcion->estudiante->ci ?? null,
+                            'grado' => $inscripcion->estudiante->grado->nombre_grado ?? null,
+                            'unidad_educativa' => [
+                                'nombre' => $inscripcion->estudiante->unidadEducativa->nombre ?? null,
+                                'departamento' => $inscripcion->estudiante->unidadEducativa->departamento ?? null,
+                            ],
+                            'tutor_legal' => [
+                                'nombre' => $inscripcion->estudiante->tutorLegal->nombres ?? null,
+                                'apellido' => $inscripcion->estudiante->tutorLegal->apellidos ?? null,
+                                'ci' => $inscripcion->estudiante->tutorLegal->ci ?? null,
+                            ],
+                        ],
+                        'estado_inscripcion' => $estadoInscripcion,
+                        'areas_inscritas' => $convocatoriaArea->nombre_area ?? null,
+                        'fecha_inscripcion' => $inscripcion->fecha_registro ?? null, // Usamos fecha_registro de detalles_lista_inscripcion
+                    ];
+                }
+            }
+        }
+        return $this->successResponse($resultados, 'Datos de la convocatoria obtenidos exitosamente.');
+    }
+
+         private function getDataPorUnidadEducativa($convocatoriaId, $unidadEducativa)
+    {
+        $convocatoriaAreas = ConvocatoriaArea::where('id_convocatoria', $convocatoriaId)
+            ->join('areas_competencia', 'convocatoria_areas.id_area', '=', 'areas_competencia.id_area')
+            ->get(['convocatoria_areas.id_convocatoria_area', 'areas_competencia.nombre_area']);
+
+        if ($convocatoriaAreas->isEmpty()) {
+            return $this->successResponse([], 'No se encontraron áreas de convocatoria para el ID proporcionado.');
+        }
+
+        $resultados = [];
+        foreach ($convocatoriaAreas as $convocatoriaArea) {
+            $convocatoriaNiveles = ConvocatoriaNivel::where('id_convocatoria_area', $convocatoriaArea->id_convocatoria_area)->get(['id_convocatoria_nivel']);
+
+            if ($convocatoriaNiveles->isEmpty()) {
+                continue;
+            }
+
+            foreach ($convocatoriaNiveles as $convocatoriaNivel) {
+                $listaInscripciones = DetalleListaInscripcion::where('id_convocatoria_nivel', $convocatoriaNivel->id_convocatoria_nivel)
+                    ->with(['estudiante' => function ($query) {
+                        $query->select(['id_estudiante', 'nombres', 'apellidos', 'ci', 'id_grado', 'id_unidad_educativa', 'id_tutor_legal','genero'])
+                            ->with(['grado:id_grado,nombre_grado', 'unidadEducativa:id_unidad_educativa,nombre,departamento', 'tutorLegal:id_tutor_legal,nombres,apellidos,ci']);
+                    }])
+                    ->select(['id_detalle', 'id_estudiante', 'id_lista', 'fecha_registro']) // Seleccionamos id_lista
+                    ->get();
+
+                if ($listaInscripciones->isEmpty()) {
+                    continue;
+                }
+
+                foreach ($listaInscripciones as $inscripcion) {
+                    // Buscar la orden de pago asociada a la lista de inscripción
+                    $ordenPago = OrdenPago::where('id_lista', $inscripcion->id_lista)->first();
+
+                    $estadoInscripcion = 'Pendiente'; // Estado por defecto
+
+                    if ($ordenPago) {
+                        $estadoInscripcion = $ordenPago->estado;
+                    }
+                    if( !str_contains( strtolower( $inscripcion->estudiante->unidadEducativa->nombre), $unidadEducativa)  )
+                    {
+                        continue; 
                     }
                     $resultados[] = [
                         'estudiante' => [

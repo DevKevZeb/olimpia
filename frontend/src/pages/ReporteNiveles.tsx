@@ -1,186 +1,331 @@
-import React, { useEffect, useState } from 'react';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
-import * as XLSX from 'xlsx';
-import { getConvocatoriasActivas } from '../api/adminConvocatoriaApi';
-import { getInscritosPorArea } from '../api/reportesApi';
+import React, { useState, useEffect, ChangeEvent } from 'react';
+import '../styles/Reportes.css';
+import { styled } from '@mui/material/styles';
+import {
+    Typography,
+    Box,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Paper,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
+    Button,
+    Divider,
+} from '@mui/material';
+import { obtenerTodasConvocatorias, obtenerReportePorCampoId, Convocatoria } from '../api/reportes';
+import { exportarPDF } from '../components/exportarPDF';
+import { getAreasPorConvocatoria, getNivelesPorConvocatoria } from '../api/adminConvocatoriaApi';
 
-interface Convocatoria { id: number; nombre: string; }
-interface Nivel { id: number; nombre: string; }
-interface AreaReporte {
-  nombre_area: string;
-  total_inscritos: number;
-  estudiantes?: {
-    nombres: string;
-    apellidos: string;
-    ci: string;
-    email: string;
-    fecha_nacimiento: string;
-  }[];
+interface ReporteInscripciones {
+    id: string;
+    estudiante: {
+        nombres: string;
+        apellidos: string;
+        ci: string;
+        grado: string;
+        unidad_educativa: {
+            nombre: string;
+            departamento: string;
+        };
+        tutor_legal: {
+            nombre: string;
+            apellido: string;
+            ci: string;
+        };
+    };
+    [key: string]: any; // Para otras propiedades específicas de la inscripción
 }
 
-export default function ReporteNiveles() {
-  const [convocatorias, setConvocatorias] = useState<Convocatoria[]>([]);
-  const [niveles, setNiveles] = useState<Nivel[]>([]);
-  const [selectedConvocatoria, setSelectedConvocatoria] = useState<number | null>(null);
-  const [data, setData] = useState<AreaReporte[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+const ReporteNiveles = () => {
+    const [reporteData, setReporteData] = useState<ReporteInscripciones[] | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [convocatorias, setConvocatorias] = useState<Convocatoria[] | null>(null);
+    const [selectedConvocatoriaId, setSelectedConvocatoriaId] = useState<number | ''>('');
+    const [selectedArea, setSelectedArea] = useState<string>('');
+    const [selectedNivel, setSelectedNivel] = useState<string>('');
+    const [areas, setAreas] = useState<string[]>([]);
+    const [niveles, setNiveles] = useState<string[]>([]);
+    const [loadingConvocatorias, setLoadingConvocatorias] = useState(false);
+    const [errorConvocatorias, setErrorConvocatorias] = useState<string | null>(null);
+    
+    useEffect(() => {
+        const fetchConvocatorias = async () => {
+            setLoadingConvocatorias(true);
+            setErrorConvocatorias(null);
+            try {
+                const data = await obtenerTodasConvocatorias();
+                setConvocatorias(data);
+            } catch (error: any) {
+                console.error('Error al cargar las convocatorias:', error);
+                setErrorConvocatorias('Error al cargar las convocatorias.');
+            } finally {
+                setLoadingConvocatorias(false);
+            }
+        };
 
-  useEffect(() => {
-    getConvocatoriasActivas().then((data: any) => {
-      const convs = (Array.isArray(data) ? data : []).map((c) => ({
-        id: Number((c.id_convocatoria ?? c.id ?? 0)),
-        nombre: c.nombre ?? ''
-      }));
-      setConvocatorias(convs);
-    });
-  }, []);
+        fetchConvocatorias();
+    }, []);
 
-  useEffect(() => {
-    if (selectedConvocatoria) {
-      setLoading(true);
-      setError(null);
-      getInscritosPorArea(selectedConvocatoria)
-        .then(res => setData(res.reporte || []))
-        .catch(() => setError('Error al cargar el reporte'))
-        .finally(() => setLoading(false));
-    } else {
-      setData([]);
-    }
-  }, [selectedConvocatoria]);
+        const fetchAreas = async () => {
+          if(!selectedConvocatoriaId)
+            {
+              return;
+            }
+            try {
+                const data = await getAreasPorConvocatoria(selectedConvocatoriaId);
+                setAreas(data);
+            } catch (error: any) {
+                console.error('Error al cargar las convocatorias:', error);
+                setErrorConvocatorias('Error al cargar las convocatorias.');
+            } finally {
+                setLoadingConvocatorias(false);
+            }
+        };
+      
+        const fetchNiveles = async () => {
 
-  const handleExportPDF = async () => {
-    const table = document.getElementById('tabla-areas');
-    if (!table) return;
-    const canvas = await html2canvas(table);
-    const imgData = canvas.toDataURL('image/png');
-    const pdf = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const imgProps = pdf.getImageProperties(imgData);
-    const pdfWidth = pageWidth - 40;
-    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-    pdf.addImage(imgData, 'PNG', 20, 20, pdfWidth, pdfHeight);
-    pdf.save('reporte_areas.pdf');
-  };
+            try {
+                const data = await getNivelesPorConvocatoria(selectedConvocatoriaId);
+                setNiveles(data);
+            } catch (error: any) {
+                console.error('Error al cargar las convocatorias:', error);
+                setErrorConvocatorias('Error al cargar las convocatorias.');
+            } finally {
+                setLoadingConvocatorias(false);
+            }
+        };
+      
 
-  const handleExportExcel = () => {
-    if (data.length === 0) return;
-    // Aplanar los datos para Excel: una fila por estudiante, con el nombre del área
-    const excelRows: any[] = [];
-    data.forEach(area => {
-      if (area.estudiantes && area.estudiantes.length > 0) {
-        area.estudiantes.forEach(est => {
-          excelRows.push({
-            area: area.nombre_area,
-            ...est
-          });
+    useEffect(() => {
+        const cargarReporte = async () => {
+            if (selectedConvocatoriaId && selectedArea !== '') {
+                setReporteData(null);
+                setError(null);
+                setLoading(true);
+                try {
+                    const params =  { 
+                      area_id:selectedArea,
+                      nivel_id:selectedNivel
+                     };
+                    const data = await obtenerReportePorCampoId('nivel', selectedConvocatoriaId , params);
+                    setReporteData(data as ReporteInscripciones[]);
+                } catch (err: any) {
+                    console.error('Error al obtener el reporte de inscripciones:', err);
+                    setError('Error al cargar el reporte de inscripciones.');
+                    setReporteData(null);
+                } finally {
+                    setLoading(false);
+                }
+            } else {
+                setReporteData(null);
+            }
+        };
+        console.log(selectedConvocatoriaId,  selectedArea);
+        cargarReporte();
+    }, [selectedConvocatoriaId, selectedArea, selectedNivel]);
+
+    const handleConvocatoriaChange = (event: ChangeEvent<{ value: number | '' }>) => {
+        setSelectedConvocatoriaId(event.target.value);
+        fetchAreas();
+    };
+    const handleAreaChange = (event: ChangeEvent<{ value: number | '' }>) => {
+        setSelectedArea(event.target.value);
+        fetchNiveles();
+    };
+    const handleNivelChange = (event: ChangeEvent<{ value: number | '' }>) => {
+        setSelectedNivel(event.target.value);
+    };
+
+    const manejarExportacion = () => {
+        if (!reporteData || reporteData.length === 0) return;
+        const nombreReporte = 'Reporte de Inscripciones por Convocatoria';
+        const encabezados = [
+            'Estudiante Nombres',
+            'Estudiante Apellidos',
+            'Estudiante CI',
+            'Estudiante Grado',
+            'Unidad Educativa',
+            'Departamento',
+            'Tutor Nombre',
+            'Tutor Apellido',
+            'Tutor CI',
+            ...Object.keys(reporteData[0]).filter(key =>
+                !['id', 'estudiante', 'created_at', 'updated_at', 'fecha_registro'].includes(key)
+            ),
+        ];
+
+        const filas = reporteData.map((item) => {
+            return [
+                item.estudiante?.nombres ?? '',
+                item.estudiante?.apellidos ?? '',
+                item.estudiante?.ci ?? '',
+                item.estudiante?.grado ?? '',
+                item.estudiante?.unidad_educativa?.nombre ?? '',
+                item.estudiante?.unidad_educativa?.departamento ?? '',
+                item.estudiante?.tutor_legal?.nombre ?? '',
+                item.estudiante?.tutor_legal?.apellido ?? '',
+                item.estudiante?.tutor_legal?.ci ?? '',
+                ...Object.keys(item)
+                    .filter(key => !['id', 'estudiante', 'created_at', 'updated_at', 'fecha_registro'].includes(key))
+                    .map(key => JSON.stringify(item[key])),
+            ];
         });
-      } else {
-        excelRows.push({ area: area.nombre_area, ...{ nombres: '', apellidos: '', ci: '', email: '', fecha_nacimiento: '' } });
-      }
-    });
-    const ws = XLSX.utils.json_to_sheet(excelRows);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Áreas');
-    XLSX.writeFile(wb, 'reporte_areas.xlsx');
-  };
 
-  return (
-    <div>
-      <h2 className="text-xl font-bold mb-4">Reporte por Áreas</h2>
-      <div className="mb-4 flex flex-wrap gap-2 items-center">
-        <label className="font-medium mr-2">Convocatoria:</label>
-        <select
-          className="border rounded px-3 py-2"
-          value={selectedConvocatoria ?? ''}
-          onChange={e => setSelectedConvocatoria(Number(e.target.value) || null)}
-        >
-          <option value="">Seleccione una convocatoria</option>
-          {convocatorias.map((c) => (
-            <option key={c.id} value={c.id}>{c.nombre}</option>
-          ))}
-        </select>
-        <select
-          className="border rounded px-3 py-2"
-          value={selectedConvocatoria ?? ''}
-          onChange={e => setSelectedConvocatoria(Number(e.target.value) || null)}
-        >
-          <option value="">Seleccione una convocatoria</option>
-          {convocatorias.map((c) => (
-            <option key={c.id} value={c.id}>{c.nombre}</option>
-          ))}
-        </select>
-        {data.length > 0 && (
-          <>
-            <button
-              className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
-              onClick={handleExportPDF}
-              type="button"
-            >
-              Exportar PDF
-            </button>
-            <button
-              className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
-              onClick={handleExportExcel}
-              type="button"
-            >
-              Exportar Excel
-            </button>
-          </>
-        )}
-      </div>
-      {loading && <div>Cargando...</div>}
-      {error && <div className="text-red-600">{error}</div>}
-      {data.length > 0 && (
-        <div className="overflow-x-auto">
-          <table id="tabla-areas" className="min-w-full border text-xs md:text-sm">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="border px-2 py-1">Área</th>
-                <th className="border px-2 py-1">Total Inscritos</th>
-                <th className="border px-2 py-1">Nombres</th>
-                <th className="border px-2 py-1">Apellidos</th>
-                <th className="border px-2 py-1">CI</th>
-                <th className="border px-2 py-1">Email</th>
-                <th className="border px-2 py-1">Fecha Nac.</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.map((area, i) => (
-                area.estudiantes && area.estudiantes.length > 0 ? (
-                  area.estudiantes.map((est, idx) => (
-                    <tr key={area.nombre_area + '-' + idx} className={idx === 0 ? 'border-t-2 border-blue-400' : ''}>
-                      {idx === 0 && (
-                        <>
-                          <td className="border px-2 py-1 font-semibold bg-blue-50" rowSpan={area.estudiantes.length}>{area.nombre_area}</td>
-                          <td className="border px-2 py-1 font-semibold bg-blue-50" rowSpan={area.estudiantes.length}>{area.total_inscritos}</td>
-                        </>
-                      )}
-                      {/* Si no es la primera fila, no se repite el nombre del área ni el total */}
-                      {idx !== 0 && null}
-                      <td className="border px-2 py-1">{est.nombres}</td>
-                      <td className="border px-2 py-1">{est.apellidos}</td>
-                      <td className="border px-2 py-1">{est.ci}</td>
-                      <td className="border px-2 py-1">{est.email}</td>
-                      <td className="border px-2 py-1">{est.fecha_nacimiento}</td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr key={area.nombre_area + '-empty'} className="border-t-2 border-blue-400">
-                    <td className="border px-2 py-1 font-semibold bg-blue-50">{area.nombre_area}</td>
-                    <td className="border px-2 py-1 font-semibold bg-blue-50">{area.total_inscritos}</td>
-                    <td className="border px-2 py-1 text-gray-400" colSpan={5}>Sin estudiantes inscritos</td>
-                  </tr>
-                )
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-      {data.length === 0 && selectedConvocatoria && !loading && (
-        <div className="text-gray-500">No hay datos para mostrar.</div>
-      )}
-    </div>
-  );
+        exportarPDF({ nombreReporte, encabezados, filas });
+    };
+
+    return (
+        <Box className="reporte-convocatoria" sx={{ flexGrow: 1, p: 3, minWidth: 0 }}>
+          <Box sx={{ width: '100%', overflowX: 'auto' }}>
+            <Typography variant="h6" gutterBottom>
+              Reporte de Inscripciones por Convocatoria
+            </Typography>
+      
+            <FormControl fullWidth margin="normal">
+              <InputLabel id="select-convocatoria-label">Seleccionar Convocatoria</InputLabel>
+              <Select
+                labelId="select-convocatoria-label"
+                id="select-convocatoria"
+                value={selectedConvocatoriaId}
+                label="Seleccionar Convocatoria"
+                onChange={handleConvocatoriaChange}
+              >
+                <MenuItem value="">
+                  <em>Ninguna</em>
+                </MenuItem>
+                {loadingConvocatorias && <MenuItem disabled>Cargando convocatorias...</MenuItem>}
+                {errorConvocatorias && <MenuItem disabled>{errorConvocatorias}</MenuItem>}
+                {convocatorias &&
+                  convocatorias.map((convocatoria) => (
+                    <MenuItem key={convocatoria.id} value={convocatoria.id}>
+                      {convocatoria.nombre}
+                    </MenuItem>
+                  ))}
+              </Select>
+              </FormControl>
+
+         
+            <FormControl fullWidth margin="normal">
+
+              <InputLabel id="select-departamento-label">Seleccionar Departamento</InputLabel>
+              <Select
+                labelId="select-departamento-label"
+                id="select-departamento"
+                value={selectedArea}
+                label="Seleccionar Departamento"
+                onChange={handleAreaChange}
+              >
+
+                <MenuItem value="">
+                  <em>Ninguna</em>
+                </MenuItem>
+                  {areas.map((area) => (
+                    <MenuItem key={area.id_convocatoria_area} value={area.id_convocatoria_area}>
+                      {area.nombre_area}
+                    </MenuItem>
+                  ))}
+              </Select>
+              </FormControl>
+            <FormControl fullWidth margin="normal">
+
+              <InputLabel id="select-provincia-label">Seleccionar Provincia</InputLabel>
+               <Select
+                labelId="select-provincia-label"
+                id="select-provincia"
+                value={selectedNivel}
+                label="Seleccionar Provincia"
+                onChange={handleNivelChange}
+              >
+                <MenuItem value="">
+                  <em>Ninguna</em>
+                </MenuItem>
+                {loadingConvocatorias && <MenuItem disabled>Cargando convocatorias...</MenuItem>}
+                {errorConvocatorias && <MenuItem disabled>{errorConvocatorias}</MenuItem>}
+                {convocatorias &&
+                    niveles.map((nivel) => (
+                    <MenuItem key={nivel.id_convocatoria_nivel} value={nivel.id_convocatoria_nivel}>
+                      {nivel.nombre_nivel}
+                    </MenuItem>
+                  ))}
+              </Select>
+            </FormControl>
+      
+            {loading && <Typography sx={{ mt: 2 }}>Cargando datos...</Typography>}
+            {error && <Typography color="error" sx={{ mt: 2 }}>{error}</Typography>}
+      
+            {reporteData && reporteData.length === 0 && (
+              <Typography sx={{ mt: 2 }}>No hubo inscripciones en esta convocatoria.</Typography>
+            )}
+      
+            {reporteData && reporteData.length > 0 && (
+              <>
+                <TableContainer
+                  component={Paper}
+                  sx={{ width: '100%', maxHeight: '500px', mt: 4 }}
+                >
+                  <Table stickyHeader>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Estudiante Nombres</TableCell>
+                        <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Estudiante Apellidos</TableCell>
+                        <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Estudiante CI</TableCell>
+                        <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Estudiante Grado</TableCell>
+                        <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Unidad Educativa</TableCell>
+                        <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Departamento</TableCell>
+                        <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Tutor Nombre</TableCell>
+                        <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Tutor Apellido</TableCell>
+                        <TableCell sx={{ color: 'black', fontWeight: 'bold' }}>Tutor CI</TableCell>
+                        {Object.keys(reporteData[0]).filter(key =>
+                          !['id', 'estudiante', 'created_at', 'updated_at', 'fecha_registro'].includes(key)
+                        ).map((header, index) => (
+                          <TableCell sx={{ color: 'black', fontWeight: 'bold' }} key={`extra_header_${index}`}>{header}</TableCell>
+                        ))}
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {reporteData.map((item: any, idx: number) => (
+                        <TableRow key={idx}>
+                          <TableCell>{item.estudiante?.nombres}</TableCell>
+                          <TableCell>{item.estudiante?.apellidos}</TableCell>
+                          <TableCell>{item.estudiante?.ci}</TableCell>
+                          <TableCell>{item.estudiante?.grado}</TableCell>
+                          <TableCell>{item.estudiante?.unidad_educativa?.nombre}</TableCell>
+                          <TableCell>{item.estudiante?.unidad_educativa?.departamento}</TableCell>
+                          <TableCell>{item.estudiante?.tutor_legal?.nombre}</TableCell>
+                          <TableCell>{item.estudiante?.tutor_legal?.apellido}</TableCell>
+                          <TableCell>{item.estudiante?.tutor_legal?.ci}</TableCell>
+                          {Object.keys(item)
+                            .filter(key => !['id', 'estudiante', 'created_at', 'updated_at', 'fecha_registro'].includes(key))
+                            .map((key, index) => (
+                              <TableCell key={`extra_cell_${idx}_${index}`}>{JSON.stringify(item[key])}</TableCell>
+                            ))}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+      
+                <Button
+                  variant="contained"
+                  onClick={manejarExportacion}
+                  sx={{ mt: 2 }}
+                  disabled={!reporteData || reporteData.length === 0}
+                >
+                  Exportar PDF
+                </Button>
+              </>
+            )}
+          </Box>
+        </Box>
+      );
+      
 }
+
+export default ReporteNiveles;

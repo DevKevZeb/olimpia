@@ -181,7 +181,11 @@ const ReporteDepartamento = () => {
                     </MenuItem>
                   ))}
               </Select>
-              <Divider></Divider>
+            </FormControl>
+
+            <FormControl fullWidth margin="normal">
+                  <InputLabel id="select-departamento-label">Seleccionar Departamento</InputLabel>
+
               <Select
                 labelId="select-departamentolabel"
                 id="select-departamento"

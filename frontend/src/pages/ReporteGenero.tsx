@@ -176,11 +176,14 @@ const ReporteGenero = () => {
                   ))}
               </Select>
               <Divider></Divider>
+                  </FormControl>
+                  <FormControl fullWidth margin="normal">
+                  <InputLabel id="select-genero-label">Seleccionar Genero</InputLabel>
               <Select
-                labelId="select-departamentolabel"
+                labelId="select-genero-label"
                 id="select-departamento"
                 value={selectedGenero}
-                label="Seleccionar Departamento"
+                label="Seleccionar Genero"
                 onChange={handleDepartamentoChange}
               >
                 <MenuItem value="">
