@@ -176,7 +176,7 @@ const ReporteUnidadEducativa = () => {
              <FormControl fullWidth margin="normal">
                 <TextField
                   id="input-below-select"
-                  label="Buscar por nombre, CI u otro"
+                  label="Ingrese Unidad Educativa"
                   variant="outlined"
                   value={unidadEducativa}
                   onChange={handleUnidadEducativaChange}
