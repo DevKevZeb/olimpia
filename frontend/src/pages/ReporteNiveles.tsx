@@ -73,13 +73,13 @@ const ReporteNiveles = () => {
         fetchConvocatorias();
     }, []);
 
-        const fetchAreas = async () => {
-          if(!selectedConvocatoriaId)
+        const fetchAreas = async (convocatoriaID ) => {
+          if(!convocatoriaID)
             {
               return;
             }
             try {
-                const data = await getAreasPorConvocatoria(selectedConvocatoriaId);
+                const data = await getAreasPorConvocatoria(convocatoriaID);
                 setAreas(data);
             } catch (error: any) {
                 console.error('Error al cargar las convocatorias:', error);
@@ -105,7 +105,7 @@ const ReporteNiveles = () => {
 
     useEffect(() => {
         const cargarReporte = async () => {
-            if (selectedConvocatoriaId && selectedArea !== '') {
+            if (selectedConvocatoriaId && selectedNivel !== '') {
                 setReporteData(null);
                 setError(null);
                 setLoading(true);
@@ -129,11 +129,12 @@ const ReporteNiveles = () => {
         };
         console.log(selectedConvocatoriaId,  selectedArea);
         cargarReporte();
-    }, [selectedConvocatoriaId, selectedArea, selectedNivel]);
+    }, [selectedNivel]);
 
     const handleConvocatoriaChange = (event: ChangeEvent<{ value: number | '' }>) => {
         setSelectedConvocatoriaId(event.target.value);
-        fetchAreas();
+        console.log("->",event.target.value);
+        fetchAreas(event.target.value);
     };
     const handleAreaChange = (event: ChangeEvent<{ value: number | '' }>) => {
         setSelectedArea(event.target.value);

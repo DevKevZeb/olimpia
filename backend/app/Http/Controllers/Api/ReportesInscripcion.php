@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Models\ConvocatoriaArea;
-use App\Models\ConvocatoriaNivel;
-use App\Models\DetalleListaInscripcion;
 use App\Models\Estudiante;
+use Illuminate\Http\Request;
 use App\Models\TutorAcademico;
 use App\Models\UnidadEducativa;
+use App\Models\ConvocatoriaArea;
+use App\Models\ConvocatoriaNivel;
+use Illuminate\Support\Facades\Log;
+use App\Models\DetalleListaInscripcion;
 use App\Models\OrdenPago; // Importa el modelo OrdenPago
-use Illuminate\Http\Request;
 
 class ReportesInscripcion extends ApiController
 {
@@ -231,7 +232,16 @@ class ReportesInscripcion extends ApiController
                     if ($ordenPago) {
                         $estadoInscripcion = $ordenPago->estado;
                     }
-                    if($inscripcion->estudiante->genero !== $genero)
+                    Log::info($inscripcion->estudiante->genero . " -- " . $genero );
+                    if(
+                        $genero == 'Otro' &&
+                        ($inscripcion->estudiante->genero == 'Femenino' || 
+                        $inscripcion->estudiante->genero == 'Masculino')  
+                        )
+                        {
+                        Log::info("SKIIP" );
+                        continue; 
+                    }else if($genero != 'Otro' && $inscripcion->estudiante->genero !== $genero)
                     {
                         continue;
                     }
@@ -332,33 +342,29 @@ class ReportesInscripcion extends ApiController
     }
 
     
-    private function getDataPorNivel($convocatoriaId, $area_id, $nivel_id)
-    {
+        private function getDataPorNivel($convocatoriaId, $area_id, $nivel_id)
+ {
         $convocatoriaAreas = ConvocatoriaArea::where('id_convocatoria', $convocatoriaId)
-          //  ->where('areas_competencia.id_area', $area_id)
+            ->where('id_area', $area_id) // id area
             ->join('areas_competencia', 'convocatoria_areas.id_area', '=', 'areas_competencia.id_area')
             ->get(['convocatoria_areas.id_convocatoria_area', 'areas_competencia.nombre_area']);
-
+        Log::info(json_encode($convocatoriaAreas));
         if ($convocatoriaAreas->isEmpty()) {
             return $this->successResponse([], 'No se encontraron áreas de convocatoria para el ID proporcionado.');
         }
 
         $resultados = [];
         foreach ($convocatoriaAreas as $convocatoriaArea) {
-            if($nivel_id)
-                $convocatoriaNiveles = ConvocatoriaNivel::where('id_convocatoria_area', $convocatoriaArea->id_convocatoria_area);
-            //        ->where('id_nivel', $nivel_id);
-            else
-                $convocatoriaNiveles = ConvocatoriaNivel::where('id_convocatoria_area', $convocatoriaArea->id_convocatoria_area)->get(['id_convocatoria_nivel']);
+            $convocatoriaNiveles = ConvocatoriaNivel::where('id_convocatoria_area', $convocatoriaArea->id_convocatoria_area)
+            ->where('id_nivel' , $nivel_id) // nivel id 
+            ->get(['id_convocatoria_nivel']);
 
-            if (empty($convocatoriaNiveles)) {
+            if ($convocatoriaNiveles->isEmpty()) {
                 continue;
             }
 
             foreach ($convocatoriaNiveles as $convocatoriaNivel) {
-                $listaInscripciones = DetalleListaInscripcion::where('id_convocatoria_nivel', $nivel_id)
-
-                    // ->where('id_convocatoria_nivel', $nivel_id)
+                $listaInscripciones = DetalleListaInscripcion::where('id_convocatoria_nivel', $convocatoriaNivel->id_convocatoria_nivel)
                     ->with(['estudiante' => function ($query) {
                         $query->select(['id_estudiante', 'nombres', 'apellidos', 'ci', 'id_grado', 'id_unidad_educativa', 'id_tutor_legal'])
                             ->with(['grado:id_grado,nombre_grado', 'unidadEducativa:id_unidad_educativa,nombre,departamento', 'tutorLegal:id_tutor_legal,nombres,apellidos,ci']);
@@ -366,7 +372,7 @@ class ReportesInscripcion extends ApiController
                     ->select(['id_detalle', 'id_estudiante', 'id_lista', 'fecha_registro']) // Seleccionamos id_lista
                     ->get();
 
-                if (empty($listaInscripciones)) {
+                if ($listaInscripciones->isEmpty()) {
                     continue;
                 }
 
@@ -403,9 +409,9 @@ class ReportesInscripcion extends ApiController
                 }
             }
         }
+
         return $this->successResponse($resultados, 'Datos de la convocatoria obtenidos exitosamente.');
     }
-
          private function getDataPorUnidadEducativa($convocatoriaId, $unidadEducativa)
     {
         $convocatoriaAreas = ConvocatoriaArea::where('id_convocatoria', $convocatoriaId)

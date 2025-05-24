@@ -30,7 +30,7 @@ interface ReporteInscripciones {
         grado: string;
         unidad_educativa: {
             nombre: string;
-            departamento: string;
+            genero: string;
         };
         tutor_legal: {
             nombre: string;
@@ -52,7 +52,7 @@ const ReporteGenero = () => {
     const [errorConvocatorias, setErrorConvocatorias] = useState<string | null>(null);
 
 
-    const departamentos = [
+    const generos = [
                   "Femenino",
                   "Masculino",
                   "Otro",
@@ -85,7 +85,7 @@ const ReporteGenero = () => {
                     const params =  { 
                       genero:selectedGenero
                      };
-                    const data = await obtenerReportePorCampoId('departamento', selectedConvocatoriaId , params);
+                    const data = await obtenerReportePorCampoId('genero', selectedConvocatoriaId , params);
                     setReporteData(data as ReporteInscripciones[]);
                 } catch (err: any) {
                     console.error('Error al obtener el reporte de inscripciones:', err);
@@ -105,7 +105,7 @@ const ReporteGenero = () => {
     const handleConvocatoriaChange = (event: ChangeEvent<{ value: number | '' }>) => {
         setSelectedConvocatoriaId(event.target.value);
     };
-    const handleDepartamentoChange = (event: ChangeEvent<{ value: string | '' }>) => {
+    const handlegeneroChange = (event: ChangeEvent<{ value: string | '' }>) => {
         setSelectedGenero(event.target.value);
     };
 
@@ -118,7 +118,7 @@ const ReporteGenero = () => {
             'Estudiante CI',
             'Estudiante Grado',
             'Unidad Educativa',
-            'Departamento',
+            'genero',
             'Tutor Nombre',
             'Tutor Apellido',
             'Tutor CI',
@@ -134,7 +134,7 @@ const ReporteGenero = () => {
                 item.estudiante?.ci ?? '',
                 item.estudiante?.grado ?? '',
                 item.estudiante?.unidad_educativa?.nombre ?? '',
-                item.estudiante?.unidad_educativa?.departamento ?? '',
+                item.estudiante?.unidad_educativa?.genero ?? '',
                 item.estudiante?.tutor_legal?.nombre ?? '',
                 item.estudiante?.tutor_legal?.apellido ?? '',
                 item.estudiante?.tutor_legal?.ci ?? '',
@@ -181,17 +181,17 @@ const ReporteGenero = () => {
                   <InputLabel id="select-genero-label">Seleccionar Genero</InputLabel>
               <Select
                 labelId="select-genero-label"
-                id="select-departamento"
+                id="select-genero"
                 value={selectedGenero}
                 label="Seleccionar Genero"
-                onChange={handleDepartamentoChange}
+                onChange={handlegeneroChange}
               >
                 <MenuItem value="">
                   <em>Ninguna</em>
                 </MenuItem>
-                  {departamentos.map((departamento) => (
-                    <MenuItem key={departamento} value={departamento}>
-                      {departamento}
+                  {generos.map((genero) => (
+                    <MenuItem key={genero} value={genero}>
+                      {genero}
                     </MenuItem>
                   ))}
               </Select>
