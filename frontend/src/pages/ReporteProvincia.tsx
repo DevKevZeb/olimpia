@@ -20,6 +20,7 @@ import {
 } from '@mui/material';
 import { obtenerTodasConvocatorias, obtenerReportePorCampoId, Convocatoria } from '../api/reportes';
 import { exportarPDF } from '../components/exportarPDF';
+import DescargarExcelButton from '../components/DescargarExcelButton';
 
 interface ReporteInscripciones {
     id: string;
@@ -346,6 +347,9 @@ const ReporteProvincia = () => {
                 >
                   Exportar PDF
                 </Button>
+                <DescargarExcelButton
+                  data={reporteData} 
+                  campo="Provincia"/>
               </>
             )}
           </Box>

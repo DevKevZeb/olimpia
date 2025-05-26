@@ -32,6 +32,7 @@ import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import { obtenerTodasConvocatorias, obtenerReportePorCampoId, Convocatoria } from '../api/reportes';
 import { exportarPDF } from '../components/exportarPDF';
+import DescargarExcelButton from '../components/DescargarExcelButton';
 
 interface ReporteItem {
     id: string;
@@ -362,6 +363,9 @@ const ReportesView = () => {
                                     >
                                         Exportar PDF
                                     </Button>
+                                    <DescargarExcelButton
+                                         data={reporteData} 
+                                         campo="Convocatioria"/>
                                 </>
                         )}
                     </>

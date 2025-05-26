@@ -21,6 +21,7 @@ import {
 import { obtenerTodasConvocatorias, obtenerReportePorCampoId, Convocatoria } from '../api/reportes';
 import { exportarPDF } from '../components/exportarPDF';
 import { getAreasPorConvocatoria, getNivelesPorConvocatoria } from '../api/adminConvocatoriaApi';
+import DescargarExcelButton from '../components/DescargarExcelButton';
 
 interface ReporteInscripciones {
     id: string;
@@ -321,6 +322,9 @@ const ReporteNiveles = () => {
                 >
                   Exportar PDF
                 </Button>
+                <DescargarExcelButton
+                  data={reporteData} 
+                  campo="Niveles"/>
               </>
             )}
           </Box>
