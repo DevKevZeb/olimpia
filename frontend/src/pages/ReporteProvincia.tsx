@@ -17,7 +17,6 @@ import {
     MenuItem,
     Button,
     Divider,
-    TextField,
 } from '@mui/material';
 import { obtenerTodasConvocatorias, obtenerReportePorCampoId, Convocatoria } from '../api/reportes';
 import { exportarPDF } from '../components/exportarPDF';
@@ -43,16 +42,78 @@ interface ReporteInscripciones {
     [key: string]: any; // Para otras propiedades específicas de la inscripción
 }
 
-const ReporteUnidadEducativa = () => {
+const ReporteProvincia = () => {
     const [reporteData, setReporteData] = useState<ReporteInscripciones[] | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [convocatorias, setConvocatorias] = useState<Convocatoria[] | null>(null);
     const [selectedConvocatoriaId, setSelectedConvocatoriaId] = useState<number | ''>('');
-    const [unidadEducativa, setUnidadEducativa] = useState<string | ''>('');
+    const [selectedProvincia, setSelectedProvincia] = useState<string>('');
+    const [selectedDepartamento, setSelectedDepartamento] = useState<string>('');
     const [loadingConvocatorias, setLoadingConvocatorias] = useState(false);
     const [errorConvocatorias, setErrorConvocatorias] = useState<string | null>(null);
 
+    const departamentos: string[] = [
+      "La Paz",
+      "Cochabamba",
+      "Santa Cruz",
+      "Potosí",
+      "Chuquisaca",
+      "Oruro",
+      "Tarija",
+      "Beni",
+      "Pando"
+    ];
+
+    const provincias : Record<string, string[]> = {
+    "" : [ "Seleccione un departamento primero"],
+    "La Paz": [
+    "Abel Iturralde", "Aroma", "Bautista Saavedra", "Caranavi", "Eliodoro Camacho",
+    "Franz Tamayo", "Gualberto Villarroel", "Ingavi", "Inquisivi", "José Ramón Loayza",
+    "Larecaja", "Los Andes", "Manco Kapac", "Muñecas", "Nor Yungas", "Omasuyos",
+    "Pacajes", "Pedro Domingo Murillo", "Sud Yungas"
+  ],
+  "Cochabamba": [
+    "Arani", "Arque", "Ayopaya", "Capinota", "Carrasco", "Cercado", "Chapare",
+    "Esteban Arce", "Germán Jordán", "Mizque", "Narciso Campero", "Punata",
+    "Quillacollo", "Tapacarí", "Tiraque"
+  ],
+  "Santa Cruz": [
+    "Andrés Ibáñez", "Ángel Sandoval", "Chiquitos", "Cordillera", "Florida",
+    "Germán Busch", "Guarayos", "Ichilo", "Ignacio Warnes", "Manuel María Caballero",
+    "Ñuflo de Chávez", "Obispo Santistevan", "Sara", "Vallegrande", "Velasco"
+  ],
+  "Potosí": [
+    "Alonso de Ibáñez", "Antonio Quijarro", "Bernardino Bilbao", "Charcas",
+    "Chayanta", "Cornelio Saavedra", "Daniel Campos", "Enrique Baldivieso",
+    "José María Linares", "Modesto Omiste", "Nor Chichas", "Nor Lípez",
+    "Rafael Bustillo", "Sud Chichas", "Sud Lípez", "Tomás Frías"
+  ],
+  "Chuquisaca": [
+    "Azurduy", "Belisario Boeto", "Hernando Siles", "Jaime Zudáñez",
+    "Juana Azurduy de Padilla", "Luis Calvo", "Nor Cinti", "Oropeza",
+    "Sud Cinti", "Tomina", "Yamparáez"
+  ],
+  "Oruro": [
+    "Abaroa", "Atahuallpa", "Carangas", "Cercado", "Eduardo Abaroa",
+    "Ladislao Cabrera", "Litoral", "Nor Carangas", "Poopó", "Sabaya",
+    "Sajama", "San Pedro de Totora", "Saucarí", "Sebastián Pagador",
+    "Sud Carangas", "Tomás Barrón"
+  ],
+  "Tarija": [
+    "Aniceto Arce", "Burdett O'Connor", "Cercado", "Eustaquio Méndez",
+    "Gran Chaco", "José María Avilés"
+  ],
+  "Beni": [
+    "Cercado", "Iténez", "José Ballivián", "Mamoré", "Marbán",
+    "Moxos", "Vaca Díez", "Yacuma"
+  ],
+  "Pando": [
+    "Abuná", "Federico Román", "Madre de Dios", "Manuripi", "Nicolás Suárez"
+  ]
+};
+
+    
     useEffect(() => {
         const fetchConvocatorias = async () => {
             setLoadingConvocatorias(true);
@@ -73,15 +134,16 @@ const ReporteUnidadEducativa = () => {
 
     useEffect(() => {
         const cargarReporte = async () => {
-            if (selectedConvocatoriaId && unidadEducativa !== '') {
+            if (selectedConvocatoriaId && selectedProvincia !== '') {
                 setReporteData(null);
                 setError(null);
                 setLoading(true);
                 try {
                     const params =  { 
-                      unidad_educativa: unidadEducativa
+                      departamento:selectedDepartamento,
+                      provincia:selectedProvincia
                      };
-                    const data = await obtenerReportePorCampoId('unidad_educativa', selectedConvocatoriaId , params);
+                    const data = await obtenerReportePorCampoId('departamento', selectedConvocatoriaId , params);
                     setReporteData(data as ReporteInscripciones[]);
                 } catch (err: any) {
                     console.error('Error al obtener el reporte de inscripciones:', err);
@@ -94,18 +156,19 @@ const ReporteUnidadEducativa = () => {
                 setReporteData(null);
             }
         };
-        console.log(selectedConvocatoriaId,  unidadEducativa);
+        console.log(selectedConvocatoriaId,  selectedProvincia);
         cargarReporte();
-    }, [selectedConvocatoriaId, unidadEducativa]);
+    }, [selectedConvocatoriaId, selectedProvincia]);
 
     const handleConvocatoriaChange = (event: ChangeEvent<{ value: number | '' }>) => {
         setSelectedConvocatoriaId(event.target.value);
     };
-  
-    const handleUnidadEducativaChange = (event: ChangeEvent<{ value: string | '' }>) => {
-        setUnidadEducativa(event.target.value);
+    const handleDepartamentoChange = (event: ChangeEvent<{ value: string | '' }>) => {
+        setSelectedDepartamento(event.target.value);
     };
-  
+    const handleProvinciaChange = (event: ChangeEvent<{ value: string | '' }>) => {
+        setSelectedProvincia(event.target.value);
+    };
 
     const manejarExportacion = () => {
         if (!reporteData || reporteData.length === 0) return;
@@ -173,18 +236,54 @@ const ReporteUnidadEducativa = () => {
                     </MenuItem>
                   ))}
               </Select>
-            </FormControl>
-             <FormControl fullWidth margin="normal">
-                <TextField
-                  id="input-below-select"
-                  label="Ingrese Unidad Educativa"
-                  variant="outlined"
-                  value={unidadEducativa}
-                  onChange={handleUnidadEducativaChange}
-                  fullWidth
-                />
-              </FormControl>       
+              </FormControl>
 
+         
+            <FormControl fullWidth margin="normal">
+
+              <InputLabel id="select-departamento-label">Seleccionar Departamento</InputLabel>
+              <Select
+                labelId="select-departamento-label"
+                id="select-departamento"
+                value={selectedDepartamento}
+                label="Seleccionar Departamento"
+                onChange={handleDepartamentoChange}
+              >
+
+                <MenuItem value="">
+                  <em>Ninguna</em>
+                </MenuItem>
+                  {departamentos.map((departamento) => (
+                    <MenuItem key={departamento} value={departamento}>
+                      {departamento}
+                    </MenuItem>
+                  ))}
+              </Select>
+              </FormControl>
+            <FormControl fullWidth margin="normal">
+
+              <InputLabel id="select-provincia-label">Seleccionar Provincia</InputLabel>
+               <Select
+                labelId="select-provincia-label"
+                id="select-provincia"
+                value={selectedProvincia}
+                label="Seleccionar Provincia"
+                onChange={handleProvinciaChange}
+              >
+                <MenuItem value="">
+                  <em>Ninguna</em>
+                </MenuItem>
+                {loadingConvocatorias && <MenuItem disabled>Cargando convocatorias...</MenuItem>}
+                {errorConvocatorias && <MenuItem disabled>{errorConvocatorias}</MenuItem>}
+                {convocatorias &&
+                    provincias[selectedDepartamento].map((provincia) => (
+                    <MenuItem key={provincia} value={provincia}>
+                      {provincia}
+                    </MenuItem>
+                  ))}
+              </Select>
+            </FormControl>
+      
             {loading && <Typography sx={{ mt: 2 }}>Cargando datos...</Typography>}
             {error && <Typography color="error" sx={{ mt: 2 }}>{error}</Typography>}
       
@@ -243,16 +342,14 @@ const ReporteUnidadEducativa = () => {
                 <Button
                   variant="contained"
                   onClick={manejarExportacion}
-                  
+                  sx={{ mt: 2 }}
                   disabled={!reporteData || reporteData.length === 0}
                 >
                   Exportar PDF
                 </Button>
-                <DescargarExcelButton 
+                <DescargarExcelButton
                   data={reporteData} 
-                  campo="Unidad_Educativa"
->
-                </DescargarExcelButton>
+                  campo="Provincia"/>
               </>
             )}
           </Box>
@@ -261,4 +358,4 @@ const ReporteUnidadEducativa = () => {
       
 }
 
-export default ReporteUnidadEducativa;
+export default ReporteProvincia;

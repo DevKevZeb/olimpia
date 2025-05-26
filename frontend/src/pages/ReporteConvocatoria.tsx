@@ -19,6 +19,7 @@ import {
 } from '@mui/material';
 import { obtenerTodasConvocatorias, obtenerReportePorCampoId, Convocatoria } from '../api/reportes';
 import { exportarPDF } from '../components/exportarPDF';
+import DescargarExcelButton from '../components/DescargarExcelButton';
 
 interface ReporteInscripciones {
     id: string;
@@ -226,6 +227,10 @@ const ReporteConvocatoriaView = () => {
                 >
                   Exportar PDF
                 </Button>
+                <DescargarExcelButton 
+                  data={reporteData} 
+                  campo="Convocatoria">
+                </DescargarExcelButton>
               </>
             )}
           </Box>

@@ -17,7 +17,6 @@ import {
     MenuItem,
     Button,
     Divider,
-    TextField,
 } from '@mui/material';
 import { obtenerTodasConvocatorias, obtenerReportePorCampoId, Convocatoria } from '../api/reportes';
 import { exportarPDF } from '../components/exportarPDF';
@@ -32,7 +31,7 @@ interface ReporteInscripciones {
         grado: string;
         unidad_educativa: {
             nombre: string;
-            departamento: string;
+            genero: string;
         };
         tutor_legal: {
             nombre: string;
@@ -43,16 +42,22 @@ interface ReporteInscripciones {
     [key: string]: any; // Para otras propiedades específicas de la inscripción
 }
 
-const ReporteUnidadEducativa = () => {
+const ReporteGenero = () => {
     const [reporteData, setReporteData] = useState<ReporteInscripciones[] | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [convocatorias, setConvocatorias] = useState<Convocatoria[] | null>(null);
     const [selectedConvocatoriaId, setSelectedConvocatoriaId] = useState<number | ''>('');
-    const [unidadEducativa, setUnidadEducativa] = useState<string | ''>('');
+    const [selectedGenero, setSelectedGenero] = useState<string | ''>('');
     const [loadingConvocatorias, setLoadingConvocatorias] = useState(false);
     const [errorConvocatorias, setErrorConvocatorias] = useState<string | null>(null);
 
+
+    const generos = [
+                  "Femenino",
+                  "Masculino",
+                  "Otro",
+    ];
     useEffect(() => {
         const fetchConvocatorias = async () => {
             setLoadingConvocatorias(true);
@@ -73,15 +78,15 @@ const ReporteUnidadEducativa = () => {
 
     useEffect(() => {
         const cargarReporte = async () => {
-            if (selectedConvocatoriaId && unidadEducativa !== '') {
+            if (selectedConvocatoriaId && selectedGenero !== '') {
                 setReporteData(null);
                 setError(null);
                 setLoading(true);
                 try {
                     const params =  { 
-                      unidad_educativa: unidadEducativa
+                      genero:selectedGenero
                      };
-                    const data = await obtenerReportePorCampoId('unidad_educativa', selectedConvocatoriaId , params);
+                    const data = await obtenerReportePorCampoId('genero', selectedConvocatoriaId , params);
                     setReporteData(data as ReporteInscripciones[]);
                 } catch (err: any) {
                     console.error('Error al obtener el reporte de inscripciones:', err);
@@ -94,18 +99,16 @@ const ReporteUnidadEducativa = () => {
                 setReporteData(null);
             }
         };
-        console.log(selectedConvocatoriaId,  unidadEducativa);
+        console.log(selectedConvocatoriaId,  selectedGenero);
         cargarReporte();
-    }, [selectedConvocatoriaId, unidadEducativa]);
+    }, [selectedConvocatoriaId, selectedGenero]);
 
     const handleConvocatoriaChange = (event: ChangeEvent<{ value: number | '' }>) => {
         setSelectedConvocatoriaId(event.target.value);
     };
-  
-    const handleUnidadEducativaChange = (event: ChangeEvent<{ value: string | '' }>) => {
-        setUnidadEducativa(event.target.value);
+    const handlegeneroChange = (event: ChangeEvent<{ value: string | '' }>) => {
+        setSelectedGenero(event.target.value);
     };
-  
 
     const manejarExportacion = () => {
         if (!reporteData || reporteData.length === 0) return;
@@ -116,7 +119,7 @@ const ReporteUnidadEducativa = () => {
             'Estudiante CI',
             'Estudiante Grado',
             'Unidad Educativa',
-            'Departamento',
+            'genero',
             'Tutor Nombre',
             'Tutor Apellido',
             'Tutor CI',
@@ -132,7 +135,7 @@ const ReporteUnidadEducativa = () => {
                 item.estudiante?.ci ?? '',
                 item.estudiante?.grado ?? '',
                 item.estudiante?.unidad_educativa?.nombre ?? '',
-                item.estudiante?.unidad_educativa?.departamento ?? '',
+                item.estudiante?.unidad_educativa?.genero ?? '',
                 item.estudiante?.tutor_legal?.nombre ?? '',
                 item.estudiante?.tutor_legal?.apellido ?? '',
                 item.estudiante?.tutor_legal?.ci ?? '',
@@ -173,18 +176,28 @@ const ReporteUnidadEducativa = () => {
                     </MenuItem>
                   ))}
               </Select>
+              <Divider></Divider>
+                  </FormControl>
+                  <FormControl fullWidth margin="normal">
+                  <InputLabel id="select-genero-label">Seleccionar Genero</InputLabel>
+              <Select
+                labelId="select-genero-label"
+                id="select-genero"
+                value={selectedGenero}
+                label="Seleccionar Genero"
+                onChange={handlegeneroChange}
+              >
+                <MenuItem value="">
+                  <em>Ninguna</em>
+                </MenuItem>
+                  {generos.map((genero) => (
+                    <MenuItem key={genero} value={genero}>
+                      {genero}
+                    </MenuItem>
+                  ))}
+              </Select>
             </FormControl>
-             <FormControl fullWidth margin="normal">
-                <TextField
-                  id="input-below-select"
-                  label="Ingrese Unidad Educativa"
-                  variant="outlined"
-                  value={unidadEducativa}
-                  onChange={handleUnidadEducativaChange}
-                  fullWidth
-                />
-              </FormControl>       
-
+      
             {loading && <Typography sx={{ mt: 2 }}>Cargando datos...</Typography>}
             {error && <Typography color="error" sx={{ mt: 2 }}>{error}</Typography>}
       
@@ -243,16 +256,14 @@ const ReporteUnidadEducativa = () => {
                 <Button
                   variant="contained"
                   onClick={manejarExportacion}
-                  
+                  sx={{ mt: 2 }}
                   disabled={!reporteData || reporteData.length === 0}
                 >
                   Exportar PDF
                 </Button>
-                <DescargarExcelButton 
+                <DescargarExcelButton
                   data={reporteData} 
-                  campo="Unidad_Educativa"
->
-                </DescargarExcelButton>
+                  campo="Genero"/>
               </>
             )}
           </Box>
@@ -261,4 +272,4 @@ const ReporteUnidadEducativa = () => {
       
 }
 
-export default ReporteUnidadEducativa;
+export default ReporteGenero;

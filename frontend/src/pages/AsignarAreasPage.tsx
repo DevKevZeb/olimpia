@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { getAreasCompetencia, getAreasPorConvocatoria, asociarAreas } from '../api/adminConvocatoriaApi';
 import AsignarAreasForm from '../components/AsignarAreasForm';
-import { useConvocatorias } from '../hooks/useConvocatorias';
+import { useConvocatoriasPlanificadas } from '../hooks/useConvocatorias';
 
 export default function AsignarAreasPage() {
-  const { convocatorias, loading: loadingConvocatorias } = useConvocatorias();
+  const { convocatorias, loading: loadingConvocatorias } = useConvocatoriasPlanificadas();
   const [areas, setAreas] = useState([]);
   const [selectedConvocatoria, setSelectedConvocatoria] = useState('');
   const [areasAsignadas, setAreasAsignadas] = useState([]);

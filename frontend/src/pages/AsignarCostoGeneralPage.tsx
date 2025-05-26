@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { setCostoGeneralConvocatoria, getAreasPorConvocatoria } from '../api/adminConvocatoriaApi';
 import FormInput from '../components/FormInput';
 import FormSelect from '../components/FormSelect';
-import { useConvocatorias } from '../hooks/useConvocatorias';
+import { useConvocatoriasPlanificadas } from '../hooks/useConvocatorias';
 
 // Reutilizar FormInput, FormSelect y useConvocatorias en más páginas
 // Ejemplo: ConvocatoriasPage, CrearNivelPage, etc.
@@ -10,7 +10,7 @@ import { useConvocatorias } from '../hooks/useConvocatorias';
 // Si quieres que lo aplique en una página específica, indícalo y lo implemento directamente.
 
 export default function AsignarCostoGeneralPage({ onCostoAsignado }) {
-  const { convocatorias, loading: loadingConvocatorias } = useConvocatorias();
+  const { convocatorias, loading: loadingConvocatorias } = useConvocatoriasPlanificadas();
   const [selectedConvocatoria, setSelectedConvocatoria] = useState('');
   const [costoGeneral, setCostoGeneral] = useState('');
   const [costoActual, setCostoActual] = useState(null);

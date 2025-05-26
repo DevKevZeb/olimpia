@@ -31,9 +31,13 @@ export const obtenerTodasConvocatorias = async (): Promise<Convocatoria[] | null
     }
 };
 
-export const obtenerReportePorCampoId = async (campo: string, id: number): Promise<any | null> => {
+export const obtenerReportePorCampoId = async (campo: string, id: number  , params:any ): Promise<any | null> => {
     try {
-        const response = await axiosInstance.get<ApiResponse>(`/v1/reportes/${campo}/${id}`);
+        const response = await axiosInstance.get<ApiResponse>(`/v1/reportes/${campo}/${id}`,
+           { 
+            params:params
+           }
+        );
         if (response.data.success) {
             return response.data.data;
         }

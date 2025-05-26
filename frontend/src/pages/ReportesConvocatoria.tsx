@@ -32,6 +32,7 @@ import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import { obtenerTodasConvocatorias, obtenerReportePorCampoId, Convocatoria } from '../api/reportes';
 import { exportarPDF } from '../components/exportarPDF';
+import DescargarExcelButton from '../components/DescargarExcelButton';
 
 interface ReporteItem {
     id: string;
@@ -109,7 +110,7 @@ const reportesInicial: ReporteItem[] = [
             }
             return rowData;
         },
-        fetchData: (id: string) => obtenerReportePorCampoId('convocatoria', parseInt(id)),
+        fetchData: (id: string) => obtenerReportePorCampoId('convocatoria', parseInt(id), {}),
     },
     {
         id: 'otro_reporte_1',
@@ -182,7 +183,7 @@ const ReportesView = () => {
                 setError(null);
                 setLoading(true);
                 try {
-                    const data = await obtenerReportePorCampoId('convocatoria', selectedConvocatoriaId);
+                    const data = await obtenerReportePorCampoId('convocatoria', selectedConvocatoriaId, {}      );
                     setReporteData(data);
                 } catch (err: any) {
                     console.error('Error al obtener el reporte de inscripciones:', err);
@@ -362,6 +363,9 @@ const ReportesView = () => {
                                     >
                                         Exportar PDF
                                     </Button>
+                                    <DescargarExcelButton
+                                         data={reporteData} 
+                                         campo="Convocatioria"/>
                                 </>
                         )}
                     </>

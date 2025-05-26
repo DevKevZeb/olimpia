@@ -15,6 +15,20 @@ export const getConvocatoriasActivas = async () => {
 };
 
 /**
+ * Obtiene todas las convocatorias activas
+ */
+export const getConvocatoriasPlanificadas = async () => {
+  try {
+    const response = await axiosInstance.get('/v1/admin/convocatorias-planificadas');
+    // Asegurar que se retorna la data independientemente de la estructura
+    return response.data?.data || response.data;
+  } catch (error) {
+    console.error('Error al obtener convocatorias activas:', error);
+    throw error;
+  }
+};
+
+/**
  * Obtiene todas las áreas de competencia
  */
 export const getAreasCompetencia = async () => {

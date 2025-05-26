@@ -32,6 +32,22 @@ class AdminConvocatoriaController extends ApiController
         );
     }
 
+     /**
+     * Obtiene todas las convocatorias solo planificadas
+     * 
+     * @return JsonResponse
+     */
+    public function getConvocatoriasPlanificadas(): JsonResponse
+    {
+        $convocatorias = Convocatoria::whereIn('estado', ['planificada'])
+            ->with(['areas.area'])
+            ->get();
+
+        return $this->successResponse(
+            $convocatorias,
+            'Convocatorias activas obtenidas correctamente'
+        );
+    }
     /**
      * Obtiene todas las áreas de competencia
      * 
