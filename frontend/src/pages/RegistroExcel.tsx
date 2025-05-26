@@ -15,6 +15,7 @@ import FormularioEncargadoPago from './FormularioEncargadoPago';
 interface Convocatoria {
   id_convocatoria: number;
   nombre: string;
+  estado: string;
   max_areas_por_estudiante: number;
 }
 
@@ -509,7 +510,8 @@ const ExcelWorkflow = () => {
     const loadConvocatorias = async () => {
       try {
         const data = await fetchConvocatorias();
-        setConvocatorias(data);
+        const openConvocatorias = data.filter(c => c.estado === 'abierta');
+        setConvocatorias(openConvocatorias);
         setLoadingConvocatorias(false);
       } catch (error: any) {
         setError('Error al cargar las convocatorias: ' + error.message);

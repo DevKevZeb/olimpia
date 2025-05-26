@@ -7,6 +7,7 @@ export const fetchConvocatorias = async (): Promise<{ id_convocatoria: number; n
     return response.data.data.map((convocatoria: any) => ({ // Accede a response.data.data y mapea
       id_convocatoria: convocatoria.id,
       nombre: convocatoria.nombre,
+      estado: convocatoria.estado,
       max_areas_por_estudiante: convocatoria.max_areas_por_estudiante,
     }));
   } catch (error: any) {
