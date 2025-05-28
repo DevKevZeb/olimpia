@@ -1,11 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Trophy, FlaskRound as Flask, Code, Calendar } from 'lucide-react';
+import { Trophy, Calendar } from 'lucide-react';
+
+interface Area {
+  id_area: number;
+  nombre_area: string;
+  descripcion: string;
+}
 
 export default function Home() {
   const navigate = useNavigate();
-  const [areas, setAreas] = useState([]);
+  const [areas, setAreas] = useState<Area[]>([]);
 
   useEffect(() => {
     const fetchAreas = async () => {
@@ -21,7 +27,7 @@ export default function Home() {
   }, []);
 
 
-  const downloadPDF = async (id_area,  area_nombre) => {
+  const downloadPDF = async (id_area: number, area_nombre: string) => {
     try {
    
       const response = await axios.get(`http://localhost:8000/api/documentos/descargar/${id_area}` ,  {
@@ -62,8 +68,10 @@ export default function Home() {
       >
         <div className="text-center text-white">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Oh! SanSi - Olimpiadas de Ciencias y Tecnología</h1>
-          <p className="text-xl mb-8">Inscríbete y participa en las áreas de tu interés</p>
-          <button className="bg-blue-600 text-white px-6 py-3 rounded-md font-medium hover:bg-blue-700 transition">
+          <p className="text-xl mb-8">Inscríbete y participa en las áreas de tu interés</p>          <button 
+            className="bg-blue-600 text-white px-6 py-3 rounded-md font-medium hover:bg-blue-700 transition"
+            onClick={() => navigate('/registration')}
+          >
             Iniciar Inscripción →
           </button>
           <button 

@@ -33,8 +33,6 @@ interface OrdenInfo {
 }
 
 import { fetchRequisitosConvocatoria } from '../api/requisitoConvocatoria';
-import DescargarBoleta from '../components/registration/DescargarBoleta';
-import CompletarInscripcion from '../components/registration/CompletarInscripcion';
 import StudentForm from '../components/registration/StudentForm';
 import AreasSelection from '../components/registration/AreasSelection';
 import TutoresAcademicos from '../components/registration/TutoresAcademicos';
@@ -351,11 +349,7 @@ export default function Registration() {  // Estados esenciales para navegación
                 <p className="text-sm text-red-600 mb-1">No hay convocatorias activas en este momento</p>
               )}
             </div>
-          </div>
-        </div>        {/* Completar Inscripción Section */}
-        <CompletarInscripcion />
-
-        <DescargarBoleta/>        {/* Students Manager */}        <StudentsManager
+          </div>        </div>        {/* Students Manager */}        <StudentsManager
           estudiantes={estudiantes}
           activeStudentIndex={activeStudentIndex}
           costoTotalGeneral={costoTotalGeneral}

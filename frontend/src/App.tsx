@@ -1,8 +1,9 @@
-import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import Home from './pages/Home';
-import Registration from './pages/Registration';
+import RegistrationPage from './pages/RegistrationPage';
+import CompletarInscripcionPage from './pages/CompletarInscripcionPage';
+import DescargarBoletaPage from './pages/DescargarBoletaPage';
 import AdminPanel from './pages/AdminPanel';
 import CamposObligatorios from './pages/CamposObligatorios';
 import RegistroExcel from './pages/RegistroExcel';
@@ -14,10 +15,12 @@ import LlenarExcel from './pages/LlenarExcel';
 function App() {
   return (
     <Router>
-      <Layout>
-        <Routes>
+      <Layout>        <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/inscripcion" element={<Registration />} />
+          <Route path="/registration" element={<RegistrationPage />} />
+          <Route path="/inscripcion" element={<RegistrationPage />} />
+          <Route path="/complete-registration" element={<CompletarInscripcionPage />} />
+          <Route path="/download-payment-slip" element={<DescargarBoletaPage />} />
           <Route path="/admin/*" element={<AdminPanel />} />
           <Route path="/camposobligatorios" element={<CamposObligatorios />} />
           <Route path="/registroexcel" element={<RegistroExcel />} />
