@@ -36,30 +36,5 @@ export interface Student {
     transactionId?: string;
     paymentDate?: string;
   }
-
-  export interface EstudianteFormData {
-    id: string;
-    nombres: string;
-    apellidos: string;
-    ci: string;
-    fecha_nacimiento: string;
-    email: string;
-    id_grado: string;
-    unidad_educativa: {
-      id_unidad_educativa: null | number;
-      nombre: string;
-      departamento: string;
-      provincia: string;
-    };
-    tutor_legal: {
-      nombres: string;
-      apellidos: string;
-      ci: string;
-      telefono: string;
-      email: string;
-      parentesco: string;
-      es_el_mismo_estudiante: boolean;
-    };
-    tutores_academicos: Array<any>;
-    areas_seleccionadas: Array<any>;
-  }
+  // Re-exportar tipos específicos de registro
+  export * from './registration';
