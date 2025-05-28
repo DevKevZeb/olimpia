@@ -1,10 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Calendar, Check, ChevronRight, Upload, X, AlertCircle, Plus, Trash2, Copy, Users } from 'lucide-react';
-import { PDFDownloadLink, Document, Page } from '@react-pdf/renderer';
+import React, { useState, useEffect } from 'react';
+import { Calendar, Check, ChevronRight, X, AlertCircle, Plus, Trash2, Users } from 'lucide-react';
 
-import { getDatosInscripcion, getAreasPorGrado, inscribirEstudiante, buscarUnidadesEducativas, getUser } from '../api/inscripcionCompletaApi';
+import { getDatosInscripcion, getAreasPorGrado, inscribirEstudiante, getUser } from '../api/inscripcionCompletaApi';
 import { EstudianteFormData} from '../types/index';
-import { RequisitoConvocatoria } from '../types/RequisitoConvocatoria'; 
 import { fetchRequisitosConvocatoria } from '../api/requisitoConvocatoria';
 import DescargarBoleta from '../components/DescargarBoleta';
 import CompletarInscripcion from '../components/CompletarInscripcion';
@@ -23,10 +21,7 @@ export default function Registration() {
   // Estados para la inscripción
   const [isLoading, setIsLoading] = useState(false);
   const [convocatoria, setConvocatoria] = useState(null);
-  const [grados, setGrados] = useState([]);
-  const [areasNiveles, setAreasNiveles] = useState([]);
-  const [unidadesEducativas, setUnidadesEducativas] = useState([]);
-  const [buscandoUnidades, setBuscandoUnidades] = useState(false);
+  const [grados, setGrados] = useState([]);  const [areasNiveles, setAreasNiveles] = useState([]);
   
   // Estados para inscripción múltiple
   const [activeStudentIndex, setActiveStudentIndex] = useState(0);
@@ -60,17 +55,12 @@ export default function Registration() {
     areas_seleccionadas: [],
     tutores_academicos: [],
   });
-
   //para cargar requisitos obligatorios
   const [requisitosGuardados, setRequisitosGuardados] = useState<Record<string, { obligatorio: boolean; valor: any | undefined }>>({});
-  const [loadingRequisitos, setLoadingRequisitos] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   
-
   useEffect(() => {
       const loadRequisitos = async () => {
         if (convocatoria) {
-          setLoadingRequisitos(true);
           try {
             console.log('convocatoria', convocatoria.id)
             const data = await fetchRequisitosConvocatoria(convocatoria.id);
@@ -84,10 +74,8 @@ export default function Registration() {
             });
             setRequisitosGuardados(initialRequisitosGuardados);
             console.log('Contenido de requisitosGuardados después de cargar:', initialRequisitosGuardados);
-            setLoadingRequisitos(false);
           } catch (error: any) {
-            setError('Error al cargar los requisitos: ' + error.message);
-            setLoadingRequisitos(false);
+            console.error('Error al cargar los requisitos:', error.message);
             setRequisitosGuardados({});
           }
         } else {
@@ -149,17 +137,6 @@ export default function Registration() {
     setIsModalOpen(false);
     setSelectedStudentDetails(null);
   };
-
-  // Función para abrir el modal de la boleta de pago
-  const openBoletaModal = async () => {
-    setIsBoletaModalOpen(true);
-    
-    // Iniciar descarga automáticamente
-    console.log("Iniciando descarga automática de boleta...");
-    // En un caso real, aquí se haría la llamada a la API para generar y descargar el PDF
-    
-  };
-
   const handleCIChange = async (ci: string, type: string ) => {
 
     const data = {
@@ -351,40 +328,7 @@ export default function Registration() {
       setActiveStudentIndex(updatedEstudiantes.length - 1);
     } else if (activeStudentIndex === index && index > 0) {
       setActiveStudentIndex(index - 1);
-    }
-  };
-
-  // Función para copiar datos del estudiante actual al siguiente
-  const copyToNextStudent = () => {
-    if (activeStudentIndex === estudiantes.length - 1) {
-      // Si es el último estudiante, crear uno nuevo con los datos copiados
-      const currentStudent = estudiantes[activeStudentIndex];
-      const newStudent = {
-        ...currentStudent,
-        id: `estudiante-${Date.now()}`,
-        nombres: '',
-        apellidos: '',
-        ci: '',
-        email: '',
-        // Mantener datos de unidad educativa y tutor legal
-      };
-      
-      setEstudiantes([...estudiantes, newStudent]);
-      setActiveStudentIndex(estudiantes.length);
-    } else {
-      // Copiar al siguiente estudiante existente
-      const currentStudent = estudiantes[activeStudentIndex];
-      const updatedEstudiantes = [...estudiantes];
-      updatedEstudiantes[activeStudentIndex + 1] = {
-        ...updatedEstudiantes[activeStudentIndex + 1],
-        unidad_educativa: {...currentStudent.unidad_educativa},
-        tutor_legal: {...currentStudent.tutor_legal},
-      };
-      
-      setEstudiantes(updatedEstudiantes);
-      setActiveStudentIndex(activeStudentIndex + 1);
-    }
-  };
+    }  };
 
   // Cargar datos iniciales cuando se monta el componente
   const fetchInitialData = async () => {
@@ -653,30 +597,7 @@ export default function Registration() {
       setFormErrorMessage('');
     }
   
-    return isValid;
-  };
-  
-  // Función para validar todos los estudiantes antes de avanzar al siguiente paso
-  const validateAllStudents = () => {
-    // Guardar el índice actual para restaurarlo después
-    const currentIndex = activeStudentIndex;
-    
-    // Verificar cada estudiante
-    for (let i = 0; i < estudiantes.length; i++) {
-      setActiveStudentIndex(i);
-      
-      // Esperar a que se actualice el estado
-      setTimeout(() => {
-        if (!validateStep1()) {
-          return false;
-        }
-      }, 0);
-    }
-    
-    // Restaurar el índice original
-    setActiveStudentIndex(currentIndex);
-    return true;
-  };
+    return isValid;  };
   
   // Validar si el estudiante actual tiene los datos requeridos
   const isCurrentStudentValid = () => {
@@ -845,14 +766,14 @@ export default function Registration() {
         if (!/^\d{1,8}$/.test(value)) {
           error = 'Debe ser un valor numérico de hasta 8 dígitos.';
         }
-        break;
-      case 'fecha_nacimiento':
+        break;      case 'fecha_nacimiento': {
         const selectedDate = new Date(value);
         const currentDate = new Date();
         if (selectedDate >= currentDate) {
           error = 'La fecha debe ser menor a la fecha actual.';
         }
         break;
+      }
       case 'telefono':
         if (value && !/^\d{1,8}$/.test(value)) {
           error = 'Solo se permiten números con un máximo de 8 dígitos.';
@@ -896,7 +817,6 @@ export default function Registration() {
       updateActiveStudent(newFormData, areas_seleccionadas);
     }
   };
-
   // Crear un componente reutilizable para la barra de navegación entre estudiantes
   const EstudiantesNavBar = ({
     estudiantes,
@@ -904,7 +824,6 @@ export default function Registration() {
     setActiveStudentIndex,
     removeStudent,
     addNewStudent,
-    copyToNextStudent,
     costoTotalGeneral,
     isCurrentStudentValid
   }) => (
@@ -959,20 +878,11 @@ export default function Registration() {
           </div>
         ))}
       </div>
-      
-      <div className="flex justify-between items-center mt-2">
+        <div className="flex justify-between items-center mt-2">
         <div className="flex items-center text-sm text-gray-600">
           <Users size={16} className="mr-1" />
           <span>{estudiantes.length} estudiante(s)</span>
         </div>
-        <button
-          onClick={copyToNextStudent}
-          className="text-blue-600 hover:text-blue-800 flex items-center text-sm"
-          title="Copiar datos a un nuevo estudiante"
-        >
-          <Copy size={14} className="mr-1" />
-          Copiar datos
-        </button>
       </div>
     </div>
   );
@@ -989,59 +899,7 @@ export default function Registration() {
     setEstudiantes([...estudiantes, newStudent]);
     setActiveStudentIndex(estudiantes.length);
     
-    // Redirigir al paso 1 para completar los datos del nuevo estudiante
-    setStep(1);
-  };
-
-  // Función para limpiar el estado y permitir nueva inscripción tras éxito
-  const handleNuevaInscripcion = () => {
-    setIsVerified(false);
-    setUploadComplete(false);
-    setSelectedFile(null);
-    setUploadProgress(0);
-    setOrdenInfo(null);
-    setVerificationCode('');
-    setErrorMessage('');
-    setFormErrorMessage('');
-    setStep(1);
-    // Limpiar datos de encargado si aplica
-    setencargadoApellido('');
-    setencargadoNombre('');
-    setencargadoCI('');
-    setVencargadoCorreo('');
-    // Limpiar estudiantes y formulario
-    const newEstudiante = createNewEstudiante();
-    setEstudiantes([newEstudiante]);
-    setActiveStudentIndex(0);
-    setFormData({
-      nombres: '',
-      apellidos: '',
-      ci: '',
-      fecha_nacimiento: '',
-      email: '',
-      id_grado: '',
-      unidad_educativa: {
-        id_unidad_educativa: null,
-        nombre: '',
-        departamento: '',
-        provincia: '',
-      },
-      tutor_legal: {
-        nombres: '',
-        apellidos: '',
-        ci: '',
-        telefono: '',
-        email: '',
-        parentesco: '',
-        es_el_mismo_estudiante: false,
-      },
-      id_convocatoria: convocatoria ? convocatoria.id : '',
-      areas_seleccionadas: [],
-      tutores_academicos: [],
-    });
-    setSelectedAreas([]);
-    setCostoTotal(0);
-    setCostoTotalGeneral(0);
+    // Redirigir al paso 1 para completar los datos del nuevo estudiante    setStep(1);
   };
 
   return (
@@ -1089,15 +947,12 @@ export default function Registration() {
           <h2 className="text-xl font-semibold mb-2">Estudiantes para Inscripción</h2>
           <p className="text-sm text-gray-600 mb-4">
             Gestiona los estudiantes que deseas inscribir en esta convocatoria
-          </p>
-
-          <EstudiantesNavBar
+          </p>          <EstudiantesNavBar
             estudiantes={estudiantes}
             activeStudentIndex={activeStudentIndex}
             setActiveStudentIndex={setActiveStudentIndex}
             removeStudent={removeStudent}
             addNewStudent={addNewStudent}
-            copyToNextStudent={copyToNextStudent}
             costoTotalGeneral={costoTotalGeneral}
             isCurrentStudentValid={isCurrentStudentValid()}
           />
