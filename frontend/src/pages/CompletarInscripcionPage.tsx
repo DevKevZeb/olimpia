@@ -8,7 +8,7 @@ import Alert from '../components/ui/Alert';
 import Button from '../components/ui/Button';
 import { useCodeVerification } from '../hooks/useCodeVerification';
 import { useFileUpload } from '../hooks/useFileUpload';
-import { verificarCodigoOrden, subirComprobantePago } from '../api/registration/comprobantePagoApi';
+import { verificarCodigoOrden, subirComprobantePago } from '../api/registration/boletaPagoApi';
 
 // Tipos
 interface OrdenInfo {

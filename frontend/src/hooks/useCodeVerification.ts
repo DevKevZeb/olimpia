@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { verificarCodigoOrden } from '../api/registration/comprobantePagoApi';
+import { verificarCodigoOrden } from '../api/registration/boletaPagoApi';
 
 interface UseCodeVerificationReturn {
   verifyCode: (code: string) => Promise<any>;
