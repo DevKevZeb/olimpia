@@ -1,6 +1,6 @@
 // filepath: c:\xampp\htdocs\oh-sansi\frontend\src\hooks\useAreasSelection.ts
 import { useState, useEffect } from 'react';
-import { getAreasPorGrado } from '../api/inscripcionCompletaApi';
+import { getAreasPorGrado } from '../../api/registration/inscripcionCompletaApi';
 import { 
   EstudianteFormData, 
   Convocatoria,

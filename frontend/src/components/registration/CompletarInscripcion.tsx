@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Upload, X, AlertCircle, Check } from 'lucide-react';
-import { verificarCodigoOrden, subirComprobantePago } from '../api/comprobantePagoApi';
+import { verificarCodigoOrden, subirComprobantePago } from '../../api/registration/comprobantePagoApi';
 
 // Tipos para la orden y comprobante
 interface ComprobantePago {

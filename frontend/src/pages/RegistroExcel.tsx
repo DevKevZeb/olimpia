@@ -6,7 +6,7 @@ import '../styles/DataSummary.css';
 import * as XLSX from 'xlsx';
 import { fetchConvocatorias } from '../api/requisitoConvocatoria'; // Import para obtener la configuración de la convocatoria
 import { loadAllConvocatoriaNivelConfigs, loadAllGrades, buscarIdConvocatoriaNivelEnMemoria, getGradoIdByName} from '../api/datosExcel';
-import { inscribirEstudiante } from '../api/inscripcionCompletaApi';
+import { inscribirEstudiante } from '../api/registration/inscripcionCompletaApi';
 import DownloadTemplate from './DownloadTemplate';
 import 'react-toastify/dist/ReactToastify.css';
 import { toast, ToastContainer } from 'react-toastify';

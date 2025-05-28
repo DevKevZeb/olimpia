@@ -1,4 +1,4 @@
-import axiosInstance from './axiosInstance';
+import axiosInstance from '../axiosInstance';
 
 /**
  * Obtiene los datos iniciales para el formulario de inscripción

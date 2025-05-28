@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Check, X } from 'lucide-react';
 
-import { getDatosInscripcion, inscribirEstudiante } from '../api/inscripcionCompletaApi';
+import { getDatosInscripcion, inscribirEstudiante } from '../api/registration/inscripcionCompletaApi';
 import { 
   EstudianteFormData, 
   Convocatoria, 
@@ -33,8 +33,8 @@ interface OrdenInfo {
 }
 
 import { fetchRequisitosConvocatoria } from '../api/requisitoConvocatoria';
-import DescargarBoleta from '../components/DescargarBoleta';
-import CompletarInscripcion from '../components/CompletarInscripcion';
+import DescargarBoleta from '../components/registration/DescargarBoleta';
+import CompletarInscripcion from '../components/registration/CompletarInscripcion';
 import StudentForm from '../components/registration/StudentForm';
 import AreasSelection from '../components/registration/AreasSelection';
 import TutoresAcademicos from '../components/registration/TutoresAcademicos';
@@ -42,13 +42,13 @@ import ResumenInscripcion from '../components/registration/ResumenInscripcion';
 import StudentsManager from '../components/registration/StudentsManager';
 
 // Importar custom hooks
-import { useStudentForm } from '../hooks/useStudentForm';
-import { useMultipleStudents } from '../hooks/useMultipleStudents';
-import { useAreasSelection } from '../hooks/useAreasSelection';
+import { useStudentForm } from '../hooks/registration/useStudentForm';
+import { useMultipleStudents } from '../hooks/registration/useMultipleStudents';
+import { useAreasSelection } from '../hooks/registration/useAreasSelection';
 
 // Importar funciones utilitarias
-import { validateStep1 } from '../utils/validationUtils';
-import { createNewEstudiante } from '../utils/formUtils';
+import { validateStep1 } from '../utils/registration/validationUtils';
+import { createNewEstudiante } from '../utils/registration/formUtils';
 
 export default function Registration() {  // Estados esenciales para navegación y convocatoria
   const [step, setStep] = useState(1);

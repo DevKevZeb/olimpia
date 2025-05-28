@@ -4,7 +4,7 @@
  */
 
 import { EstudianteFormData, FormErrors, AreaSeleccionada } from '../types/registration';
-import { getUser } from '../api/inscripcionCompletaApi';
+import { getUser } from '../../api/registration/inscripcionCompletaApi';
 
 /**
  * Crear un nuevo estudiante con valores iniciales

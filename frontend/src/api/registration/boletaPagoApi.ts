@@ -1,5 +1,5 @@
-import axiosInstance from './axiosInstance';
-import { EstudianteFormData} from '../types/index';
+import axiosInstance from '../axiosInstance';
+import { EstudianteFormData} from '../../types/index';
 
 /**
  * Carga Boleta de pago

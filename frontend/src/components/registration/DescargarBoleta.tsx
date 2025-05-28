@@ -1,6 +1,6 @@
 import { AlertCircle, Check } from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
-import { descargarBoleta } from '../api/boletaPagoApi';
+import { descargarBoleta } from '../../api/registration/boletaPagoApi';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import BoletaInfo from './BoletaInfo';

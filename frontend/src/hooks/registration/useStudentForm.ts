@@ -6,13 +6,13 @@ import {
   AreaSeleccionada,
   RequisitoGuardado
 } from '../types/index';
-import { validateStep1 } from '../utils/validationUtils';
+import { validateStep1 } from '../../utils/registration/validationUtils';
 import { 
   handleFormChange as handleFormChangeUtil,
   handleNestedChange as handleNestedChangeUtil,
   handleStudentInfoLoaded as handleStudentInfoLoadedUtil,
   handleTutorLoaded as handleTutorLoadedUtil
-} from '../utils/formUtils';
+} from '../../utils/registration/formUtils';
 
 interface UseStudentFormProps {
   initialFormData: EstudianteFormData;

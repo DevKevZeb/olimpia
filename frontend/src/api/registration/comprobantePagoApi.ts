@@ -1,4 +1,4 @@
-import axiosInstance from './axiosInstance';
+import axiosInstance from '../axiosInstance';
 
 /**
  * Verifica si existe una orden de pago con el código especificado

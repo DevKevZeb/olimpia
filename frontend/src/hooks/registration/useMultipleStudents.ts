@@ -8,7 +8,7 @@ import {
   isCurrentStudentValid as isCurrentStudentValidUtil,
   calculateStudentCost,
   calculateTotalCost
-} from '../utils/formUtils';
+} from '../../utils/registration/formUtils';
 
 interface UseMultipleStudentsProps {
   convocatoria: any;
