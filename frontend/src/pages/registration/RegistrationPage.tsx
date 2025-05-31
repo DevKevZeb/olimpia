@@ -117,25 +117,20 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
     requisitosGuardados,
     updateActiveStudent,
     updateRequisitos
-  });
-  // Hook para gestión de selección de áreas
+  });  // Hook para gestión de selección de áreas
   // Debug: Log formData values before calling useAreasSelection
-  console.log('🔍 RegistrationPage: formData values antes de useAreasSelection:', {
-    id_grado: formData.id_grado,
-    id_convocatoria: formData.id_convocatoria,
-    id_grado_type: typeof formData.id_grado,
-    id_convocatoria_type: typeof formData.id_convocatoria,
-    step: step
-  });
+  console.log('🔍 RegistrationPage: formData values antes de useAreasSelection:');
+  console.log('  - id_grado:', formData.id_grado, '(tipo:', typeof formData.id_grado, ')');
+  console.log('  - id_convocatoria:', formData.id_convocatoria, '(tipo:', typeof formData.id_convocatoria, ')');
+  console.log('  - step:', step);
 
   // Debug: Track formData changes
   useEffect(() => {
-    console.log('🔄 RegistrationPage: formData cambió:', {
-      id_grado: formData.id_grado,
-      id_convocatoria: formData.id_convocatoria,
-      step: step,
-      timestamp: new Date().toISOString()
-    });
+    console.log('🔄 RegistrationPage: formData cambió:');
+    console.log('  - id_grado:', formData.id_grado, '(tipo:', typeof formData.id_grado, ')');
+    console.log('  - id_convocatoria:', formData.id_convocatoria, '(tipo:', typeof formData.id_convocatoria, ')');
+    console.log('  - step:', step);
+    console.log('  - timestamp:', new Date().toISOString());
   }, [formData.id_grado, formData.id_convocatoria, step]);
   
   const {
@@ -290,12 +285,13 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
           setFormErrorMessage(`Por favor, complete los siguientes campos obligatorios: ${validation.camposObligatoriosVacios.join(', ')}`);
           return;
         }        setFormErrorMessage('');
-        console.log("📋 RegistrationPage: Datos a enviar en step 1->2:", formData);
-        console.log("📋 RegistrationPage: Valores específicos:", {
-          id_grado: formData.id_grado,
-          id_convocatoria: formData.id_convocatoria,
-          id_grado_type: typeof formData.id_grado,
-          id_convocatoria_type: typeof formData.id_convocatoria
+        console.log("📋 RegistrationPage: Paso 1->2 - Datos del formulario:");
+        console.log("  - formData completo:", JSON.stringify(formData, null, 2));
+        console.log("  - id_grado:", formData.id_grado, "(tipo:", typeof formData.id_grado, ")");
+        console.log("  - id_convocatoria:", formData.id_convocatoria, "(tipo:", typeof formData.id_convocatoria, ")");
+        console.log("  - ¿Los valores están definidos?", {
+          id_grado_defined: formData.id_grado !== undefined && formData.id_grado !== null && formData.id_grado !== '',
+          id_convocatoria_defined: formData.id_convocatoria !== undefined && formData.id_convocatoria !== null && formData.id_convocatoria !== ''
         });
         setStep(2);
       }

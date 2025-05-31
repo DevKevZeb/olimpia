@@ -44,12 +44,13 @@ export const useAreasSelection = ({
   // Estados para áreas
   const [areasNiveles, setAreasNiveles] = useState<AreaNivel[]>([]);
   const [areas_seleccionadas, setSelectedAreas] = useState<AreaSeleccionada[]>([]);
-  const [costoTotal, setCostoTotal] = useState(0);// Cargar áreas disponibles cuando se selecciona un grado
+  const [costoTotal, setCostoTotal] = useState(0);  // Cargar áreas disponibles cuando se selecciona un grado
   const fetchAreasPorGrado = useCallback(async () => {
-    console.log('🔍 fetchAreasPorGrado ejecutado - valores:', {
-      id_grado: formData.id_grado,
-      id_convocatoria: formData.id_convocatoria
-    });
+    console.log('🔍 fetchAreasPorGrado ejecutado - valores:');
+    console.log('  - id_grado:', formData.id_grado, '(tipo:', typeof formData.id_grado, ')');
+    console.log('  - id_convocatoria:', formData.id_convocatoria, '(tipo:', typeof formData.id_convocatoria, ')');
+    console.log('  - id_grado es truthy:', !!formData.id_grado);
+    console.log('  - id_convocatoria es truthy:', !!formData.id_convocatoria);
     
     if (formData.id_grado && formData.id_convocatoria) {
       console.log('✅ Condiciones cumplidas, haciendo llamada API...');
@@ -67,14 +68,11 @@ export const useAreasSelection = ({
         setFormErrorMessage('Hubo un problema al cargar las áreas disponibles.');
       } finally {
         setIsLoading(false);
-      }
-    } else {
-      console.log('❌ Condiciones no cumplidas para cargar áreas:', {
-        id_grado: formData.id_grado,
-        id_convocatoria: formData.id_convocatoria,
-        id_grado_type: typeof formData.id_grado,
-        id_convocatoria_type: typeof formData.id_convocatoria
-      });
+      }    } else {
+      console.log('❌ Condiciones no cumplidas para cargar áreas:');
+      console.log('  - id_grado:', formData.id_grado, '(tipo:', typeof formData.id_grado, ', truthy:', !!formData.id_grado, ')');
+      console.log('  - id_convocatoria:', formData.id_convocatoria, '(tipo:', typeof formData.id_convocatoria, ', truthy:', !!formData.id_convocatoria, ')');
+      console.log('  - Evaluación de la condición:', !!(formData.id_grado && formData.id_convocatoria));
     }
   }, [formData.id_grado, formData.id_convocatoria, setIsLoading, setFormErrorMessage]);  useEffect(() => {
     console.log('🔄 useAreasSelection: useEffect disparado - values:', {

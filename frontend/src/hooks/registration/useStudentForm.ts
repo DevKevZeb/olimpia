@@ -45,9 +45,11 @@ export const useStudentForm = ({
 }: UseStudentFormProps): UseStudentFormReturn => {
   const [formData, setFormData] = useState<EstudianteFormData>(initialFormData);
   const [formErrors, setFormErrors] = useState<FormErrors>({});
-  const [formErrorMessage, setFormErrorMessage] = useState('');
-  // Sync formData when initialFormData changes
+  const [formErrorMessage, setFormErrorMessage] = useState('');  // Sync formData when initialFormData changes
   useEffect(() => {
+    console.log('🔧 useStudentForm: Sincronizando formData con initialFormData:');
+    console.log('  - initialFormData.id_grado:', initialFormData.id_grado);
+    console.log('  - initialFormData.id_convocatoria:', initialFormData.id_convocatoria);
     setFormData(initialFormData);
     
     // Update requirements when form data is initialized
