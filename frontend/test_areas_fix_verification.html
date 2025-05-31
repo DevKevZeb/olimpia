@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Areas Loading Fix - Verification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .warning { background-color: #fff3cd; border-color: #ffeaa7; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        
+        .test-step {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        
+        .log-entry {
+            font-family: monospace;
+            font-size: 12px;
+            padding: 2px 5px;
+            margin: 1px 0;
+            background: #f8f9fa;
+            border-left: 3px solid #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Areas Loading Fix - Verification Tests</h1>
+        <p>Esta página verifica si las correcciones aplicadas han resuelto los problemas de carga de áreas.</p>
+        
+        <!-- Test Status Summary -->
+        <div class="test-section info">
+            <h2>📊 Estado de las Correcciones</h2>
+            <div id="fixStatus">
+                <p>✅ <strong>createNewEstudiante function</strong>: Fixed TypeScript errors and proper initialization</p>
+                <p>✅ <strong>Type consistency</strong>: EstudianteFormData interfaces properly aligned</p>
+                <p>✅ <strong>State initialization</strong>: Proper convocatoria ID initialization</p>
+                <p>🔄 <strong>Testing required</strong>: Reload scenario and step-based navigation</p>
+            </div>
+        </div>
+
+        <!-- Manual Test Instructions -->
+        <div class="test-section warning">
+            <h2>📋 Manual Test Instructions</h2>
+            <div class="test-step">
+                <h3>Test 1: Normal Flow (Step 1 → Step 2)</h3>
+                <ol>
+                    <li>Navigate to <a href="http://localhost:5174" target="_blank">Registration Page</a></li>
+                    <li>Fill in personal data in Step 1 (select a grade)</li>
+                    <li>Click "Continuar" to go to Step 2</li>
+                    <li>✅ <strong>Expected</strong>: Areas should load automatically based on selected grade</li>
+                </ol>
+            </div>
+            
+            <div class="test-step">
+                <h3>Test 2: Page Reload Scenario (CRITICAL)</h3>
+                <ol>
+                    <li>Complete Test 1 to reach Step 2 with areas loaded</li>
+                    <li>Press F5 or Ctrl+R to reload the page</li>
+                    <li>Observe if step detection and areas loading work properly</li>
+                    <li>✅ <strong>Expected</strong>: Page should restore state and areas should load</li>
+                </ol>
+            </div>
+            
+            <div class="test-step">
+                <h3>Test 3: Browser Console Debugging</h3>
+                <ol>
+                    <li>Open browser Developer Tools (F12)</li>
+                    <li>Go to Console tab</li>
+                    <li>Perform Tests 1 and 2 while watching console output</li>
+                    <li>Look for enhanced debugging messages we implemented</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- Quick Navigation Links -->
+        <div class="test-section">
+            <h2>🚀 Quick Test Links</h2>
+            <button onclick="window.open('http://localhost:5174', '_blank')">
+                Open Registration Page
+            </button>
+            <button onclick="window.open('http://localhost:5174', '_blank'); setTimeout(() => window.location.reload(), 1000)">
+                Test Reload Scenario
+            </button>
+            <button onclick="openConsoleInstructions()">
+                Show Console Instructions
+            </button>
+        </div>
+
+        <!-- Expected Debugging Output -->
+        <div class="test-section">
+            <h2>🔍 Expected Console Output</h2>
+            <p>When testing, you should see these debug messages in the browser console:</p>
+            <div class="log-entry">🆕 createNewEstudiante: Creando nuevo estudiante con convocatoria: [ID]</div>
+            <div class="log-entry">🔧 formUtils: handleFormChange para id_grado: [VALUE]</div>
+            <div class="log-entry">📡 useAreasSelection: fetchAreasPorGrado ejecutando con grado [ID]</div>
+            <div class="log-entry">✅ useAreasSelection: Áreas cargadas exitosamente: [COUNT] áreas</div>
+            <div class="log-entry">🎯 useAreasSelection: isStep2 = true, ejecutando fetchAreasPorGrado</div>
+        </div>
+
+        <!-- Live Test Results -->
+        <div class="test-section" id="testResults">
+            <h2>📊 Live Test Results</h2>
+            <div id="testLog">
+                <p><em>Run tests manually and observe results...</em></p>
+            </div>
+        </div>
+
+        <!-- Fix Summary -->
+        <div class="test-section success">
+            <h2>🎯 Summary of Applied Fixes</h2>
+            <ul>
+                <li><strong>Fixed createNewEstudiante function</strong>: Proper type consistency and initialization</li>
+                <li><strong>TypeScript errors resolved</strong>: All compilation errors in formUtils.ts fixed</li>
+                <li><strong>Proper state initialization</strong>: Students now initialize with correct convocatoria data</li>
+                <li><strong>Interface alignment</strong>: EstudianteFormData properly structured</li>
+                <li><strong>Enhanced debugging</strong>: Comprehensive logging throughout the data flow</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function openConsoleInstructions() {
+            alert(`Console Debugging Instructions:
+
+1. Press F12 to open Developer Tools
+2. Click on 'Console' tab
+3. Clear the console (Ctrl+L)
+4. Navigate through the registration process
+5. Look for debug messages starting with:
+   - 🆕 createNewEstudiante
+   - 🔧 formUtils
+   - 📡 useAreasSelection
+   - ✅ or ❌ status messages
+
+These messages will help identify if the fix is working correctly.`);
+        }
+
+        // Auto-refresh this page every 30 seconds to check for updates
+        setTimeout(() => {
+            window.location.reload();
+        }, 30000);
+    </script>
+</body>
+</html>

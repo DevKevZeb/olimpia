@@ -9,7 +9,8 @@ import {
   RequisitoGuardado,
   RequisitoConvocatoria,
   ComprobanteDetails,
-  TutorAcademico
+  TutorAcademico,
+  AreaSeleccionada
 } from '../../types/index';
 
 interface OrdenInfo {
@@ -54,10 +55,10 @@ import { createNewEstudiante, updateRequisitosValues } from '../../utils/registr
 
 export default function RegistrationPage() {  // Estados esenciales para navegación y convocatoria
   const [step, setStep] = useState(1);
-  const [encargadoApellido, setencargadoApellido] = useState('');
-  const [encargadoNombre, setencargadoNombre] = useState('');
-  const [encargadoCI, setencargadoCI] = useState('');
-  const [encargadoCorreo, setVencargadoCorreo] = useState('');
+  const [encargadoApellido, setEncargadoApellido] = useState('');
+  const [encargadoNombre, setEncargadoNombre] = useState('');
+  const [encargadoCI, setEncargadoCI] = useState('');
+  const [encargadoCorreo, setEncargadoCorreo] = useState('');
   const codigo_unico = `O-SANSI-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
   
   // Estados para la inscripción
@@ -132,7 +133,6 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
     console.log('  - step:', step);
     console.log('  - timestamp:', new Date().toISOString());
   }, [formData.id_grado, formData.id_convocatoria, step]);
-  
   const {
     areasNiveles,
     areas_seleccionadas,
@@ -146,7 +146,8 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
     convocatoria,
     setFormErrorMessage,
     setIsLoading,
-    updateActiveStudent
+    updateActiveStudent,
+    isStep2: step === 2  // Usamos esto solo para optimizar la visualización, no para bloquear la carga
   });
   // useEffect para cargar requisitos obligatorios cuando cambia la convocatoria
   useEffect(() => {
@@ -178,6 +179,34 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
   useEffect(() => {
     fetchInitialData();
   }, [fetchInitialData]); // Solo se ejecuta una vez al montar
+  // useEffect para actualizar id_convocatoria cuando se carga la convocatoria
+  useEffect(() => {
+    if (convocatoria && formData.id_convocatoria !== convocatoria.id.toString()) {
+      console.log('🔄 RegistrationPage: Actualizando id_convocatoria en formData');
+      console.log('  - Convocatoria cargada con ID:', convocatoria.id);
+      console.log('  - Valor actual en formData:', formData.id_convocatoria);
+      
+      const updatedFormData = {
+        ...formData,
+        id_convocatoria: convocatoria.id.toString()
+      };
+      
+      setFormData(updatedFormData);
+      updateActiveStudent(updatedFormData, areas_seleccionadas);
+      
+      console.log('✅ RegistrationPage: id_convocatoria actualizado a:', convocatoria.id.toString());
+    }
+  }, [convocatoria, formData.id_convocatoria, setFormData, updateActiveStudent, formData, areas_seleccionadas]);
+
+  // useEffect para asegurar que las áreas se cargan cuando llegamos al step 2
+  useEffect(() => {
+    if (step === 2 && formData.id_grado && formData.id_convocatoria) {
+      console.log('🎯 RegistrationPage: Step 2 detectado con datos válidos');
+      console.log('  - id_grado:', formData.id_grado);
+      console.log('  - id_convocatoria:', formData.id_convocatoria);
+      console.log('  - Las áreas deberían cargarse automáticamente via useAreasSelection');
+    }
+  }, [step, formData.id_grado, formData.id_convocatoria]);
   // useEffect para inicializar el primer estudiante
   useEffect(() => {
     if (estudiantes.length === 0) {
@@ -293,7 +322,11 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
           id_grado_defined: formData.id_grado !== undefined && formData.id_grado !== null && formData.id_grado !== '',
           id_convocatoria_defined: formData.id_convocatoria !== undefined && formData.id_convocatoria !== null && formData.id_convocatoria !== ''
         });
+        
+        // Ir al paso 2
         setStep(2);
+        
+        console.log("🎯 RegistrationPage: Transición a Step 2 completada - las áreas deberían cargarse automáticamente");
       }
     } else if (step === 2) {
       const hasSelectedAreas = estudiantes.some(e =>
@@ -477,16 +510,15 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
               onPrevStep={() => setStep(2)}
               onNextStep={handleNextStep}
             />
-          )}          {step === 4 && (
-            <ResumenInscripcion
+          )}          {step === 4 && (            <ResumenInscripcion
               convocatoria={convocatoria}
               estudiantes={estudiantes}
               grados={grados}
               costoTotalGeneral={costoTotalGeneral}
               encargadoNombre={encargadoNombre}
               encargadoApellido={encargadoApellido}
-              encargadoCorreo={setVencargadoCorreo}
-              encargadoCI={setencargadoCI}
+              encargadoCorreo={encargadoCorreo}
+              encargadoCI={encargadoCI}
               isModalOpen={isModalOpen}
               isBoletaModalOpen={isBoletaModalOpen}
               isComprobanteModalOpen={isComprobanteModalOpen}
@@ -494,10 +526,10 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
               codigo_unico={codigo_unico}
               comprobanteDetails={comprobanteDetails}
               ordenInfo={ordenInfo}
-              onEncargadoNombreChange={setencargadoNombre}
-              onEncargadoApellidoChange={setencargadoApellido}
-              onEncargadoCorreoChange={setVencargadoCorreo}
-              onEncargadoCIChange={setencargadoCI}
+              onEncargadoNombreChange={setEncargadoNombre}
+              onEncargadoApellidoChange={setEncargadoApellido}
+              onEncargadoCorreoChange={setEncargadoCorreo}
+              onEncargadoCIChange={setEncargadoCI}
               onOpenStudentDetailsModal={openStudentDetailsModal}
               onCloseModal={closeModal}
               onCloseBoletaModal={closeBoletaModal}
@@ -725,7 +757,7 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
                     
                     {estudiantes.map((estudiante, index) => {
                       const costoPorEstudiante = estudiante.areas_seleccionadas ? 
-                        estudiante.areas_seleccionadas.reduce((total, area) => total + (parseFloat(area.costo) || 0), 0) : 0;
+                        estudiante.areas_seleccionadas.reduce((total: number, area: AreaSeleccionada) => total + (parseFloat(area.costo) || 0), 0) : 0;
                         
                       return (
                         <div key={estudiante.id} className="grid grid-cols-12 gap-2 mb-1 text-sm py-1 border-b border-gray-100">
@@ -735,7 +767,7 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
                           <div className="col-span-3">
                             {estudiante.areas_seleccionadas && estudiante.areas_seleccionadas.length > 0 ? (
                               <div className="flex flex-col">
-                                {estudiante.areas_seleccionadas.map((area, i) => (
+                                {estudiante.areas_seleccionadas.map((area: AreaSeleccionada, i: number) => (
                                   <span key={i} className="text-xs">{area.area_nombre} - {area.nivel_nombre}</span>
                                 ))}
                               </div>

@@ -3,7 +3,7 @@
  * Funciones extraídas de Registration.tsx para manejo de datos de formularios
  */
 
-import { EstudianteFormData, FormErrors, AreaSeleccionada, RequisitoGuardado } from '../../types/registration';
+import { EstudianteFormData, FormErrors, AreaSeleccionada, RequisitoGuardado, Convocatoria } from '../../types/registration';
 import { getUser } from '../../api/registration/inscripcionCompletaApi';
 
 /**
@@ -90,31 +90,33 @@ export const updateRequisitosValues = (
 /**
  * Crear un nuevo estudiante con valores iniciales
  */
-export const createNewEstudiante = (convocatoria?: { id: number }): EstudianteFormData => {
+export const createNewEstudiante = (convocatoria?: Convocatoria): EstudianteFormData => {
+  console.log('🆕 createNewEstudiante: Creando nuevo estudiante con convocatoria:', convocatoria?.id);
+  
   return {
-    id: `estudiante-${Date.now()}`,
+    id: Date.now().toString(), // Temporary ID for client-side tracking (converted to string)
+    ci: '',
     nombres: '',
     apellidos: '',
-    ci: '',
     fecha_nacimiento: '',
+    telefono: '',
     email: '',
-    telefono: '', // Initialize optional field to prevent controlled component warning
-    id_grado: '',
-    id_convocatoria: convocatoria ? convocatoria.id.toString() : '',
+    id_grado: '', // Will be selected by user
+    id_convocatoria: convocatoria?.id?.toString() || '', // Initialize with convocatoria ID
+    tutor_legal: {
+      ci: '',
+      nombres: '',
+      apellidos: '',
+      telefono: '',
+      email: '',
+      parentesco: '',
+      es_el_mismo_estudiante: false
+    },
     unidad_educativa: {
       id_unidad_educativa: null,
       nombre: '',
       departamento: '',
-      provincia: '',
-    },
-    tutor_legal: {
-      nombres: '',
-      apellidos: '',
-      ci: '',
-      telefono: '',
-      email: '',
-      parentesco: '',
-      es_el_mismo_estudiante: false,
+      provincia: ''
     },
     tutores_academicos: [],
     areas_seleccionadas: []
@@ -134,10 +136,30 @@ export const handleFormChange = (
   updateActiveStudent: (formData: EstudianteFormData, areas: AreaSeleccionada[]) => void,
   areas_seleccionadas: AreaSeleccionada[]
 ) => {
+  // Debug: Log all form changes, especially id_grado
+  if (field === 'id_grado') {
+    console.log('🔧 formUtils: handleFormChange para id_grado:');
+    console.log('  - Campo:', field);
+    console.log('  - Valor anterior:', formData[field as keyof EstudianteFormData]);
+    console.log('  - Nuevo valor:', value);
+  }
+  
   const newFormData = { ...formData, [field]: value };
+  
+  if (field === 'id_grado') {
+    console.log('🔧 formUtils: newFormData creado:', {
+      id_grado: newFormData.id_grado,
+      id_convocatoria: newFormData.id_convocatoria
+    });
+  }
+  
   setFormData(newFormData);
   setFormErrors({ ...formErrors, [field]: '' });
   updateActiveStudent(newFormData, areas_seleccionadas);
+  
+  if (field === 'id_grado') {
+    console.log('🔧 formUtils: updateActiveStudent llamado con newFormData');
+  }
 };
 
 /**
@@ -322,7 +344,9 @@ export const updateActiveStudent = (
       ci: newFormData.ci,
       fecha_nacimiento: newFormData.fecha_nacimiento,
       email: newFormData.email,
+      telefono: newFormData.telefono,
       id_grado: newFormData.id_grado,
+      id_convocatoria: newFormData.id_convocatoria, // ¡ESTA ERA LA LÍNEA FALTANTE!
       unidad_educativa: newFormData.unidad_educativa,
       tutor_legal: newFormData.tutor_legal,
       tutores_academicos: newFormData.tutores_academicos,
@@ -340,7 +364,7 @@ export const addNewStudent = (
   setEstudiantes: (estudiantes: EstudianteFormData[]) => void,
   setActiveStudentIndex: (index: number) => void,
   setStep: (step: number) => void,
-  convocatoria?: { id: number }
+  convocatoria?: Convocatoria
 ) => {
   const newEstudiante = createNewEstudiante(convocatoria);
   setEstudiantes([...estudiantes, newEstudiante]);

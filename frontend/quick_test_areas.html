@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Test - Areas Loading Fix</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        .status-pending { background-color: #ffc107; }
+        .status-success { background-color: #28a745; }
+        .status-failure { background-color: #dc3545; }
+        .console-log {
+            background-color: #1e1e1e;
+            color: #00ff00;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            margin: 10px 0;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .action-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .action-button:hover { background-color: #0056b3; }
+        .step-counter {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Areas Loading Fix - Quick Test</h1>
+    
+    <div class="test-card">
+        <h2>🎯 Test Objective</h2>
+        <p>Verify that the step-based execution control prevents areas from loading in step 1 and ensures they load correctly in step 2.</p>
+        
+        <h3>🔗 Testing Links</h3>
+        <a href="http://localhost:5174/registration" class="action-button" target="_blank">📝 Registration Form</a>
+        <a href="file:///c:/xampp/htdocs/oh-sansi/frontend/AREAS_LOADING_FIX_VERIFICATION.md" class="action-button" target="_blank">📋 Detailed Test Guide</a>
+    </div>
+
+    <div class="test-card">
+        <h2>📋 Step-by-Step Test</h2>
+        
+        <div id="step1" class="test-step">
+            <h3><span class="step-counter">1</span> Open Registration & Fill Personal Data</h3>
+            <p><strong>Action:</strong> Open the registration form and fill in personal information (CI, name, email, phone, select a grade)</p>
+            <p><strong>Expected:</strong> Should see in console:</p>
+            <div class="console-log">❌ No ejecutando fetchAreasPorGrado porque no estamos en step 2</div>
+            <p><strong>Should NOT see:</strong> API calls to areas endpoint or area loading messages</p>
+            <button onclick="markStepComplete(1)" class="action-button">✅ Step 1 Complete</button>
+        </div>
+
+        <div id="step2" class="test-step">
+            <h3><span class="step-counter">2</span> Navigate to Step 2 (Areas Selection)</h3>
+            <p><strong>Action:</strong> Click "Siguiente" button to go to step 2</p>
+            <p><strong>Expected:</strong> Should see in console:</p>
+            <div class="console-log">🔄 useAreasSelection: useEffect disparado - values: {isStep2: true}
+✅ Condiciones cumplidas, haciendo llamada API...
+📊 Datos recibidos de la API: {...}
+✅ Áreas cargadas exitosamente: X áreas</div>
+            <p><strong>Expected in UI:</strong> Areas should be visible and selectable</p>
+            <button onclick="markStepComplete(2)" class="action-button">✅ Step 2 Complete</button>
+        </div>
+
+        <div id="step3" class="test-step">
+            <h3><span class="step-counter">3</span> Test Grade Change</h3>
+            <p><strong>Action:</strong> Go back to step 1, change grade, return to step 2</p>
+            <p><strong>Expected:</strong> Areas should reload for the new grade without errors</p>
+            <button onclick="markStepComplete(3)" class="action-button">✅ Step 3 Complete</button>
+        </div>
+    </div>
+
+    <div class="test-card">
+        <h2>🎉 Test Results</h2>
+        <div id="results">
+            <p>Complete the steps above to see results...</p>
+        </div>
+    </div>
+
+    <div class="test-card">
+        <h2>🔍 Key Console Messages to Monitor</h2>
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background-color: #f8f9fa;">
+                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Message</th>
+                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">When</th>
+                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Meaning</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="border: 1px solid #ddd; padding: 8px;"><code>❌ No ejecutando fetchAreasPorGrado porque no estamos en step 2</code></td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">Step 1</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">✅ Good - Areas loading is properly prevented</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid #ddd; padding: 8px;"><code>✅ Condiciones cumplidas, haciendo llamada API...</code></td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">Step 2</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">✅ Good - Areas loading initiated correctly</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid #ddd; padding: 8px;"><code>📊 Datos recibidos de la API:</code></td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">Step 2</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">✅ Good - API call successful</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid #ddd; padding: 8px;"><code>✅ Áreas cargadas exitosamente: X áreas</code></td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">Step 2</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">✅ Good - Areas loaded and ready</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        let completedSteps = [];
+
+        function markStepComplete(stepNumber) {
+            if (!completedSteps.includes(stepNumber)) {
+                completedSteps.push(stepNumber);
+            }
+            
+            // Visual feedback
+            const stepElement = document.getElementById(`step${stepNumber}`);
+            stepElement.style.backgroundColor = '#d4edda';
+            stepElement.style.borderLeft = '4px solid #28a745';
+            
+            updateResults();
+        }
+
+        function updateResults() {
+            const resultsDiv = document.getElementById('results');
+            const totalSteps = 3;
+            const completedCount = completedSteps.length;
+            
+            if (completedCount === 0) {
+                resultsDiv.innerHTML = '<p>Complete the steps above to see results...</p>';
+            } else if (completedCount === totalSteps) {
+                resultsDiv.innerHTML = `
+                    <h3 style="color: green;">🎉 ALL TESTS COMPLETED!</h3>
+                    <p>Areas loading fix verification successful. The step-based execution control is working correctly.</p>
+                    <p><strong>Key achievements:</strong></p>
+                    <ul>
+                        <li>✅ Areas do not load prematurely in step 1</li>
+                        <li>✅ Areas load correctly when entering step 2</li>
+                        <li>✅ Grade changes work properly</li>
+                    </ul>
+                `;
+            } else {
+                resultsDiv.innerHTML = `
+                    <h3 style="color: orange;">⏳ Testing in Progress</h3>
+                    <p>Completed: ${completedCount}/${totalSteps} steps</p>
+                    <p>Continue with the remaining test steps...</p>
+                `;
+            }
+        }
+
+        // Add timestamp
+        document.addEventListener('DOMContentLoaded', function() {
+            const timestamp = new Date().toLocaleString();
+            const timestampDiv = document.createElement('div');
+            timestampDiv.style.textAlign = 'center';
+            timestampDiv.style.marginTop = '20px';
+            timestampDiv.style.color = '#666';
+            timestampDiv.innerHTML = `<small>Test started: ${timestamp}</small>`;
+            document.body.appendChild(timestampDiv);
+        });
+    </script>
+</body>
+</html>

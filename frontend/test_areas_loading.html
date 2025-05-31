@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Areas Loading Fix - Automated Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-case {
+            border: 1px solid #ddd;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .failure { background-color: #f8d7da; border-color: #f5c6cb; }
+        .pending { background-color: #fff3cd; border-color: #ffeaa7; }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background-color: #0056b3; }
+        .log-area {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            margin: 10px 0;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .instructions {
+            background-color: #e7f3ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Areas Loading Fix - Automated Test</h1>
+    
+    <div class="instructions">
+        <h3>📋 Test Instructions</h3>
+        <ol>
+            <li><strong>Open Developer Console</strong> (F12) before starting</li>
+            <li><strong>Navigate to</strong>: <a href="http://localhost:5174/registration" target="_blank">http://localhost:5174/registration</a></li>
+            <li><strong>Follow the test steps below</strong> and check console logs</li>
+            <li><strong>Mark each test</strong> as ✅ Pass or ❌ Fail based on console output</li>
+        </ol>
+    </div>
+
+    <div id="testResults">
+        <div class="test-case pending" id="test1">
+            <h3>🧪 Test 1: Step 1 - No Premature Area Loading</h3>
+            <p><strong>Action:</strong> Fill personal data in step 1, select a grade</p>
+            <p><strong>Expected:</strong> Console should show "❌ No ejecutando fetchAreasPorGrado porque no estamos en step 2"</p>
+            <p><strong>Should NOT see:</strong> API calls to areas endpoint</p>
+            <button onclick="markTest('test1', true)">✅ Pass</button>
+            <button onclick="markTest('test1', false)">❌ Fail</button>
+        </div>
+
+        <div class="test-case pending" id="test2">
+            <h3>🧪 Test 2: Step 2 - Areas Loading Triggered</h3>
+            <p><strong>Action:</strong> Click "Siguiente" to go to step 2</p>
+            <p><strong>Expected:</strong> Console should show:</p>
+            <ul>
+                <li>"🔄 useAreasSelection: useEffect disparado" with isStep2: true</li>
+                <li>"✅ Condiciones cumplidas, haciendo llamada API..."</li>
+                <li>"📊 Datos recibidos de la API:" with areas data</li>
+                <li>"✅ Áreas cargadas exitosamente: X áreas"</li>
+            </ul>
+            <button onclick="markTest('test2', true)">✅ Pass</button>
+            <button onclick="markTest('test2', false)">❌ Fail</button>
+        </div>
+
+        <div class="test-case pending" id="test3">
+            <h3>🧪 Test 3: UI - Areas Display Correctly</h3>
+            <p><strong>Action:</strong> Check the areas selection UI in step 2</p>
+            <p><strong>Expected:</strong></p>
+            <ul>
+                <li>Areas are visible and selectable</li>
+                <li>No persistent loading message</li>
+                <li>Areas correspond to selected grade</li>
+            </ul>
+            <button onclick="markTest('test3', true)">✅ Pass</button>
+            <button onclick="markTest('test3', false)">❌ Fail</button>
+        </div>
+
+        <div class="test-case pending" id="test4">
+            <h3>🧪 Test 4: Grade Change - Areas Reload</h3>
+            <p><strong>Action:</strong> Go back to step 1, change grade, return to step 2</p>
+            <p><strong>Expected:</strong></p>
+            <ul>
+                <li>Step 1: No areas loading (same as Test 1)</li>
+                <li>Step 2: Areas reload for new grade</li>
+                <li>Different areas display for different grade</li>
+            </ul>
+            <button onclick="markTest('test4', true)">✅ Pass</button>
+            <button onclick="markTest('test4', false)">❌ Fail</button>
+        </div>
+
+        <div class="test-case pending" id="test5">
+            <h3>🧪 Test 5: Consistency - Multiple Cycles</h3>
+            <p><strong>Action:</strong> Repeat step 1 ↔ step 2 navigation 3 times</p>
+            <p><strong>Expected:</strong> Consistent behavior across all cycles</p>
+            <ul>
+                <li>No infinite loops</li>
+                <li>No excessive API calls</li>
+                <li>Reliable areas loading</li>
+            </ul>
+            <button onclick="markTest('test5', true)">✅ Pass</button>
+            <button onclick="markTest('test5', false)">❌ Fail</button>
+        </div>
+    </div>
+
+    <div class="test-case" id="summary" style="margin-top: 30px;">
+        <h3>📊 Test Summary</h3>
+        <div id="summaryContent">
+            <p>Total Tests: 5</p>
+            <p>✅ Passed: <span id="passedCount">0</span></p>
+            <p>❌ Failed: <span id="failedCount">0</span></p>
+            <p>⏳ Pending: <span id="pendingCount">5</span></p>
+        </div>
+        <div id="overallResult" style="margin-top: 15px; font-weight: bold;"></div>
+    </div>
+
+    <div class="log-area">
+        <h4>🔍 Console Log Monitor</h4>
+        <p><em>Open browser developer console (F12) to see detailed logs during testing</em></p>
+        <p><strong>Key patterns to look for:</strong></p>
+        <ul style="margin: 10px 0; padding-left: 20px;">
+            <li><code>🚀 useAreasSelection: Hook inicializado</code> - Hook initialization</li>
+            <li><code>🔄 useAreasSelection: useEffect disparado</code> - Effect triggered</li>
+            <li><code>❌ No ejecutando fetchAreasPorGrado porque no estamos en step 2</code> - Step 1 (good)</li>
+            <li><code>✅ Condiciones cumplidas, haciendo llamada API</code> - Step 2 API call (good)</li>
+            <li><code>📊 Datos recibidos de la API</code> - Successful data fetch</li>
+            <li><code>✅ Áreas cargadas exitosamente</code> - Areas loaded successfully</li>
+        </ul>
+    </div>
+
+    <script>
+        let testResults = {
+            passed: 0,
+            failed: 0,
+            pending: 5
+        };
+
+        function markTest(testId, passed) {
+            const testElement = document.getElementById(testId);
+            const wasAlreadyTested = !testElement.classList.contains('pending');
+            
+            if (wasAlreadyTested) {
+                // Remove previous result from count
+                if (testElement.classList.contains('success')) {
+                    testResults.passed--;
+                } else if (testElement.classList.contains('failure')) {
+                    testResults.failed--;
+                }
+            } else {
+                testResults.pending--;
+            }
+            
+            // Remove all status classes
+            testElement.classList.remove('pending', 'success', 'failure');
+            
+            // Add new status
+            if (passed) {
+                testElement.classList.add('success');
+                testResults.passed++;
+            } else {
+                testElement.classList.add('failure');
+                testResults.failed++;
+            }
+            
+            updateSummary();
+        }
+
+        function updateSummary() {
+            document.getElementById('passedCount').textContent = testResults.passed;
+            document.getElementById('failedCount').textContent = testResults.failed;
+            document.getElementById('pendingCount').textContent = testResults.pending;
+            
+            const overallResult = document.getElementById('overallResult');
+            if (testResults.pending === 0) {
+                if (testResults.failed === 0) {
+                    overallResult.textContent = '🎉 ALL TESTS PASSED! Areas loading fix is working correctly.';
+                    overallResult.style.color = 'green';
+                } else {
+                    overallResult.textContent = `⚠️ ${testResults.failed} test(s) failed. Areas loading fix needs attention.`;
+                    overallResult.style.color = 'red';
+                }
+            } else {
+                overallResult.textContent = '⏳ Testing in progress...';
+                overallResult.style.color = 'orange';
+            }
+        }
+
+        // Initialize summary
+        updateSummary();
+    </script>
+</body>
+</html>

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Areas Loading After Reload</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .test-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .step-box {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .console-output {
+            background-color: #1e1e1e;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            margin: 10px 0;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .test-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+        }
+        .test-button:hover { 
+            background-color: #0056b3; 
+        }
+        .success { 
+            color: #28a745; 
+            font-weight: bold; 
+        }
+        .error { 
+            color: #dc3545; 
+            font-weight: bold; 
+        }
+        .warning { 
+            color: #ffc107; 
+            font-weight: bold; 
+        }
+        .code-snippet {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔄 Areas Loading Test - Reload Scenario</h1>
+    <p><strong>Objetivo:</strong> Verificar que las áreas se cargan correctamente después de recargar la página</p>
+
+    <div class="test-section">
+        <h2>🎯 Escenario de Prueba Crítico</h2>
+        <p>Este test verifica el problema reportado: "recargar la página e hice la prueba nuevamente y otra vez no me cargó la selección de áreas según el grado que elegí"</p>
+        
+        <div class="step-box">
+            <h3>📋 Procedimiento de Prueba</h3>
+            <ol>
+                <li><strong>Prueba inicial:</strong> Completar el formulario normal (Step 1 → Step 2)</li>
+                <li><strong>Recargar página:</strong> Presionar F5 o Ctrl+R</li>
+                <li><strong>Repetir prueba:</strong> Volver a llenar Step 1 → ir a Step 2</li>
+                <li><strong>Verificar:</strong> ¿Se cargan las áreas en el segundo intento?</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔗 Enlaces de Prueba</h2>
+        <a href="http://localhost:5174/registration" class="test-button" target="_blank">📝 Formulario de Registro</a>
+        <button class="test-button" onclick="window.location.reload()">🔄 Recargar Esta Página</button>
+        <button class="test-button" onclick="clearConsole()">🧹 Limpiar Consola</button>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 Patrones de Consola Esperados</h2>
+        
+        <h3>✅ Comportamiento Correcto en Step 1:</h3>
+        <div class="console-output">🚀 useAreasSelection: Hook inicializado con formData: {isStep2: false}
+🔄 useAreasSelection: useEffect disparado - values: {isStep2: false}  
+🔍 fetchAreasPorGrado ejecutado - valores: {isStep2: false}
+❌ No ejecutando fetchAreasPorGrado porque no estamos en step 2</div>
+
+        <h3>✅ Comportamiento Correcto en Step 2:</h3>
+        <div class="console-output">🎯 RegistrationPage: Step 2 detectado con datos válidos
+🔄 useAreasSelection: useEffect disparado - values: {isStep2: true}
+🔍 fetchAreasPorGrado ejecutado - valores: {isStep2: true}
+✅ Todas las condiciones cumplidas, haciendo llamada API...
+📞 Llamando getAreasPorGrado con: {gradoId: X, convocatoriaId: Y}
+📊 Datos recibidos de la API: {...}
+✅ Áreas cargadas exitosamente: X áreas disponibles</div>
+
+        <h3>❌ Comportamiento Incorrecto (Bug):</h3>
+        <div class="console-output">🔍 fetchAreasPorGrado ejecutado - valores: {isStep2: true}
+❌ Faltan datos requeridos para cargar áreas:
+  - id_grado: undefined
+  - id_convocatoria: undefined</div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔧 Diagnóstico de Problemas</h2>
+        
+        <h3>Problema 1: Estado se pierde al recargar</h3>
+        <p><strong>Síntoma:</strong> Al recargar, formData.id_grado y formData.id_convocatoria son undefined</p>
+        <p><strong>Solución:</strong> El estado debe persistir o reinicializarse correctamente</p>
+
+        <h3>Problema 2: Timing de inicialización</h3>
+        <p><strong>Síntoma:</strong> useAreasSelection se ejecuta antes de que formData tenga valores</p>
+        <p><strong>Solución:</strong> Esperar a que formData esté completamente inicializado</p>
+
+        <h3>Problema 3: Step inconsistente</h3>
+        <p><strong>Síntoma:</strong> isStep2 es true pero no hay datos de grado</p>
+        <p><strong>Solución:</strong> Validar que tengamos todos los datos necesarios antes de hacer API call</p>
+    </div>
+
+    <div class="test-section">
+        <h2>📋 Checklist de Verificación</h2>
+        <div id="checklist">
+            <label><input type="checkbox" id="step1-no-api"> ✅ Step 1: No hace llamadas API prematuras</label><br>
+            <label><input type="checkbox" id="step2-loads-areas"> ✅ Step 2: Carga áreas automáticamente</label><br>
+            <label><input type="checkbox" id="reload-preserves-state"> ✅ Reload: Preserva o reinicializa estado correctamente</label><br>
+            <label><input type="checkbox" id="second-attempt-works"> ✅ Segundo intento: Funciona después de reload</label><br>
+            <label><input type="checkbox" id="grade-change-works"> ✅ Cambio de grado: Recarga áreas correctamente</label><br>
+            <label><input type="checkbox" id="no-errors"> ✅ Sin errores: No hay errores en consola</label><br>
+        </div>
+        
+        <div id="test-results" style="margin-top: 20px;">
+            <p><em>Marque los elementos conforme complete las pruebas...</em></p>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🛠️ Código de Implementación Actual</h2>
+        
+        <h3>useAreasSelection.ts - Lógica de control:</h3>
+        <div class="code-snippet">// Solo ejecutar si estamos en el paso 2
+if (!isStep2) {
+  console.log('❌ No ejecutando fetchAreasPorGrado porque no estamos en step 2');
+  return;
+}
+
+// Verificar que tenemos los datos necesarios
+if (!formData.id_grado || !formData.id_convocatoria) {
+  console.log('❌ Faltan datos requeridos para cargar áreas');
+  return;
+}</div>
+
+        <h3>RegistrationPage.tsx - Integración:</h3>
+        <div class="code-snippet">const { ... } = useAreasSelection({
+  formData,
+  setFormData,
+  convocatoria,
+  setFormErrorMessage,
+  setIsLoading,
+  updateActiveStudent,
+  isStep2: step === 2  // Control paso a paso
+});</div>
+    </div>
+
+    <script>
+        function clearConsole() {
+            if (typeof console !== 'undefined' && console.clear) {
+                console.clear();
+                alert('Consola limpiada. Revise la consola del navegador.');
+            } else {
+                alert('No se puede limpiar la consola automáticamente. Use F12 → Console → Clear console manually.');
+            }
+        }
+
+        // Monitor checklist completion
+        document.addEventListener('DOMContentLoaded', function() {
+            const checkboxes = document.querySelectorAll('#checklist input[type="checkbox"]');
+            const resultsDiv = document.getElementById('test-results');
+            
+            function updateResults() {
+                const totalItems = checkboxes.length;
+                const completedItems = Array.from(checkboxes).filter(cb => cb.checked).length;
+                const percentage = Math.round((completedItems / totalItems) * 100);
+                
+                let statusClass = 'warning';
+                let statusText = 'En progreso';
+                
+                if (percentage === 100) {
+                    statusClass = 'success';
+                    statusText = '¡COMPLETADO!';
+                } else if (percentage >= 75) {
+                    statusClass = 'success';
+                    statusText = 'Casi completo';
+                } else if (percentage >= 50) {
+                    statusClass = 'warning';
+                    statusText = 'En progreso';
+                } else {
+                    statusClass = 'error';
+                    statusText = 'Iniciando';
+                }
+                
+                resultsDiv.innerHTML = `
+                    <div class="${statusClass}">
+                        <strong>Estado de Pruebas:</strong> ${statusText} (${completedItems}/${totalItems} - ${percentage}%)
+                    </div>
+                    ${percentage === 100 ? '<p>🎉 ¡Todas las pruebas completadas! El fix de areas loading está funcionando correctamente.</p>' : ''}
+                `;
+            }
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', updateResults);
+            });
+            
+            updateResults(); // Initial call
+        });
+
+        // Add timestamp
+        document.addEventListener('DOMContentLoaded', function() {
+            const timestamp = new Date().toLocaleString();
+            const timestampDiv = document.createElement('div');
+            timestampDiv.style.textAlign = 'center';
+            timestampDiv.style.marginTop = '30px';
+            timestampDiv.style.color = '#666';
+            timestampDiv.style.borderTop = '1px solid #eee';
+            timestampDiv.style.paddingTop = '20px';
+            timestampDiv.innerHTML = `
+                <small>
+                    <strong>Test Session:</strong> ${timestamp}<br>
+                    <strong>Scenario:</strong> Areas loading after page reload<br>
+                    <strong>Status:</strong> Enhanced fix with dual useEffect and timeout fallback
+                </small>
+            `;
+            document.body.appendChild(timestampDiv);
+        });
+    </script>
+</body>
+</html>

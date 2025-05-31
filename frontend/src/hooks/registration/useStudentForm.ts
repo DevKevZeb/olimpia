@@ -42,10 +42,16 @@ export const useStudentForm = ({
   requisitosGuardados,
   updateActiveStudent,
   updateRequisitos
-}: UseStudentFormProps): UseStudentFormReturn => {
-  const [formData, setFormData] = useState<EstudianteFormData>(initialFormData);
+}: UseStudentFormProps): UseStudentFormReturn => {  const [formData, setFormData] = useState<EstudianteFormData>(initialFormData);
   const [formErrors, setFormErrors] = useState<FormErrors>({});
-  const [formErrorMessage, setFormErrorMessage] = useState('');  // Sync formData when initialFormData changes
+  const [formErrorMessage, setFormErrorMessage] = useState('');
+
+  // Debug: Track formData changes
+  useEffect(() => {
+    console.log('📊 useStudentForm: formData cambió:');
+    console.log('  - id_grado:', formData.id_grado, '(tipo:', typeof formData.id_grado, ')');
+    console.log('  - id_convocatoria:', formData.id_convocatoria, '(tipo:', typeof formData.id_convocatoria, ')');
+  }, [formData.id_grado, formData.id_convocatoria]);// Sync formData when initialFormData changes
   useEffect(() => {
     console.log('🔧 useStudentForm: Sincronizando formData con initialFormData:');
     console.log('  - initialFormData.id_grado:', initialFormData.id_grado);
@@ -56,8 +62,15 @@ export const useStudentForm = ({
     if (updateRequisitos && Object.keys(initialFormData).length > 0) {
       updateRequisitos(initialFormData);
     }
-  }, [initialFormData, updateRequisitos]);
-  const handleFormChange = (field: string, value: string) => {
+  }, [initialFormData, updateRequisitos]);  const handleFormChange = (field: string, value: string) => {
+    // Debug: Log field changes, especially for id_grado
+    if (field === 'id_grado') {
+      console.log('🎯 useStudentForm: handleFormChange para id_grado:');
+      console.log('  - Valor anterior:', formData.id_grado);
+      console.log('  - Nuevo valor:', value);
+      console.log('  - Tipo del nuevo valor:', typeof value);
+    }
+    
     handleFormChangeUtil(
       formData,
       field,
@@ -73,6 +86,12 @@ export const useStudentForm = ({
     if (updateRequisitos) {
       // Create updated form data to pass to updateRequisitos
       const updatedFormData = { ...formData, [field]: value };
+      if (field === 'id_grado') {
+        console.log('🎯 useStudentForm: formData actualizado enviado a updateRequisitos:', {
+          id_grado: updatedFormData.id_grado,
+          id_convocatoria: updatedFormData.id_convocatoria
+        });
+      }
       updateRequisitos(updatedFormData);
     }
   };
