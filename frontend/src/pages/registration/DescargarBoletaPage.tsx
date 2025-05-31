@@ -3,14 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { Download } from 'lucide-react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import PageContainer from '../components/layout/PageContainer';
-import PageHeader from '../components/layout/PageHeader';
-import CodeVerificationForm from '../components/forms/CodeVerificationForm';
-import Button from '../components/ui/Button';
-import BoletaInfo from '../components/registration/BoletaInfo';
-import { useCodeVerification } from '../hooks/useCodeVerification';
-import { descargarBoleta } from '../api/registration/boletaPagoApi';
-import { EstudianteFormData } from '../types/index';
+import PageContainer from '../../components/layout/PageContainer';
+import PageHeader from '../../components/layout/PageHeader';
+import CodeVerificationForm from '../../components/forms/CodeVerificationForm';
+import Button from '../../components/ui/Button';
+import { BoletaInfo } from '../../components/registration';
+import { useCodeVerification } from '../../hooks/registration';
+import { descargarBoleta } from '../../api/registration';
+import { EstudianteFormData } from '../../types/index';
 
 interface EncargadoData {
   nombre: string;

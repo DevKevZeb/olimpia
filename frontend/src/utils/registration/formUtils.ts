@@ -3,7 +3,7 @@
  * Funciones extraídas de Registration.tsx para manejo de datos de formularios
  */
 
-import { EstudianteFormData, FormErrors, AreaSeleccionada } from '../types/registration';
+import { EstudianteFormData, FormErrors, AreaSeleccionada } from '../../types/registration';
 import { getUser } from '../../api/registration/inscripcionCompletaApi';
 
 /**

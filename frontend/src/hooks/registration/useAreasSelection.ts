@@ -6,7 +6,7 @@ import {
   Convocatoria,
   AreaNivel, 
   AreaSeleccionada
-} from '../types/index';
+} from '../../types/registration';
 
 interface UseAreasSelectionProps {
   formData: EstudianteFormData;

@@ -7,7 +7,7 @@ import {
   ComprobanteDetails,
   AreaSeleccionada,
   TutorAcademico
-} from '../../types/index';
+} from '../../../types/registration';
 
 interface OrdenInfo {
   orden: {

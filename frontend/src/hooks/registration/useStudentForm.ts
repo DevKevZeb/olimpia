@@ -5,7 +5,7 @@ import {
   FormErrors, 
   AreaSeleccionada,
   RequisitoGuardado
-} from '../types/index';
+} from '../../types/registration';
 import { validateStep1 } from '../../utils/registration/validationUtils';
 import { 
   handleFormChange as handleFormChangeUtil,

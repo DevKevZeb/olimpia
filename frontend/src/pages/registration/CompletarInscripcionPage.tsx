@@ -1,14 +1,13 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import PageContainer from '../components/layout/PageContainer';
-import PageHeader from '../components/layout/PageHeader';
-import CodeVerificationForm from '../components/forms/CodeVerificationForm';
-import FileUploadForm from '../components/forms/FileUploadForm';
-import Alert from '../components/ui/Alert';
-import Button from '../components/ui/Button';
-import { useCodeVerification } from '../hooks/useCodeVerification';
-import { useFileUpload } from '../hooks/useFileUpload';
-import { verificarCodigoOrden, subirComprobantePago } from '../api/registration/boletaPagoApi';
+import PageContainer from '../../components/layout/PageContainer';
+import PageHeader from '../../components/layout/PageHeader';
+import CodeVerificationForm from '../../components/forms/CodeVerificationForm';
+import FileUploadForm from '../../components/forms/FileUploadForm';
+import Alert from '../../components/ui/Alert';
+import Button from '../../components/ui/Button';
+import { useCodeVerification, useFileUpload } from '../../hooks/registration';
+import { subirComprobantePago } from '../../api/registration';
 
 // Tipos
 interface OrdenInfo {

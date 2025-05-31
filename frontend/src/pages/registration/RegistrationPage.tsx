@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Check, X } from 'lucide-react';
 
-import { getDatosInscripcion, inscribirEstudiante } from '../api/registration/inscripcionCompletaApi';
+import { getDatosInscripcion, inscribirEstudiante } from '../../api/registration/inscripcionCompletaApi';
 import { 
   EstudianteFormData, 
   Convocatoria, 
@@ -10,7 +10,7 @@ import {
   RequisitoConvocatoria,
   ComprobanteDetails,
   TutorAcademico
-} from '../types/index';
+} from '../../types/index';
 
 interface OrdenInfo {
   orden: {
@@ -32,23 +32,27 @@ interface OrdenInfo {
   [key: string]: unknown;
 }
 
-import { fetchRequisitosConvocatoria } from '../api/requisitoConvocatoria';
-import StudentForm from '../components/registration/StudentForm';
-import AreasSelection from '../components/registration/AreasSelection';
-import TutoresAcademicos from '../components/registration/TutoresAcademicos';
-import ResumenInscripcion from '../components/registration/ResumenInscripcion';
-import StudentsManager from '../components/registration/StudentsManager';
+import { fetchRequisitosConvocatoria } from '../../api/requisitoConvocatoria';
+import { 
+  StudentForm, 
+  AreasSelection, 
+  TutoresAcademicos, 
+  ResumenInscripcion, 
+  StudentsManager 
+} from '../../components/registration';
 
 // Importar custom hooks
-import { useStudentForm } from '../hooks/registration/useStudentForm';
-import { useMultipleStudents } from '../hooks/registration/useMultipleStudents';
-import { useAreasSelection } from '../hooks/registration/useAreasSelection';
+import { 
+  useStudentForm, 
+  useMultipleStudents, 
+  useAreasSelection 
+} from '../../hooks/registration';
 
 // Importar funciones utilitarias
-import { validateStep1 } from '../utils/registration/validationUtils';
-import { createNewEstudiante } from '../utils/registration/formUtils';
+import { validateStep1 } from '../../utils/registration/validationUtils';
+import { createNewEstudiante } from '../../utils/registration/formUtils';
 
-export default function Registration() {  // Estados esenciales para navegación y convocatoria
+export default function RegistrationPage() {  // Estados esenciales para navegación y convocatoria
   const [step, setStep] = useState(1);
   const [encargadoApellido, setencargadoApellido] = useState('');
   const [encargadoNombre, setencargadoNombre] = useState('');
@@ -313,10 +317,11 @@ export default function Registration() {  // Estados esenciales para navegación
     setEstudiantes([...estudiantes, newStudent]);
     setActiveStudentIndex(estudiantes.length);
     
-    // Redirigir al paso 1 para completar los datos del nuevo estudiante
-    setStep(1);
-  };  return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    // Redirigir al paso 1 para completar los datos del nuevo estudiante    setStep(1);
+  };
+  return (
+    <>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="bg-white rounded-lg shadow-lg  p-8">
         <h1 className="text-3xl font-bold text-center text-gray-900 mb-4">Inscripción</h1>
         <p className="text-gray-600 text-center mb-8">
@@ -472,15 +477,16 @@ export default function Registration() {  // Estados esenciales para navegación
               onCloseModal={closeModal}
               onCloseBoletaModal={closeBoletaModal}
               onSetIsComprobanteModalOpen={setIsComprobanteModalOpen}
-              onFetchCodigoUnico={fetchCodigoUnico}
-              onAddNewStudent={handleAddNewStudent}
+              onFetchCodigoUnico={fetchCodigoUnico}              onAddNewStudent={handleAddNewStudent}
               onPrevStep={() => setStep(3)}
             />
           )}
         </div>
+      </div>
+    </div>
 
-      {/* Modal de detalles del estudiante */}
-      {isModalOpen && selectedStudentDetails && (
+    {/* Modal de detalles del estudiante */}
+    {isModalOpen && selectedStudentDetails && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white p-4 border-b flex justify-between items-center">
@@ -801,20 +807,15 @@ export default function Registration() {  // Estados esenciales para navegación
             ) : (
               <p>No se encontraron detalles del comprobante.</p>
             )}
-            <div className="flex justify-end mt-6">
-              <button
+            <div className="flex justify-end mt-6">              <button
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                 onClick={() => setIsComprobanteModalOpen(false)}
               >
                 Cerrar
               </button>
             </div>
-          </div>
-        </div>
+          </div>        </div>
       )}
-    </div>
-  );
-
-</div>
+    </>
   );
 }

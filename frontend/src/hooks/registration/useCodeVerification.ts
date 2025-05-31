@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { verificarCodigoOrden } from '../api/registration/boletaPagoApi';
+import { verificarCodigoOrden } from '../../api/registration/boletaPagoApi';
 
-interface UseCodeVerificationReturn {
+export interface UseCodeVerificationReturn {
   verifyCode: (code: string) => Promise<any>;
   isLoading: boolean;
   error: string | null;

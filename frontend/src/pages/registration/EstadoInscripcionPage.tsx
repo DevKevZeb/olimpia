@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-export default function EstadoInscripcion() {
+export default function EstadoInscripcionPage() {
   const [ci, setCi] = useState('');
   const [estado, setEstado] = useState('');
   const [fecha, setFecha] = useState('');

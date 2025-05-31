@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-interface UseFileUploadReturn {
+export interface UseFileUploadReturn {
   uploadFile: (file: File) => Promise<any>;
   isUploading: boolean;
   error: string | null;
