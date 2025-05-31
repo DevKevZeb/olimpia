@@ -20,13 +20,15 @@ export const getDatosInscripcion = async () => {
  */
 export const getAreasPorGrado = async (idGrado: number, idConvocatoria: number) => {
   try {
+    console.log('🌐 API: getAreasPorGrado llamada con:', { idGrado, idConvocatoria });
     const response = await axiosInstance.post('/v1/public/areas-por-grado', {
       id_grado: idGrado,
       id_convocatoria: idConvocatoria
     });
+    console.log('🌐 API: Respuesta recibida:', response.data);
     return response.data?.data || response.data;
   } catch (error) {
-    console.error('Error al obtener áreas por grado:', error);
+    console.error('❌ API: Error al obtener áreas por grado:', error);
     throw error;
   }
 };

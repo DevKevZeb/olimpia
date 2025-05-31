@@ -118,8 +118,26 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
     updateActiveStudent,
     updateRequisitos
   });
-
   // Hook para gestión de selección de áreas
+  // Debug: Log formData values before calling useAreasSelection
+  console.log('🔍 RegistrationPage: formData values antes de useAreasSelection:', {
+    id_grado: formData.id_grado,
+    id_convocatoria: formData.id_convocatoria,
+    id_grado_type: typeof formData.id_grado,
+    id_convocatoria_type: typeof formData.id_convocatoria,
+    step: step
+  });
+
+  // Debug: Track formData changes
+  useEffect(() => {
+    console.log('🔄 RegistrationPage: formData cambió:', {
+      id_grado: formData.id_grado,
+      id_convocatoria: formData.id_convocatoria,
+      step: step,
+      timestamp: new Date().toISOString()
+    });
+  }, [formData.id_grado, formData.id_convocatoria, step]);
+  
   const {
     areasNiveles,
     areas_seleccionadas,
@@ -134,7 +152,7 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
     setFormErrorMessage,
     setIsLoading,
     updateActiveStudent
-  });  
+  });
   // useEffect para cargar requisitos obligatorios cuando cambia la convocatoria
   useEffect(() => {
     const loadRequisitos = async () => {
@@ -271,10 +289,14 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
         if (validation.camposObligatoriosVacios.length > 0) {
           setFormErrorMessage(`Por favor, complete los siguientes campos obligatorios: ${validation.camposObligatoriosVacios.join(', ')}`);
           return;
-        }
-
-        setFormErrorMessage('');
-        console.log("Datos a enviar:", formData);
+        }        setFormErrorMessage('');
+        console.log("📋 RegistrationPage: Datos a enviar en step 1->2:", formData);
+        console.log("📋 RegistrationPage: Valores específicos:", {
+          id_grado: formData.id_grado,
+          id_convocatoria: formData.id_convocatoria,
+          id_grado_type: typeof formData.id_grado,
+          id_convocatoria_type: typeof formData.id_convocatoria
+        });
         setStep(2);
       }
     } else if (step === 2) {

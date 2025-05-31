@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Areas Loading</title>
+</head>
+<body>
+    <h1>Debug Areas Loading Issue</h1>
+    <p>Open the browser console and navigate to <a href="http://localhost:5175/registration">http://localhost:5175/registration</a></p>
+    <p>Fill out the form and advance to step 2 to see console logs.</p>
+    
+    <h2>Expected Console Logs:</h2>
+    <pre>
+🔍 RegistrationPage: formData values antes de useAreasSelection: { id_grado: "1", id_convocatoria: "1", ... }
+🚀 useAreasSelection: Hook inicializado con formData: { id_grado: "1", id_convocatoria: "1", ... }
+🔄 useAreasSelection: useEffect disparado - values: { id_grado: "1", id_convocatoria: "1", ... }
+🔍 fetchAreasPorGrado ejecutado - valores: { id_grado: "1", id_convocatoria: "1" }
+✅ Condiciones cumplidas, haciendo llamada API...
+🌐 API: getAreasPorGrado llamada con: { idGrado: 1, idConvocatoria: 1 }
+🌐 API: Respuesta recibida: { data: { areas_niveles: [...] } }
+📊 Datos recibidos de la API: { areas_niveles: [...] }
+✅ Áreas cargadas exitosamente: X áreas
+    </pre>
+    
+    <h2>Common Issues:</h2>
+    <ul>
+        <li>If id_grado or id_convocatoria are empty/undefined: useEffect won't trigger API call</li>
+        <li>If API call fails: Check network tab for error details</li>
+        <li>If areas_niveles is empty: Backend might not have data for that grade/convocatoria combination</li>
+    </ul>
+</body>
+</html>
