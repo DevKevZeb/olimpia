@@ -16,7 +16,6 @@ use App\Http\Controllers\Api\ComprobantePagoController;
 use App\Http\Controllers\Api\ConvocatoriaAreaController;
 use App\Http\Controllers\Api\ConvocatoriaNivelController;
 use App\Http\Controllers\Api\PublicConvocatoriaController;
-use App\Http\Controllers\Api\InscripcionDatosController;
 use App\Http\Controllers\Api\InscripcionCompletaController;
 use App\Http\Controllers\Api\AdminDashboardController;
 //use App\Http\Controllers\Api\ConvocatoriaCompletaController;

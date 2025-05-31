@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Check, X } from 'lucide-react';
 
 import { getDatosInscripcion, inscribirEstudiante } from '../../api/registration/inscripcionCompletaApi';
@@ -64,11 +64,10 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
   const [isLoading, setIsLoading] = useState(false);
   const [convocatoria, setConvocatoria] = useState<Convocatoria | null>(null);
   const [grados, setGrados] = useState<Grado[]>([]);
-    // Estados para cargar requisitos obligatorios
+  // Estados para cargar requisitos obligatorios
   const [requisitosGuardados, setRequisitosGuardados] = useState<Record<string, RequisitoGuardado>>({});
-
   // Cargar datos iniciales cuando se monta el componente
-  const fetchInitialData = async () => {
+  const fetchInitialData = useCallback(async () => {
     setIsLoading(true);
     try {
       const data = await getDatosInscripcion();
@@ -76,17 +75,12 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
       console.log('Grados recibidos:', data.grados);
       setConvocatoria(data.convocatoria);
       setGrados(data.grados);
-      setFormData(prev => ({
-        ...prev,
-        id_convocatoria: data.convocatoria.id.toString(),
-      }));
     } catch (error) {
       console.error('Error al obtener datos iniciales:', error);
-      setFormErrorMessage('No se pudieron cargar los datos iniciales. Por favor, intente de nuevo más tarde.');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
   // Hook para gestión múltiple de estudiantes
   const {
     estudiantes,
@@ -162,14 +156,26 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
     };
 
     loadRequisitos();
-  }, [convocatoria]);
+  }, [convocatoria]);  // useEffect para inicializar datos cuando se monta el componente
+  useEffect(() => {
+    fetchInitialData();
+  }, [fetchInitialData]); // Solo se ejecuta una vez al montar
   // useEffect para inicializar el primer estudiante
   useEffect(() => {
     if (estudiantes.length === 0) {
       initializeFirstStudent();
     }
-    fetchInitialData();
-  }, [estudiantes.length, initializeFirstStudent, fetchInitialData]);
+  }, [estudiantes.length, initializeFirstStudent]);
+
+  // useEffect para actualizar el formData cuando se carga la convocatoria
+  useEffect(() => {
+    if (convocatoria && setFormData) {
+      setFormData(prev => ({
+        ...prev,
+        id_convocatoria: convocatoria.id.toString(),
+      }));
+    }
+  }, [convocatoria, setFormData]);
 
   // Función para enviar la inscripción
   const fetchCodigoUnico = async () => {
