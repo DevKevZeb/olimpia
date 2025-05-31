@@ -74,13 +74,12 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
       console.log('Datos iniciales recibidos:', data);
       console.log('Grados recibidos:', data.grados);
       setConvocatoria(data.convocatoria);
-      setGrados(data.grados);
-    } catch (error) {
+      setGrados(data.grados);    } catch (error) {
       console.error('Error al obtener datos iniciales:', error);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, []); // Solo se ejecuta una vez - todas las funciones set son estables
   // Hook para gestión múltiple de estudiantes
   const {
     estudiantes,

@@ -1,5 +1,5 @@
 // filepath: c:\xampp\htdocs\oh-sansi\frontend\src\hooks\useAreasSelection.ts
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getAreasPorGrado } from '../../api/registration/inscripcionCompletaApi';
 import { 
   EstudianteFormData, 
@@ -38,29 +38,28 @@ export const useAreasSelection = ({
   const [areasNiveles, setAreasNiveles] = useState<AreaNivel[]>([]);
   const [areas_seleccionadas, setSelectedAreas] = useState<AreaSeleccionada[]>([]);
   const [costoTotal, setCostoTotal] = useState(0);
-
   // Cargar áreas disponibles cuando se selecciona un grado
-  useEffect(() => {
+  const fetchAreasPorGrado = useCallback(async () => {
     if (formData.id_grado && formData.id_convocatoria) {
-      const fetchAreasPorGrado = async () => {
-        setIsLoading(true);
-        try {
-          const data = await getAreasPorGrado(parseInt(formData.id_grado), parseInt(formData.id_convocatoria));
-          setAreasNiveles(data.areas_niveles);
-          // Resetear áreas seleccionadas cuando cambia el grado
-          setSelectedAreas([]);
-          setCostoTotal(0);
-        } catch (error) {
-          console.error('Error al obtener áreas por grado:', error);
-          setFormErrorMessage('Hubo un problema al cargar las áreas disponibles.');
-        } finally {
-          setIsLoading(false);
-        }
-      };
-      
-      fetchAreasPorGrado();
+      setIsLoading(true);
+      try {
+        const data = await getAreasPorGrado(parseInt(formData.id_grado), parseInt(formData.id_convocatoria));
+        setAreasNiveles(data.areas_niveles);
+        // Resetear áreas seleccionadas cuando cambia el grado
+        setSelectedAreas([]);
+        setCostoTotal(0);
+      } catch (error) {
+        console.error('Error al obtener áreas por grado:', error);
+        setFormErrorMessage('Hubo un problema al cargar las áreas disponibles.');
+      } finally {
+        setIsLoading(false);
+      }
     }
   }, [formData.id_grado, formData.id_convocatoria, setIsLoading, setFormErrorMessage]);
+
+  useEffect(() => {
+    fetchAreasPorGrado();
+  }, [fetchAreasPorGrado]);
 
   // Función para manejar la selección de áreas
   const handleAreaSelect = (areaNivel: AreaNivel) => {
