@@ -1,6 +1,6 @@
 import React from 'react';
 import { Calendar, ChevronRight, AlertCircle } from 'lucide-react';
-import { EstudianteFormData, FormErrors, Grado } from '../../types/registration';
+import { EstudianteFormData, FormErrors, Grado } from '../../../types/registration';
 
 interface StudentFormProps {
   formData: EstudianteFormData;
@@ -151,7 +151,7 @@ const StudentForm: React.FC<StudentFormProps> = ({
             type="number"
             id="telefono"
             className={`w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 ${formErrors.telefono ? 'border-red-500' : ''}`}
-            placeholder="Número de teléfono"            value={formData.telefono}
+            placeholder="Número de teléfono"            value={formData.telefono || ''}
             onChange={(e) => onFormChange('telefono', e.target.value)}
             onKeyPress={(event: React.KeyboardEvent<HTMLInputElement>) => {
               if ((event.target as HTMLInputElement).value.length >= 8 && event.key !== 'Backspace' && event.key !== 'Delete' && !(event.ctrlKey && (event.key === 'c' || event.key === 'v'))) {

@@ -104,9 +104,8 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
     handleNestedChange,
     handleStudentInfoLoaded,
     handleTutorLoaded,
-    validateStep1: validateStep1Hook
-  } = useStudentForm({
-    initialFormData: estudiantes[activeStudentIndex] || createNewEstudiante(),
+    validateStep1: validateStep1Hook  } = useStudentForm({
+    initialFormData: estudiantes[activeStudentIndex] || createNewEstudiante(convocatoria || undefined),
     areas_seleccionadas: estudiantes[activeStudentIndex]?.areas_seleccionadas || [],
     requisitosGuardados,
     updateActiveStudent
@@ -223,9 +222,8 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
   // Función para cerrar el modal de la boleta de pago y resetear
   const closeBoletaModal = () => {
     setIsBoletaModalOpen(false);
-    
-    // Resetear datos y redirigir al step 1
-    const newEstudiante = createNewEstudiante();
+      // Resetear datos y redirigir al step 1
+    const newEstudiante = createNewEstudiante(convocatoria || undefined);
     setEstudiantes([newEstudiante]);
     setActiveStudentIndex(0);
     setStep(1);
@@ -317,8 +315,7 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
       setFormErrorMessage('Debe completar los datos del estudiante actual antes de agregar uno nuevo.');
       return;
     }
-    
-    const newStudent = createNewEstudiante();
+      const newStudent = createNewEstudiante(convocatoria || undefined);
     setEstudiantes([...estudiantes, newStudent]);
     setActiveStudentIndex(estudiantes.length);
     

@@ -9,7 +9,7 @@ import { getUser } from '../../api/registration/inscripcionCompletaApi';
 /**
  * Crear un nuevo estudiante con valores iniciales
  */
-export const createNewEstudiante = (): EstudianteFormData => {
+export const createNewEstudiante = (convocatoria?: { id: number }): EstudianteFormData => {
   return {
     id: `estudiante-${Date.now()}`,
     nombres: '',
@@ -17,7 +17,9 @@ export const createNewEstudiante = (): EstudianteFormData => {
     ci: '',
     fecha_nacimiento: '',
     email: '',
+    telefono: '', // Initialize optional field to prevent controlled component warning
     id_grado: '',
+    id_convocatoria: convocatoria ? convocatoria.id.toString() : '',
     unidad_educativa: {
       id_unidad_educativa: null,
       nombre: '',
@@ -69,13 +71,37 @@ export const handleNestedChange = (
   updateActiveStudent: (formData: EstudianteFormData, areas: AreaSeleccionada[]) => void,
   areas_seleccionadas: AreaSeleccionada[]
 ) => {
-  const newFormData = { 
-    ...formData, 
-    [parentField]: { 
-      ...formData[parentField as keyof EstudianteFormData], 
-      [field]: value 
-    } 
-  };
+  // Ensure we're only spreading object properties
+  const parentData = formData[parentField as keyof EstudianteFormData];
+  
+  let newFormData: EstudianteFormData;
+  
+  if (parentField === 'unidad_educativa') {
+    newFormData = {
+      ...formData,
+      unidad_educativa: {
+        ...formData.unidad_educativa,
+        [field]: value
+      }
+    };
+  } else if (parentField === 'tutor_legal') {
+    newFormData = {
+      ...formData,
+      tutor_legal: {
+        ...formData.tutor_legal,
+        [field]: value
+      }
+    };
+  } else {
+    // Fallback for other cases, though this shouldn't happen
+    newFormData = { 
+      ...formData, 
+      [parentField]: typeof parentData === 'object' && parentData !== null 
+        ? { ...parentData, [field]: value }
+        : { [field]: value }
+    };
+  }
+  
   setFormData(newFormData);
   updateActiveStudent(newFormData, areas_seleccionadas);
 };
@@ -109,19 +135,28 @@ export const handleStudentInfoLoaded = async (
     return;
   }
   
-  const user = await handleCIChange(ci, 'estudiantes');
+  try {
+    const user = await handleCIChange(ci, 'estudiantes');
 
-  const newFormData = { 
-    ...formData, 
-    ci: user.ci,
-    nombres: user.nombres,
-    apellidos: user.apellidos,
-    email: user.email,
-  };
-   
-  setFormData(newFormData);
-  setFormErrors({ ...formErrors, ci: '', nombres: '', apellidos: '', email: '' });
-  updateActiveStudent(newFormData, areas_seleccionadas);
+    // Check if user exists and has required properties
+    if (user && typeof user === 'object') {
+      const newFormData = { 
+        ...formData, 
+        ci: user.ci || ci,
+        nombres: user.nombres || '',
+        apellidos: user.apellidos || '',
+        email: user.email || '',
+      };
+       
+      setFormData(newFormData);
+      setFormErrors({ ...formErrors, ci: '', nombres: '', apellidos: '', email: '' });
+      updateActiveStudent(newFormData, areas_seleccionadas);
+    }
+    // If user is null/undefined, we just keep the current form data
+  } catch (error) {
+    console.error('Error loading student info:', error);
+    // If there's an error, we just keep the current form data
+  }
 };
 
 /**
@@ -140,33 +175,42 @@ export const handleTutorLoaded = async (
     return;
   }
   
-  const user = await handleCIChange(ci, 'tutores_legales');
-  
-  const newFormData = { 
-    ...formData, 
-    tutor_legal: { 
-      ...formData.tutor_legal, 
-      ci: user.ci,
-      nombres: user.nombres,
-      apellidos: user.apellidos,
-      email: user.email,
-      telefono: user.telefono,
-    } 
-  };
-  
-  setFormData(newFormData);
-  setFormErrors({ 
-    ...formErrors, 
-    tutor_legal: { 
-      ...formErrors.tutor_legal, 
-      ci: '', 
-      nombres: '', 
-      apellidos: '', 
-      email: '', 
-      telefono: '' 
-    } 
-  });
-  updateActiveStudent(newFormData, areas_seleccionadas);
+  try {
+    const user = await handleCIChange(ci, 'tutores_legales');
+
+    // Check if user exists and has required properties
+    if (user && typeof user === 'object') {
+      const newFormData = { 
+        ...formData, 
+        tutor_legal: { 
+          ...formData.tutor_legal, 
+          ci: user.ci || ci,
+          nombres: user.nombres || '',
+          apellidos: user.apellidos || '',
+          email: user.email || '',
+          telefono: user.telefono || '',
+        } 
+      };
+      
+      setFormData(newFormData);
+      setFormErrors({ 
+        ...formErrors, 
+        tutor_legal: { 
+          ...formErrors.tutor_legal, 
+          ci: '', 
+          nombres: '', 
+          apellidos: '', 
+          email: '', 
+          telefono: '' 
+        } 
+      });
+      updateActiveStudent(newFormData, areas_seleccionadas);
+    }
+    // If user is null/undefined, we just keep the current form data
+  } catch (error) {
+    console.error('Error loading tutor info:', error);
+    // If there's an error, we just keep the current form data
+  }
 };
 
 /**
@@ -205,9 +249,10 @@ export const addNewStudent = (
   estudiantes: EstudianteFormData[],
   setEstudiantes: (estudiantes: EstudianteFormData[]) => void,
   setActiveStudentIndex: (index: number) => void,
-  setStep: (step: number) => void
+  setStep: (step: number) => void,
+  convocatoria?: { id: number }
 ) => {
-  const newEstudiante = createNewEstudiante();
+  const newEstudiante = createNewEstudiante(convocatoria);
   setEstudiantes([...estudiantes, newEstudiante]);
   setActiveStudentIndex(estudiantes.length);
   // Redirigir al paso 1 para completar los datos del nuevo estudiante
