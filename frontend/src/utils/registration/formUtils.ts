@@ -3,8 +3,89 @@
  * Funciones extraídas de Registration.tsx para manejo de datos de formularios
  */
 
-import { EstudianteFormData, FormErrors, AreaSeleccionada } from '../../types/registration';
+import { EstudianteFormData, FormErrors, AreaSeleccionada, RequisitoGuardado } from '../../types/registration';
 import { getUser } from '../../api/registration/inscripcionCompletaApi';
+
+/**
+ * Update requirement values based on current form data
+ */
+export const updateRequisitosValues = (
+  formData: EstudianteFormData,
+  requisitosGuardados: Record<string, RequisitoGuardado>
+): Record<string, RequisitoGuardado> => {
+  const updatedRequisitos = { ...requisitosGuardados };
+  // Update requirement values based on form data
+  for (const key in updatedRequisitos) {
+    const [entidad, campo] = key.split('.');
+    let fieldValue: string | number | boolean | null | undefined = undefined;    // Handle the backend field naming convention
+    if (entidad === 'ESTUDIANTE') {
+      switch (campo) {
+        case 'CI':
+          fieldValue = formData.ci;
+          break;
+        case 'FECHA_NACIMIENTO':
+          fieldValue = formData.fecha_nacimiento;
+          break;
+        case 'ID_GRADO':
+          fieldValue = formData.id_grado;
+          break;
+        case 'EMAIL':
+          fieldValue = formData.email;
+          break;
+        case 'NOMBRES':
+          fieldValue = formData.nombres;
+          break;
+        case 'APELLIDOS':
+          fieldValue = formData.apellidos;
+          break;
+        case 'TELEFONO':
+          fieldValue = formData.telefono;
+          break;
+      }
+    } else if (entidad === 'TUTOR_LEGAL') {
+      switch (campo) {
+        case 'CI':
+          fieldValue = formData.tutor_legal.ci;
+          break;
+        case 'NOMBRES':
+          fieldValue = formData.tutor_legal.nombres;
+          break;
+        case 'APELLIDOS':
+          fieldValue = formData.tutor_legal.apellidos;
+          break;
+        case 'EMAIL':
+          fieldValue = formData.tutor_legal.email;
+          break;
+        case 'TELEFONO':
+          fieldValue = formData.tutor_legal.telefono;
+          break;
+        case 'PARENTESCO':
+          fieldValue = formData.tutor_legal.parentesco;
+          break;
+      }
+    } else if (entidad === 'UNIDAD_EDUCATIVA') {
+      switch (campo) {
+        case 'NOMBRE':
+          fieldValue = formData.unidad_educativa.nombre;
+          break;
+        case 'DEPARTAMENTO':
+          fieldValue = formData.unidad_educativa.departamento;
+          break;
+        case 'PROVINCIA':
+          fieldValue = formData.unidad_educativa.provincia;
+          break;
+      }
+    }    // Update the valor if we found a corresponding field
+    if (fieldValue !== undefined) {
+      updatedRequisitos[key] = {
+        ...updatedRequisitos[key],
+        valor: fieldValue
+      };
+    }
+  }
+
+  return updatedRequisitos;
+};
 
 /**
  * Crear un nuevo estudiante con valores iniciales
@@ -129,16 +210,15 @@ export const handleStudentInfoLoaded = async (
   setFormErrors: (errors: FormErrors) => void,
   formErrors: FormErrors,
   updateActiveStudent: (formData: EstudianteFormData, areas: AreaSeleccionada[]) => void,
-  areas_seleccionadas: AreaSeleccionada[]
+  areas_seleccionadas: AreaSeleccionada[],
+  updateRequisitos?: (formData: EstudianteFormData) => void
 ) => {
   if (ci.length < 8) {
     return;
   }
   
   try {
-    const user = await handleCIChange(ci, 'estudiantes');
-
-    // Check if user exists and has required properties
+    const user = await handleCIChange(ci, 'estudiantes');    // Check if user exists and has required properties
     if (user && typeof user === 'object') {
       const newFormData = { 
         ...formData, 
@@ -151,6 +231,11 @@ export const handleStudentInfoLoaded = async (
       setFormData(newFormData);
       setFormErrors({ ...formErrors, ci: '', nombres: '', apellidos: '', email: '' });
       updateActiveStudent(newFormData, areas_seleccionadas);
+      
+      // Update requirements if callback is provided
+      if (updateRequisitos) {
+        updateRequisitos(newFormData);
+      }
     }
     // If user is null/undefined, we just keep the current form data
   } catch (error) {
@@ -169,7 +254,8 @@ export const handleTutorLoaded = async (
   setFormErrors: (errors: FormErrors) => void,
   formErrors: FormErrors,
   updateActiveStudent: (formData: EstudianteFormData, areas: AreaSeleccionada[]) => void,
-  areas_seleccionadas: AreaSeleccionada[]
+  areas_seleccionadas: AreaSeleccionada[],
+  updateRequisitos?: (formData: EstudianteFormData) => void
 ) => {
   if (ci.length < 8) {
     return;
@@ -191,8 +277,7 @@ export const handleTutorLoaded = async (
           telefono: user.telefono || '',
         } 
       };
-      
-      setFormData(newFormData);
+        setFormData(newFormData);
       setFormErrors({ 
         ...formErrors, 
         tutor_legal: { 
@@ -205,6 +290,11 @@ export const handleTutorLoaded = async (
         } 
       });
       updateActiveStudent(newFormData, areas_seleccionadas);
+      
+      // Update requirements if callback is provided
+      if (updateRequisitos) {
+        updateRequisitos(newFormData);
+      }
     }
     // If user is null/undefined, we just keep the current form data
   } catch (error) {

@@ -50,7 +50,7 @@ import {
 
 // Importar funciones utilitarias
 import { validateStep1 } from '../../utils/registration/validationUtils';
-import { createNewEstudiante } from '../../utils/registration/formUtils';
+import { createNewEstudiante, updateRequisitosValues } from '../../utils/registration/formUtils';
 
 export default function RegistrationPage() {  // Estados esenciales para navegación y convocatoria
   const [step, setStep] = useState(1);
@@ -90,8 +90,15 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
     updateActiveStudent,
     removeStudent,
     isCurrentStudentValid,
-    initializeFirstStudent
-  } = useMultipleStudents({ convocatoria });
+    initializeFirstStudent  } = useMultipleStudents({ convocatoria });  // Function to update requirements when form data changes
+  const updateRequisitos = useCallback((formData: EstudianteFormData) => {
+    setRequisitosGuardados(currentRequisitos => {
+      if (Object.keys(currentRequisitos).length > 0) {
+        return updateRequisitosValues(formData, currentRequisitos);
+      }
+      return currentRequisitos;
+    });
+  }, []); // No dependencies needed since we use functional update
 
   // Hook para gestión del formulario del estudiante
   const {
@@ -108,7 +115,8 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
     initialFormData: estudiantes[activeStudentIndex] || createNewEstudiante(convocatoria || undefined),
     areas_seleccionadas: estudiantes[activeStudentIndex]?.areas_seleccionadas || [],
     requisitosGuardados,
-    updateActiveStudent
+    updateActiveStudent,
+    updateRequisitos
   });
 
   // Hook para gestión de selección de áreas
@@ -141,9 +149,8 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
               obligatorio: requisito.es_obligatorio,
               valor: undefined,
             };
-          });
-          setRequisitosGuardados(initialRequisitosGuardados);
-          console.log('Contenido de requisitosGuardados después de cargar:', initialRequisitosGuardados);
+          });          setRequisitosGuardados(initialRequisitosGuardados);
+          console.log('Requirements loaded for convocatoria:', convocatoria.id);
         } catch (error: unknown) {
           console.error('Error al cargar los requisitos:', (error as Error).message);
           setRequisitosGuardados({});
@@ -172,8 +179,7 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
         ...prev,
         id_convocatoria: convocatoria.id.toString(),
       }));
-    }
-  }, [convocatoria, setFormData]);
+    }  }, [convocatoria, setFormData]);
 
   // Función para enviar la inscripción
   const fetchCodigoUnico = async () => {
@@ -257,8 +263,7 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
       areas_seleccionadas: [],
       tutores_academicos: [],
     });
-  };  // Función para manejar el cambio al siguiente paso
-  const handleNextStep = () => {
+  };  const handleNextStep = () => {
     if (step === 1) {
       if (validateStep1Hook()) {
         const validation = validateStep1(formData, requisitosGuardados);
@@ -462,8 +467,8 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
               costoTotalGeneral={costoTotalGeneral}
               encargadoNombre={encargadoNombre}
               encargadoApellido={encargadoApellido}
-              encargadoCorreo={encargadoCorreo}
-              encargadoCI={encargadoCI}
+              encargadoCorreo={setVencargadoCorreo}
+              encargadoCI={setencargadoCI}
               isModalOpen={isModalOpen}
               isBoletaModalOpen={isBoletaModalOpen}
               isComprobanteModalOpen={isComprobanteModalOpen}

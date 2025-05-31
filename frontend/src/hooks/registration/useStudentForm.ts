@@ -19,6 +19,7 @@ interface UseStudentFormProps {
   areas_seleccionadas: AreaSeleccionada[];
   requisitosGuardados: Record<string, RequisitoGuardado>;
   updateActiveStudent: (newFormData: EstudianteFormData, newSelectedAreas: AreaSeleccionada[]) => void;
+  updateRequisitos?: (formData: EstudianteFormData) => void;
 }
 
 interface UseStudentFormReturn {
@@ -39,17 +40,21 @@ export const useStudentForm = ({
   initialFormData,
   areas_seleccionadas,
   requisitosGuardados,
-  updateActiveStudent
+  updateActiveStudent,
+  updateRequisitos
 }: UseStudentFormProps): UseStudentFormReturn => {
   const [formData, setFormData] = useState<EstudianteFormData>(initialFormData);
   const [formErrors, setFormErrors] = useState<FormErrors>({});
   const [formErrorMessage, setFormErrorMessage] = useState('');
-
   // Sync formData when initialFormData changes
   useEffect(() => {
     setFormData(initialFormData);
-  }, [initialFormData]);
-
+    
+    // Update requirements when form data is initialized
+    if (updateRequisitos && Object.keys(initialFormData).length > 0) {
+      updateRequisitos(initialFormData);
+    }
+  }, [initialFormData, updateRequisitos]);
   const handleFormChange = (field: string, value: string) => {
     handleFormChangeUtil(
       formData,
@@ -61,8 +66,14 @@ export const useStudentForm = ({
       updateActiveStudent,
       areas_seleccionadas
     );
+    
+    // Update requirements when form data changes
+    if (updateRequisitos) {
+      // Create updated form data to pass to updateRequisitos
+      const updatedFormData = { ...formData, [field]: value };
+      updateRequisitos(updatedFormData);
+    }
   };
-
   const handleNestedChange = (parentField: string, field: string, value: string) => {
     handleNestedChangeUtil(
       formData,
@@ -73,9 +84,42 @@ export const useStudentForm = ({
       updateActiveStudent,
       areas_seleccionadas
     );
-  };
-
-  const handleStudentInfoLoaded = async (ci: string) => {
+    
+    // Update requirements when form data changes
+    if (updateRequisitos) {
+      // Create updated form data to pass to updateRequisitos
+      let updatedFormData: EstudianteFormData;
+      
+      if (parentField === 'unidad_educativa') {
+        updatedFormData = {
+          ...formData,
+          unidad_educativa: {
+            ...formData.unidad_educativa,
+            [field]: value
+          }
+        };
+      } else if (parentField === 'tutor_legal') {
+        updatedFormData = {
+          ...formData,
+          tutor_legal: {
+            ...formData.tutor_legal,
+            [field]: value
+          }
+        };
+      } else {
+        // Fallback
+        const parentData = formData[parentField as keyof EstudianteFormData];
+        updatedFormData = { 
+          ...formData, 
+          [parentField]: typeof parentData === 'object' && parentData !== null 
+            ? { ...parentData, [field]: value }
+            : { [field]: value }
+        };
+      }
+      
+      updateRequisitos(updatedFormData);
+    }
+  };  const handleStudentInfoLoaded = async (ci: string) => {
     await handleStudentInfoLoadedUtil(
       ci,
       formData,
@@ -83,11 +127,10 @@ export const useStudentForm = ({
       setFormErrors,
       formErrors,
       updateActiveStudent,
-      areas_seleccionadas
+      areas_seleccionadas,
+      updateRequisitos
     );
-  };
-
-  const handleTutorLoaded = async (ci: string) => {
+  };  const handleTutorLoaded = async (ci: string) => {
     await handleTutorLoadedUtil(
       ci,
       formData,
@@ -95,7 +138,8 @@ export const useStudentForm = ({
       setFormErrors,
       formErrors,
       updateActiveStudent,
-      areas_seleccionadas
+      areas_seleccionadas,
+      updateRequisitos
     );
   };
 

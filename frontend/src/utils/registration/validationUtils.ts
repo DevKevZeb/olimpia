@@ -164,8 +164,25 @@ export const validateStep1 = (
   // 3. Verificar campos obligatorios usando requisitosGuardados
   const camposObligatoriosVacios = [];
   const dataToSend = { ...formData };
-
   const mensajesCamposObligatorios = {
+    // Backend format (current)
+    'ESTUDIANTE.CI': 'La cédula de identidad del estudiante',
+    'ESTUDIANTE.FECHA_NACIMIENTO': 'La fecha de nacimiento del estudiante',
+    'ESTUDIANTE.NOMBRES': 'Los nombres del estudiante',
+    'ESTUDIANTE.APELLIDOS': 'Los apellidos del estudiante',
+    'ESTUDIANTE.EMAIL': 'El correo electrónico del estudiante',
+    'ESTUDIANTE.ID_GRADO': 'El grado del estudiante',
+    'ESTUDIANTE.TELEFONO': 'El teléfono del estudiante',
+    'TUTOR_LEGAL.CI': 'La cédula de identidad del tutor legal',
+    'TUTOR_LEGAL.NOMBRES': 'Los nombres del tutor legal',
+    'TUTOR_LEGAL.APELLIDOS': 'Los apellidos del tutor legal',
+    'TUTOR_LEGAL.EMAIL': 'El correo electrónico del tutor legal',
+    'TUTOR_LEGAL.TELEFONO': 'El teléfono del tutor legal',
+    'TUTOR_LEGAL.PARENTESCO': 'El parentesco del tutor legal con el estudiante',
+    'UNIDAD_EDUCATIVA.NOMBRE': 'El nombre de la unidad educativa',
+    'UNIDAD_EDUCATIVA.DEPARTAMENTO': 'El departamento de la unidad educativa',
+    'UNIDAD_EDUCATIVA.PROVINCIA': 'La provincia de la unidad educativa',
+    // Legacy format (backward compatibility)
     'postulante.fecha_nacimiento': 'La fecha de nacimiento del estudiante',
     'postulante.id_unidad_educativa': 'El nombre de la unidad educativa del estudiante',
     'postulante.provincia': 'La provincia del estudiante',
@@ -178,17 +195,68 @@ export const validateStep1 = (
   for (const key in requisitosGuardados) {
     if (key.startsWith('tutorAcademico.')) {
       continue; // Ignorar los campos del tutor académico
-    }
-
-    const requisitoInfo = requisitosGuardados[key];
+    }    const requisitoInfo = requisitosGuardados[key];
     const [entidad, campo] = key.split('.');
     let fieldValue;
 
-    if (entidad === 'tutorLegal') {
+    // Handle the backend field naming convention
+    if (entidad === 'ESTUDIANTE') {
+      if (campo === 'CI') {
+        fieldValue = dataToSend.ci;
+      } else if (campo === 'FECHA_NACIMIENTO') {
+        fieldValue = dataToSend.fecha_nacimiento;
+      } else if (campo === 'ID_GRADO') {
+        fieldValue = dataToSend.id_grado;
+      } else if (campo === 'EMAIL') {
+        fieldValue = dataToSend.email;
+      } else if (campo === 'NOMBRES') {
+        fieldValue = dataToSend.nombres;
+      } else if (campo === 'APELLIDOS') {
+        fieldValue = dataToSend.apellidos;
+      } else if (campo === 'TELEFONO') {
+        fieldValue = dataToSend.telefono;
+      } else {
+        fieldValue = dataToSend[campo.toLowerCase() as keyof typeof dataToSend];
+      }
+    } else if (entidad === 'TUTOR_LEGAL') {
+      if (campo === 'CI') {
+        fieldValue = dataToSend.tutor_legal.ci;
+      } else if (campo === 'NOMBRES') {
+        fieldValue = dataToSend.tutor_legal.nombres;
+      } else if (campo === 'APELLIDOS') {
+        fieldValue = dataToSend.tutor_legal.apellidos;
+      } else if (campo === 'EMAIL') {
+        fieldValue = dataToSend.tutor_legal.email;
+      } else if (campo === 'TELEFONO') {
+        fieldValue = dataToSend.tutor_legal.telefono;
+      } else if (campo === 'PARENTESCO') {
+        fieldValue = dataToSend.tutor_legal.parentesco;
+      } else {
+        fieldValue = dataToSend.tutor_legal[campo.toLowerCase() as keyof typeof dataToSend.tutor_legal];
+      }
+    } else if (entidad === 'UNIDAD_EDUCATIVA') {
+      if (campo === 'NOMBRE') {
+        const nombreUnidadEducativaValue = dataToSend.unidad_educativa.nombre;
+        const idUnidadEducativaValue = dataToSend.unidad_educativa.id_unidad_educativa;
+        if (requisitoInfo?.obligatorio && (nombreUnidadEducativaValue?.trim() === '' && (idUnidadEducativaValue === null || idUnidadEducativaValue === undefined))) {
+          camposObligatoriosVacios.push(key);
+        }
+        continue; // Evitar la verificación general más adelante
+      } else if (campo === 'DEPARTAMENTO') {
+        fieldValue = dataToSend.unidad_educativa.departamento;
+      } else if (campo === 'PROVINCIA') {
+        fieldValue = dataToSend.unidad_educativa.provincia;
+      } else {
+        fieldValue = dataToSend.unidad_educativa[campo.toLowerCase() as keyof typeof dataToSend.unidad_educativa];
+      }
+    } else if (entidad === 'tutorLegal') {
+      // Keep backward compatibility
       fieldValue = dataToSend.tutor_legal[campo as keyof typeof dataToSend.tutor_legal];
     } else if (entidad === 'unidad_educativa') {
+      // Keep backward compatibility
       fieldValue = dataToSend.unidad_educativa[campo as keyof typeof dataToSend.unidad_educativa];
     } else if (entidad === 'postulante') {
+      // Keep backward compatibility
       if (campo === 'departamento') {
         fieldValue = dataToSend.unidad_educativa.departamento;
       } else if (campo === 'id_unidad_educativa') {
@@ -221,7 +289,7 @@ export const validateStep1 = (
     if (Object.keys(currentErrors).length > 0) {
       errorMessage = Object.values(currentErrors)[0] as string;
     } else if (camposObligatoriosVacios.length > 0) {
-      const mensajesEspecificos = camposObligatoriosVacios.map(key => mensajesCamposObligatorios[key] || key);
+      const mensajesEspecificos = camposObligatoriosVacios.map(key => mensajesCamposObligatorios[key as keyof typeof mensajesCamposObligatorios] || key);
       errorMessage = `Por favor, complete los siguientes campos obligatorios: ${mensajesEspecificos.join(', ')}`;
     } else {
       errorMessage = 'Por favor, corrija los errores en el formulario.';
