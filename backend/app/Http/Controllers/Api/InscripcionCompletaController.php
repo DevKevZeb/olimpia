@@ -6,7 +6,6 @@ use App\Models\Grado;
 use App\Models\OrdenPago;
 use App\Models\Estudiante;
 use App\Models\TutorLegal;
-use App\Models\Inscripcion;
 use Illuminate\Support\Str;
 use App\Models\Convocatoria;
 use App\Models\ConvocatoriaArea;
@@ -320,13 +319,11 @@ class InscripcionCompletaController extends ApiController
                     $convocatoriaNivel = ConvocatoriaNivel::with('convocatoriaArea')->find($idConvocatoriaNivel);
                     $montoTotal += $convocatoriaNivel->convocatoriaArea->costo_inscripcion;
                 }
-            }
-    
-            // 5. Crear orden de pago (misma lógica que antes)
+            }            // 5. Crear orden de pago (misma lógica que antes)
             $ordenPago = OrdenPago::create([
                 'codigo_unico' => $request->codigo_unico,
                 'tipo_origen' => 'lista',
-                'id_inscripcion' => null,
+                // Removed id_inscripcion since individual inscriptions are no longer supported
                 'id_lista' => $listaInscripcion->id_lista,
                 'monto_total' => $montoTotal,
                 'fecha_emision' => now(),
@@ -384,6 +381,12 @@ class InscripcionCompletaController extends ApiController
 
     /**
      * Procesa la inscripción completa de un estudiante
+     */
+    /**
+     * OBSOLETE METHOD - This method uses the old individual Inscripcion model
+     * which was deleted. This method should be removed or updated to use 
+     * the new DetalleListaInscripcion system.
+     * Currently not used in routes.
      */
     public function inscribirEstud(Request $request)
     {
@@ -639,14 +642,12 @@ class InscripcionCompletaController extends ApiController
                 // Sumar el costo de inscripción al monto total
                 $convocatoriaNivel = ConvocatoriaNivel::with('convocatoriaArea')->find($areaSeleccionada['id_convocatoria_nivel']);
                 $montoTotal += $convocatoriaNivel->convocatoriaArea->costo_inscripcion;
-            }
-
-            // 5. Crear orden de pago
+            }            // 5. Crear orden de pago (updated to use lista-only approach)
             $ordenPago = OrdenPago::create([
                 'codigo_unico' => $request->codigo_unico,
-                'tipo_origen' => 'individual',
-                'id_inscripcion' => $inscripciones[0]->id_inscripcion, // Asociamos a la primera inscripción
-                'id_lista' => null,
+                'tipo_origen' => 'lista',
+                // Removed id_inscripcion since individual inscriptions are no longer supported
+                'id_lista' => $listaInscripcion->id_lista,
                 'monto_total' => $montoTotal,
                 'fecha_emision' => now(),
                 'fecha_vencimiento' => now()->addDays(5), // 5 días para pagar

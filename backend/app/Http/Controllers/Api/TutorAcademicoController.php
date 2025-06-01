@@ -102,14 +102,13 @@ class TutorAcademicoController extends ApiController
     public function destroy(int $id): JsonResponse
     {
         $tutor = TutorAcademico::find($id);
-        
-        if (!$tutor) {
+          if (!$tutor) {
             return $this->errorResponse('Tutor académico no encontrado', 404);
         }
         
-        // Check for related records
-        if ($tutor->inscripciones()->exists()) {
-            return $this->errorResponse('No se puede eliminar el tutor académico porque tiene inscripciones asociadas', 409);
+        // Check for related records in detalles_lista_inscripcion instead of inscripciones
+        if ($tutor->detallesLista()->exists()) {
+            return $this->errorResponse('No se puede eliminar el tutor académico porque tiene registros asociados', 409);
         }
         
         $tutor->delete();

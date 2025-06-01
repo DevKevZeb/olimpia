@@ -28,9 +28,7 @@ class Convocatoria extends Model
     public function areas()
     {
         return $this->hasMany(ConvocatoriaArea::class, 'id_convocatoria');
-    }
-
-    public function niveles()
+    }    public function niveles()
     {
         return $this->hasManyThrough(
             ConvocatoriaNivel::class,
@@ -42,13 +40,15 @@ class Convocatoria extends Model
         );
     }
 
-    public function inscripciones()
+    // Replaced inscripciones() relationship since Inscripcion model was deleted
+    // All registrations now go through detalles_lista_inscripcion
+    public function detallesInscripcion()
     {
         return $this->hasManyThrough(
-            Inscripcion::class,
+            DetalleListaInscripcion::class,
             ConvocatoriaNivel::class,
             'id_convocatoria_area', // FK en convocatoria_niveles que se relaciona con convocatoria_areas
-            'id_convocatoria_nivel', // FK en inscripciones
+            'id_convocatoria_nivel', // FK en detalles_lista_inscripcion
             'id_convocatoria', // PK en convocatorias
             'id_convocatoria_nivel' // PK en convocatoria_niveles
         );

@@ -7,7 +7,7 @@ use App\Models\AreaCompetencia;
 use App\Models\Convocatoria;
 use App\Models\Estudiante;
 use App\Models\Grado;
-use App\Models\Inscripcion;
+use App\Models\DetalleListaInscripcion;
 use App\Models\NivelCategoria;
 use App\Models\OrdenPago;
 use Illuminate\Http\JsonResponse;
@@ -24,7 +24,8 @@ class AdminDashboardController extends ApiController
     {
         // Estadísticas generales
         $totalEstudiantes = Estudiante::count();
-        $totalInscripciones = Inscripcion::count();
+        // Changed from Inscripcion::count() to DetalleListaInscripcion::count()
+        $totalInscripciones = DetalleListaInscripcion::count();
         $totalIngresosPendientes = OrdenPago::where('estado', 'pendiente')->sum('monto_total');
         $totalIngresosPagados = OrdenPago::where('estado', 'pagada')->sum('monto_total');
 
@@ -33,18 +34,19 @@ class AdminDashboardController extends ApiController
             ->with(['areas.area'])
             ->get();
 
-        // Inscripciones por área
-        $inscripcionesPorArea = DB::table('inscripciones')
-            ->join('convocatoria_areas', 'inscripciones.id_convocatoria_area', '=', 'convocatoria_areas.id_convocatoria_area')
+        // Inscripciones por área - Changed to use detalles_lista_inscripcion
+        $inscripcionesPorArea = DB::table('detalles_lista_inscripcion')
+            ->join('convocatoria_niveles', 'detalles_lista_inscripcion.id_convocatoria_nivel', '=', 'convocatoria_niveles.id_convocatoria_nivel')
+            ->join('convocatoria_areas', 'convocatoria_niveles.id_convocatoria_area', '=', 'convocatoria_areas.id_convocatoria_area')
             ->join('areas_competencia', 'convocatoria_areas.id_area', '=', 'areas_competencia.id_area')
             ->select('areas_competencia.nombre_area', DB::raw('count(*) as total'))
             ->groupBy('areas_competencia.nombre_area')
             ->get();
 
-        // Inscripciones por mes (últimos 6 meses)
-        $inscripcionesPorMes = DB::table('inscripciones')
-            ->select(DB::raw('YEAR(fecha_inscripcion) as anio'), DB::raw('MONTH(fecha_inscripcion) as mes'), DB::raw('count(*) as total'))
-            ->where('fecha_inscripcion', '>=', now()->subMonths(6))
+        // Inscripciones por mes (últimos 6 meses) - Changed to use detalles_lista_inscripcion
+        $inscripcionesPorMes = DB::table('detalles_lista_inscripcion')
+            ->select(DB::raw('YEAR(fecha_registro) as anio'), DB::raw('MONTH(fecha_registro) as mes'), DB::raw('count(*) as total'))
+            ->where('fecha_registro', '>=', now()->subMonths(6))
             ->groupBy('anio', 'mes')
             ->orderBy('anio')
             ->orderBy('mes')

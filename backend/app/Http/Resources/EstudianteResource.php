@@ -32,10 +32,10 @@ class EstudianteResource extends JsonResource
                 return new GradoResource($this->grado);
             }),
             'tutor_legal' => $this->whenLoaded('tutorLegal', function() {
-                return new TutorLegalResource($this->tutorLegal);
-            }),
-            'inscripciones' => $this->whenLoaded('inscripciones', function() {
-                return InscripcionResource::collection($this->inscripciones);
+                return new TutorLegalResource($this->tutorLegal);            }),
+            // Updated to use detallesLista instead of inscripciones since Inscripcion model was deleted
+            'detalles_lista' => $this->whenLoaded('detallesLista', function() {
+                return DetalleListaInscripcionResource::collection($this->detallesLista);
             }),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

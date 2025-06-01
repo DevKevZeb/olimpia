@@ -100,15 +100,12 @@ class ComprobantePagoController extends ApiController
                 'datos_ocr' => null, // This would be filled by an OCR service if available
                 'estado_verificacion' => 'pendiente',
             ]);
-            
-            // Update the orden status if automatic verification is enabled
+              // Update the orden status if automatic verification is enabled
             // For now, we'll mark it as paid directly for demonstration purposes
             $orden->update(['estado' => 'pagada']);
             
-            // If the payment is for an individual registration, update the registration status
-            if ($orden->tipo_origen === 'individual' && $orden->inscripcion) {
-                $orden->inscripcion->update(['estado' => 'pagada']);
-            }
+            // Note: Individual inscriptions are no longer supported since Inscripcion model was deleted
+            // All registrations now go through detalles_lista_inscripcion
             
             DB::commit();
             
@@ -253,13 +250,13 @@ class ComprobantePagoController extends ApiController
                     'numero_comprobante' => $numero,
                     'fecha' => $fecha,
                     'monto' => $orden->monto_total
-                ],
-                'estado_verificacion' => 'pendiente',
+                ],                'estado_verificacion' => 'pendiente',
             ]);
             $orden->update(['estado' => 'pagada']);
-            if ($orden->tipo_origen === 'individual' && $orden->inscripcion) {
-                $orden->inscripcion->update(['estado' => 'pagada']);
-            }
+            
+            // Note: Individual inscriptions are no longer supported since Inscripcion model was deleted
+            // All registrations now go through detalles_lista_inscripcion
+            
             DB::commit();
             return $this->successResponse(
                 new ComprobantePagoResource($comprobante->load('orden')),
@@ -287,10 +284,9 @@ class ComprobantePagoController extends ApiController
         if ($validator->fails()) {
             return $this->errorResponse($validator->errors()->first(), 422);
         }
-        
-        try {
+          try {
             $orden = OrdenPago::where('codigo_unico', $request->codigo_orden)
-                ->with(['inscripcion.estudiante', 'lista.unidadEducativa'])
+                ->with(['lista.unidadEducativa'])
                 ->first();
                 
             if (!$orden) {
@@ -316,14 +312,14 @@ class ComprobantePagoController extends ApiController
                 ],
                 'tiene_comprobante' => $tieneComprobante,
             ];
-            
-            // Añadir información específica según el tipo de origen
-            if ($orden->tipo_origen === 'individual' && $orden->inscripcion) {
-                $estudiante = $orden->inscripcion->estudiante;
-                if ($estudiante) {
+              // Añadir información específica según el tipo de origen
+            if ($orden->tipo_origen === 'individual' && $orden->lista) {
+                // Para inscripciones individuales, buscar el primer estudiante en la lista
+                $primerDetalle = $orden->lista->detalles()->with('estudiante')->first();
+                if ($primerDetalle && $primerDetalle->estudiante) {
                     $response['estudiante'] = [
-                        'nombre_completo' => $estudiante->nombres . ' ' . $estudiante->apellidos,
-                        'ci' => $estudiante->ci,
+                        'nombre_completo' => $primerDetalle->estudiante->nombres . ' ' . $primerDetalle->estudiante->apellidos,
+                        'ci' => $primerDetalle->estudiante->ci,
                     ];
                 }
             } elseif ($orden->tipo_origen === 'lista' && $orden->lista) {
@@ -351,8 +347,8 @@ class ComprobantePagoController extends ApiController
      * Display the specified resource.
      */
     public function show(int $id): JsonResponse
-    {
-        $comprobante = ComprobantePago::with(['orden.inscripcion.estudiante', 'orden.lista.unidadEducativa'])
+    {        // Updated to remove obsolete inscripcion relationship since Inscripcion model was deleted
+        $comprobante = ComprobantePago::with(['orden.lista.unidadEducativa'])
             ->find($id);
         
         if (!$comprobante) {
@@ -419,11 +415,9 @@ class ComprobantePagoController extends ApiController
                 
                 // Update the orden status
                 $orden->update(['estado' => 'pagada']);
-                
-                // Update inscriptions based on the order type
-                if ($orden->tipo_origen === 'individual' && $orden->inscripcion) {
-                    $orden->inscripcion->update(['estado' => 'verificada']);
-                } elseif ($orden->tipo_origen === 'lista' && $orden->lista) {
+                  // Update inscriptions based on the order type
+                // Note: Individual inscriptions are no longer supported since Inscripcion model was deleted
+                if ($orden->tipo_origen === 'lista' && $orden->lista) {
                     // Process all students in the list
                     $this->processListRegistrations($orden->lista);
                 }
@@ -478,33 +472,21 @@ class ComprobantePagoController extends ApiController
             return $this->errorResponse('Error al eliminar el comprobante de pago: ' . $e->getMessage(), 500);
         }
     }
-    
-    /**
+      /**
      * Process registrations from a list
-     * This creates individual registrations for each student in the list
+     * Since we no longer use individual inscriptions and everything is handled via listas_inscripcion,
+     * we just need to mark the list details as verified (this could be handled at lista level if needed)
      */
     private function processListRegistrations($lista)
     {
-        foreach ($lista->detalles as $detalle) {
-            // Check if the student is already registered for this nivel
-            $existingRegistration = \App\Models\Inscripcion::where('id_estudiante', $detalle->id_estudiante)
-                ->where('id_convocatoria_nivel', $detalle->id_convocatoria_nivel)
-                ->first();
-                
-            if ($existingRegistration) {
-                // Update the existing registration to verified
-                $existingRegistration->update(['estado' => 'verificada']);
-            } else {
-                // Create a new verified registration
-                \App\Models\Inscripcion::create([
-                    'id_estudiante' => $detalle->id_estudiante,
-                    'id_convocatoria_nivel' => $detalle->id_convocatoria_nivel,
-                    'id_tutor_academico' => $detalle->id_tutor_academico,
-                    'fecha_inscripcion' => now(),
-                    'estado' => 'verificada',
-                ]);
-            }
-        }
+        // Since all registrations are now handled via listas_inscripcion table,
+        // and students are already registered in the lista detalles,
+        // we don't need to create individual inscriptions anymore.
+        // The verification status is handled at the orden/comprobante level.
+        
+        // If we need to track verification status per student in the future,
+        // we could add a 'estado' column to detalles_lista_inscripcion table
+        // For now, the payment verification at orden level is sufficient
     }
     
     /**

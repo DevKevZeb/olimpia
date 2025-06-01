@@ -9,26 +9,22 @@ class StoreOrdenPagoRequest extends FormRequest
     public function authorize()
     {
         return true;
-    }
-
-    public function rules()
+    }    public function rules()
     {
+        // Updated to only support lista orders since individual inscriptions are no longer supported
         return [
-            'tipo_origen' => 'required|in:individual,lista',
-            'id_inscripcion' => 'required_if:tipo_origen,individual|nullable|exists:inscripciones,id_inscripcion',
-            'id_lista' => 'required_if:tipo_origen,lista|nullable|exists:listas_inscripcion,id_lista',
+            'tipo_origen' => 'required|in:lista',
+            'id_lista' => 'required|exists:listas_inscripcion,id_lista',
         ];
     }
 
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {
-            if ($this->tipo_origen === 'individual' && !$this->id_inscripcion) {
-                $validator->errors()->add('id_inscripcion', 'Se requiere una inscripción para órdenes individuales');
-            }
-            
+            // Removed individual inscription validation since it's no longer supported
             if ($this->tipo_origen === 'lista' && !$this->id_lista) {
-                $validator->errors()->add('id_lista', 'Se requiere una lista para órdenes grupales');
+                $validator->errors()->add('id_lista', 'Se requiere una lista para órdenes de pago');
+            }
             }
         });
     }

@@ -37,8 +37,7 @@ class ConvocatoriaNivel extends Model
     // Cambiando el nombre del método de gradoMin a gradoMinimo para que coincida con la llamada en el controlador
     public function gradoMinimo()
     {
-        return $this->belongsTo(Grado::class, 'id_grado_min');
-    }
+        return $this->belongsTo(Grado::class, 'id_grado_min');    }
 
     // Cambiando el nombre del método de gradoMax a gradoMaximo para que coincida con la llamada en el controlador
     public function gradoMaximo()
@@ -46,8 +45,10 @@ class ConvocatoriaNivel extends Model
         return $this->belongsTo(Grado::class, 'id_grado_max');
     }
 
-    public function inscripciones()
+    // Replaced inscripciones() relationship since Inscripcion model was deleted
+    // All registrations now go through detalles_lista_inscripcion
+    public function detallesLista()
     {
-        return $this->hasMany(Inscripcion::class, 'id_convocatoria_nivel');
+        return $this->hasMany(DetalleListaInscripcion::class, 'id_convocatoria_nivel');
     }
 }

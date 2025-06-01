@@ -167,7 +167,7 @@ export default function GestionarInscripciones() {
             <h3 className="font-medium text-blue-900 mb-2">¿Cómo obtener su código de inscripción?</h3>
             <p className="text-sm text-blue-800">
               Su código de inscripción fue generado al completar el proceso de pre-inscripción. 
-              Tiene el formato: <code className="bg-blue-100 px-1 rounded">O-SANSI-2024-XXXXX</code>
+              Tiene el formato: <code className="bg-blue-100 px-1 rounded">O-SANSI-2025-XXXXX</code>
             </p>
           </div>
           

@@ -117,15 +117,13 @@ class ConvocatoriaNivelController extends ApiController
      */
     public function destroy(int $id): JsonResponse
     {
-        $nivel = ConvocatoriaNivel::find($id);
-
-        if (!$nivel) {
+        $nivel = ConvocatoriaNivel::find($id);        if (!$nivel) {
             return $this->errorResponse('Nivel de convocatoria no encontrado', 404);
         }
 
-        // Check for related inscriptions
-        if ($nivel->inscripciones()->exists()) {
-            return $this->errorResponse('No se puede eliminar este nivel porque tiene inscripciones asociadas', 409);
+        // Check for related registrations in detalles_lista_inscripcion instead of inscripciones
+        if ($nivel->detallesLista()->exists()) {
+            return $this->errorResponse('No se puede eliminar este nivel porque tiene registros asociados', 409);
         }
 
         $nivel->delete();

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\OrdenPago;
-use App\Models\Inscripcion;
 use App\Models\ListaInscripcion;
 use Illuminate\Http\Request;
 use App\Http\Resources\OrdenPagoResource;
@@ -17,10 +16,10 @@ class OrdenPagoController extends ApiController
 {
     /**
      * Display a listing of the resource.
-     */
-    public function index(Request $request): JsonResponse
+     */    public function index(Request $request): JsonResponse
     {
-        $query = OrdenPago::with(['inscripcion.estudiante', 'lista.unidadEducativa']);
+        // Updated to remove obsolete inscripcion relationship since Inscripcion model was deleted
+        $query = OrdenPago::with(['lista.unidadEducativa']);
         
         // Filter by estado if provided
         if ($request->has('estado')) {
@@ -50,13 +49,12 @@ class OrdenPagoController extends ApiController
 
     /**
      * Store a newly created resource in storage.
-     */
-    public function store(Request $request): JsonResponse
+     */    public function store(Request $request): JsonResponse
     {
+        // Updated validation to only support lista type (individual inscriptions removed)
         $validator = Validator::make($request->all(), [
-            'tipo_origen' => 'required|in:individual,lista',
-            'id_inscripcion' => 'required_if:tipo_origen,individual|exists:inscripciones,id_inscripcion',
-            'id_lista' => 'required_if:tipo_origen,lista|exists:listas_inscripcion,id_lista',
+            'tipo_origen' => 'required|in:lista',
+            'id_lista' => 'required|exists:listas_inscripcion,id_lista',
             'fecha_vencimiento' => 'required|date|after:today',
         ]);
 
@@ -67,46 +65,29 @@ class OrdenPagoController extends ApiController
         try {
             DB::beginTransaction();
             
-            $montoTotal = 0;
+            // Only handle lista type since individual inscriptions are no longer supported
+            $lista = ListaInscripcion::with('detalles.convocatoriaNivel.convocatoriaArea')->findOrFail($request->id_lista);
             
-            // Calculate monto_total based on tipo_origen
-            if ($request->tipo_origen === 'individual') {
-                $inscripcion = Inscripcion::with('convocatoriaNivel.convocatoriaArea')->findOrFail($request->id_inscripcion);
-                $montoTotal = $inscripcion->convocatoriaNivel->convocatoriaArea->costo_inscripcion;
+            // Check if there's already an active order for this list
+            $existingOrder = OrdenPago::where('id_lista', $request->id_lista)
+                ->whereIn('estado', ['pendiente'])
+                ->exists();
                 
-                // Check if there's already an active order for this inscripcion
-                $existingOrder = OrdenPago::where('id_inscripcion', $request->id_inscripcion)
-                    ->whereIn('estado', ['pendiente'])
-                    ->exists();
-                    
-                if ($existingOrder) {
-                    return $this->errorResponse('Ya existe una orden de pago pendiente para esta inscripción', 422);
-                }
-                
-            } else { // tipo_origen === 'lista'
-                $lista = ListaInscripcion::with('detalles.convocatoriaArea')->findOrFail($request->id_lista);
-                
-                // Check if there's already an active order for this list
-                $existingOrder = OrdenPago::where('id_lista', $request->id_lista)
-                    ->whereIn('estado', ['pendiente'])
-                    ->exists();
-                    
-                if ($existingOrder) {
-                    return $this->errorResponse('Ya existe una orden de pago pendiente para esta lista', 422);
-                }
-                
-                // Sum the cost of all inscriptions in the list
-                foreach ($lista->detalles as $detalle) {
-                    $montoTotal += $detalle->convocatoriaArea->costo_inscripcion;
-                }
+            if ($existingOrder) {
+                return $this->errorResponse('Ya existe una orden de pago pendiente para esta lista', 422);
+            }
+            
+            // Sum the cost of all registrations in the list
+            $montoTotal = 0;
+            foreach ($lista->detalles as $detalle) {
+                $montoTotal += $detalle->convocatoriaNivel->convocatoriaArea->costo_inscripcion;
             }
             
             // Create the orden de pago
             $orden = OrdenPago::create([
                 'codigo_unico' => 'OP-' . Str::upper(Str::random(10)),
-                'tipo_origen' => $request->tipo_origen,
-                'id_inscripcion' => $request->tipo_origen === 'individual' ? $request->id_inscripcion : null,
-                'id_lista' => $request->tipo_origen === 'lista' ? $request->id_lista : null,
+                'tipo_origen' => 'lista',
+                'id_lista' => $request->id_lista,
                 'monto_total' => $montoTotal,
                 'fecha_emision' => now(),
                 'fecha_vencimiento' => $request->fecha_vencimiento,
@@ -116,7 +97,7 @@ class OrdenPagoController extends ApiController
             DB::commit();
             
             return $this->successResponse(
-                new OrdenPagoResource($orden->load(['inscripcion.estudiante', 'lista.unidadEducativa'])),
+                new OrdenPagoResource($orden->load(['lista.unidadEducativa'])),
                 'Orden de pago creada correctamente',
                 201
             );

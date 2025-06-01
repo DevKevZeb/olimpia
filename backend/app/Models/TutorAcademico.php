@@ -11,8 +11,7 @@ class TutorAcademico extends Model
 
     protected $table = 'tutores_academicos';
     protected $primaryKey = 'id_tutor_academico';
-    
-    protected $fillable = [
+      protected $fillable = [
         'nombres',
         'apellidos',
         'ci',
@@ -20,8 +19,10 @@ class TutorAcademico extends Model
         'email',
     ];
 
-    public function inscripciones()
+    // Replaced inscripciones() relationship since Inscripcion model was deleted
+    // All registrations now go through detalles_lista_inscripcion
+    public function detallesLista()
     {
-        return $this->hasMany(Inscripcion::class, 'id_tutor_academico');
+        return $this->hasMany(DetalleListaInscripcion::class, 'id_tutor_academico');
     }
 }

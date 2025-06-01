@@ -36,18 +36,13 @@ class Estudiante extends Model
     public function grado()
     {
         return $this->belongsTo(Grado::class, 'id_grado');
-    }
-
-    public function tutorLegal()
+    }    public function tutorLegal()
     {
         return $this->belongsTo(TutorLegal::class, 'id_tutor_legal');
     }
 
-    public function inscripciones()
-    {
-        return $this->hasMany(Inscripcion::class, 'id_estudiante');
-    }
-
+    // Replaced inscripciones() relationship since Inscripcion model was deleted
+    // All registrations now go through detalles_lista_inscripcion
     public function detallesLista()
     {
         return $this->hasMany(DetalleListaInscripcion::class, 'id_estudiante');

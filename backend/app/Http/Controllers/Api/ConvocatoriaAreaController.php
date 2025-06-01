@@ -107,14 +107,17 @@ class ConvocatoriaAreaController extends ApiController
     public function destroy(int $id): JsonResponse
     {
         $area = ConvocatoriaArea::find($id);
-        
-        if (!$area) {
+          if (!$area) {
             return $this->errorResponse('Área de convocatoria no encontrada', 404);
         }
         
-        // Check for related inscriptions
-        if ($area->inscripciones()->exists()) {
-            return $this->errorResponse('No se puede eliminar esta área porque tiene inscripciones asociadas', 409);
+        // Check for related registrations through convocatoria_niveles->detalles_lista_inscripcion
+        $hasRegistrations = $area->convocatoriaNiveles()
+            ->whereHas('detallesLista')
+            ->exists();
+            
+        if ($hasRegistrations) {
+            return $this->errorResponse('No se puede eliminar esta área porque tiene registros asociados', 409);
         }
         
         $area->delete();

@@ -122,12 +122,11 @@ class EstudianteController extends ApiController
         $estudiante = Estudiante::find($id);
         
         if (!$estudiante) {
-            return $this->errorResponse('Estudiante no encontrado', 404);
-        }
+            return $this->errorResponse('Estudiante no encontrado', 404);        }
         
-        // Check for related records
-        if ($estudiante->inscripciones()->exists() || $estudiante->detallesLista()->exists()) {
-            return $this->errorResponse('No se puede eliminar el estudiante porque tiene inscripciones asociadas', 409);
+        // Check for related records in detalles_lista_inscripcion only (inscripciones removed)
+        if ($estudiante->detallesLista()->exists()) {
+            return $this->errorResponse('No se puede eliminar el estudiante porque tiene registros asociados', 409);
         }
         
         $estudiante->delete();
