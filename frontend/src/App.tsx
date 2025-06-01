@@ -5,6 +5,7 @@ import RegistrationPage from './pages/registration/RegistrationPage';
 import CompletarInscripcionPage from './pages/registration/CompletarInscripcionPage';
 import DescargarBoletaPage from './pages/registration/DescargarBoletaPage';
 import EstadoInscripcionPage from './pages/registration/EstadoInscripcionPage';
+import GestionarInscripciones from './pages/GestionarInscripciones';
 import AdminPanel from './pages/AdminPanel';
 import CamposObligatorios from './pages/CamposObligatorios';
 import RegistroExcel from './pages/RegistroExcel';
@@ -24,9 +25,10 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/registration" element={<RegistrationPage />} />
-          <Route path="/inscripcion" element={<RegistrationPage />} />
-          <Route path="/complete-registration" element={<CompletarInscripcionPage />} />
+          <Route path="/inscripcion" element={<RegistrationPage />} />          <Route path="/complete-registration" element={<CompletarInscripcionPage />} />
           <Route path="/download-payment-slip" element={<DescargarBoletaPage />} />
+          <Route path="/download-boleta" element={<DescargarBoletaPage />} />
+          <Route path="/gestionar-inscripciones" element={<GestionarInscripciones />} />
           <Route path="/admin/*" element={<AdminPanel />} />
           <Route path="/camposobligatorios" element={<CamposObligatorios />} />
           <Route path="/registroexcel" element={<RegistroExcel />} />

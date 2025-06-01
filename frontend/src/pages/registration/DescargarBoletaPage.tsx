@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Download } from 'lucide-react';
 import jsPDF from 'jspdf';
@@ -10,33 +10,35 @@ import Button from '../../components/ui/Button';
 import { BoletaInfo } from '../../components/registration';
 import { useCodeVerification } from '../../hooks/registration';
 import { descargarBoleta } from '../../api/registration';
-import { EstudianteFormData } from '../../types/index';
+import { EstudianteFormData } from '../../types/registration';
 
 interface EncargadoData {
   nombre: string;
   ci: string;
-  email: string;
+  email?: string;
 }
 
 export default function DescargarBoletaPage() {
   const navigate = useNavigate();
   const componentRef = useRef<HTMLDivElement>(null);
   
+  // Obtener código de URL params si existe
+  const searchParams = new URLSearchParams(window.location.search);
+  const codigoFromUrl = searchParams.get('codigo') || '';
+  
   const [isVerified, setIsVerified] = useState(false);
   const [estudiantes, setEstudiantes] = useState<EstudianteFormData[]>([]);
-  const [costoTotalGeneral, setCostoTotalGeneral] = useState(0);
-  const [encargado, setEncargado] = useState<EncargadoData>({
+  const [costoTotalGeneral, setCostoTotalGeneral] = useState(0);  const [encargado, setEncargado] = useState<EncargadoData>({
     nombre: '',
     ci: '',
     email: ''
   });
-  const [codigoBoleta, setCodigoBoleta] = useState('');
+  const [codigoBoleta, setCodigoBoleta] = useState(codigoFromUrl);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
-
   // Hook personalizado para verificación
-  const { verifyCode, isLoading: isVerifying, error: verifyError } = useCodeVerification();
+  const { isLoading: isVerifying, error: verifyError } = useCodeVerification();
 
-  const handleVerification = async (code: string) => {
+  const handleVerification = useCallback(async (code: string) => {
     setCodigoBoleta(code);
     
     try {
@@ -50,10 +52,21 @@ export default function DescargarBoletaPage() {
       setTimeout(() => {
         generatePDF();
       }, 500);
-    } catch (error: any) {
-      throw error;
+    } catch (error: unknown) {
+      let errorMessage = 'Error al verificar el código';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      throw new Error(errorMessage);
     }
-  };
+  }, []);
+
+  // Auto-verificar si hay código en la URL
+  useEffect(() => {
+    if (codigoFromUrl && !isVerified) {
+      handleVerification(codigoFromUrl);
+    }
+  }, [codigoFromUrl, isVerified, handleVerification]);
 
   const generatePDF = async () => {
     if (!componentRef.current) return;
@@ -97,29 +110,25 @@ export default function DescargarBoletaPage() {
     { label: 'Inscripción', href: '/registration' },
     { label: 'Descargar Boleta' }
   ];
-
   return (
-    <PageContainer maxWidth="lg">
+    <PageContainer maxWidth="6xl" variant="wide">
       <PageHeader
         title="Descargar Boleta de Pago"
         subtitle="Ingrese su código de inscripción para descargar la boleta de pago"
-        breadcrumbs={breadcrumbs}
-        actions={
+        breadcrumbs={breadcrumbs}        actions={
           <Button 
             variant="secondary" 
-            onClick={() => navigate('/registration')}
+            onClick={() => navigate('/gestionar-inscripciones')}
           >
-            Volver a Inscripción
+            Volver a Gestión
           </Button>
         }
-      />
-
-      {!isVerified ? (
+      />      {!isVerified ? (
         // Verificación de código
-        <div className="space-y-6">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h3 className="font-medium text-blue-900 mb-2">Instrucciones</h3>
-            <ol className="text-sm text-blue-800 list-decimal list-inside space-y-1">
+        <div className="max-w-2xl mx-auto space-y-6">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+            <h3 className="font-semibold text-blue-900 mb-3 text-lg">Instrucciones</h3>
+            <ol className="text-blue-800 list-decimal list-inside space-y-2">
               <li>Ingrese su código de inscripción</li>
               <li>La boleta se descargará automáticamente una vez verificado</li>
               <li>Presente esta boleta en las cajas para realizar el pago</li>
@@ -155,14 +164,13 @@ export default function DescargarBoletaPage() {
               encargado={encargado}
               codigoBoleta={codigoBoleta}
             />
-          </div>
-
-          {/* Acciones */}
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          </div>          {/* Acciones */}
+          <div className="flex flex-col sm:flex-row gap-3 justify-center max-w-4xl mx-auto">
             <Button
               onClick={generatePDF}
               loading={isGeneratingPDF}
               disabled={isGeneratingPDF}
+              className="flex-1 sm:flex-none"
             >
               <Download className="w-4 h-4 mr-2" />
               Descargar PDF
@@ -172,27 +180,38 @@ export default function DescargarBoletaPage() {
               variant="secondary"
               onClick={handleStartOver}
               disabled={isGeneratingPDF}
+              className="flex-1 sm:flex-none"
             >
               Descargar Otra Boleta
+            </Button>
+              <Button
+              variant="secondary"
+              onClick={() => navigate('/complete-registration')}
+              className="flex-1 sm:flex-none"
+            >
+              Completar Inscripción
             </Button>
             
             <Button
               variant="secondary"
-              onClick={() => navigate('/complete-registration')}
+              onClick={() => navigate('/gestionar-inscripciones')}
+              className="flex-1 sm:flex-none"
             >
-              Completar Inscripción
+              Volver a Gestión
             </Button>
-          </div>
-
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <h3 className="font-medium text-yellow-800 mb-2">Instrucciones de Pago</h3>
-            <ol className="text-sm text-yellow-700 list-decimal list-inside space-y-1">
-              <li>Presente esta boleta en las cajas de la facultad</li>
-              <li>Realice el pago del monto total indicado</li>
-              <li>Conserve el comprobante que le entregarán</li>
-              <li>Regrese a "Completar Inscripción" e introduzca su código</li>
-              <li>Suba el comprobante de pago para finalizar la inscripción</li>
-            </ol>
+          </div>          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 max-w-4xl mx-auto">
+            <h3 className="font-semibold text-yellow-800 mb-3 text-lg">Instrucciones de Pago</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <ol className="text-yellow-700 list-decimal list-inside space-y-2">
+                <li>Presente esta boleta en las cajas de la facultad</li>
+                <li>Realice el pago del monto total indicado</li>
+                <li>Conserve el comprobante que le entregarán</li>
+              </ol>
+              <ol className="text-yellow-700 list-decimal list-inside space-y-2" start={4}>
+                <li>Regrese a "Completar Inscripción" e introduzca su código</li>
+                <li>Suba el comprobante de pago para finalizar la inscripción</li>
+              </ol>
+            </div>
           </div>
         </div>
       )}

@@ -75,10 +75,10 @@ export default function Home() {
             Iniciar Inscripción →
           </button>
           <button 
-            className="bg-white text-blue-600 px-6 py-3 rounded-md font-medium hover:bg-blue-100 transition ml-4"
-            onClick={() => navigate('/estadoInscripcion')}
+            className="bg-green-600 text-white px-6 py-3 rounded-md font-medium hover:bg-green-700 transition ml-4"
+            onClick={() => navigate('/gestionar-inscripciones')}
           >
-            Ver estado de inscripción
+            Gestionar Inscripciones
           </button>
         </div>
       </div>
@@ -104,8 +104,71 @@ export default function Home() {
                 </div>
               ))
             ) : (
-              <p className="col-span-full text-center text-gray-500">Cargando áreas...</p>
-            )}
+              <p className="col-span-full text-center text-gray-500">Cargando áreas...</p>            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Gestión de Inscripciones */}
+      <section className="py-16 bg-blue-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4">¿Ya te inscribiste?</h2>
+            <p className="text-gray-600">Gestiona tu proceso de inscripción y pago de manera fácil</p>
+          </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="bg-white p-8 rounded-lg shadow-lg text-center hover:shadow-xl transition">
+              <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold mb-3">Descargar Boleta</h3>
+              <p className="text-gray-600 mb-6 min-h-[3rem]">
+                Descarga tu boleta de pago para realizar el pago en cajas de la facultad
+              </p>              <button
+                onClick={() => navigate('/download-boleta')}
+                className="w-full bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition font-medium"
+              >
+                Descargar Boleta
+              </button>
+            </div>
+
+            <div className="bg-white p-8 rounded-lg shadow-lg text-center hover:shadow-xl transition">
+              <div className="w-20 h-20 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold mb-3">Subir Comprobante</h3>
+              <p className="text-gray-600 mb-6 min-h-[3rem]">
+                Sube tu comprobante de pago para completar el proceso de inscripción
+              </p>
+              <button
+                onClick={() => navigate('/complete-registration')}
+                className="w-full bg-green-600 text-white px-6 py-3 rounded-md hover:bg-green-700 transition font-medium"
+              >
+                Subir Comprobante
+              </button>
+            </div>
+
+            <div className="bg-white p-8 rounded-lg shadow-lg text-center hover:shadow-xl transition md:col-span-2 lg:col-span-1">
+              <div className="w-20 h-20 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold mb-3">Consultar Estado</h3>
+              <p className="text-gray-600 mb-6 min-h-[3rem]">
+                Consulta el estado actual de tu inscripción y realiza todas las gestiones
+              </p>
+              <button
+                onClick={() => navigate('/gestionar-inscripciones')}
+                className="w-full bg-purple-600 text-white px-6 py-3 rounded-md hover:bg-purple-700 transition font-medium"
+              >
+                Gestionar Todo
+              </button>
+            </div>
           </div>
         </div>
       </section>

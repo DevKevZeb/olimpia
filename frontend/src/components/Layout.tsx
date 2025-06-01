@@ -25,12 +25,17 @@ export default function Layout({ children }: LayoutProps) {
                 className="text-gray-700 hover:text-blue-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-200 hover:bg-blue-50"
               >
                 Inicio
-              </Link>
-              <Link 
+              </Link>              <Link 
                 to="/inscripcion" 
                 className="text-gray-700 hover:text-blue-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-200 hover:bg-blue-50"
               >
                 Inscripción
+              </Link>
+              <Link 
+                to="/gestionar-inscripciones" 
+                className="text-gray-700 hover:text-blue-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-200 hover:bg-blue-50"
+              >
+                Gestionar Inscripciones
               </Link>
               <Link 
                 to="/registroexcel" 

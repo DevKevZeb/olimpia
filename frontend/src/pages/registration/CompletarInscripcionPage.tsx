@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PageContainer from '../../components/layout/PageContainer';
 import PageHeader from '../../components/layout/PageHeader';
@@ -31,21 +31,30 @@ interface OrdenInfo {
 
 export default function CompletarInscripcionPage() {
   const navigate = useNavigate();
-  const [isVerified, setIsVerified] = useState(false);
+  
+  // Obtener código de URL params si existe
+  const searchParams = new URLSearchParams(window.location.search);
+  const codigoFromUrl = searchParams.get('codigo') || '';
+    const [isVerified, setIsVerified] = useState(false);
   const [ordenInfo, setOrdenInfo] = useState<OrdenInfo | null>(null);
   const [uploadComplete, setUploadComplete] = useState(false);
-  const [verificationCode, setVerificationCode] = useState('');
 
   // Hook para verificación de código
   const { verifyCode, isLoading: isVerifying, error: verifyError } = useCodeVerification();
 
+  // Crear un wrapper para la función de upload que convierte File a FormData
+  const uploadWrapper = useCallback(async (file: File) => {
+    const formData = new FormData();
+    formData.append('pdf_comprobante', file);
+    formData.append('codigo_orden', codigoFromUrl || '');
+    return subirComprobantePago(formData);
+  }, [codigoFromUrl]);
+
   // Hook para subida de archivos
-  const { uploadFile, isUploading, error: uploadError } = useFileUpload(subirComprobantePago);
+  const { uploadFile, isUploading, error: uploadError } = useFileUpload(uploadWrapper);
 
   // Función personalizada para verificar código con validaciones específicas
-  const handleVerification = async (code: string) => {
-    setVerificationCode(code);
-    
+  const handleVerification = useCallback(async (code: string) => {
     try {
       const response = await verifyCode(code);
       
@@ -71,58 +80,59 @@ export default function CompletarInscripcionPage() {
       
       setOrdenInfo(response);
       setIsVerified(true);
-    } catch (error: any) {
-      throw error;
+    } catch (error: unknown) {
+      let errorMessage = 'Error al verificar el código';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      throw new Error(errorMessage);
     }
-  };
+  }, [verifyCode]);
 
+  // Auto-verificar si hay código en la URL
+  useEffect(() => {
+    if (codigoFromUrl && !isVerified) {
+      handleVerification(codigoFromUrl);
+    }
+  }, [codigoFromUrl, isVerified, handleVerification]);
   const handleFileUpload = async (file: File) => {
     if (!ordenInfo) {
       throw new Error('No hay información de la orden para proceder');
     }
 
-    try {
-      await uploadFile(file);
-      setUploadComplete(true);
-    } catch (error) {
-      throw error;
-    }
+    await uploadFile(file);
+    setUploadComplete(true);
   };
 
   const handleStartOver = () => {
     setIsVerified(false);
     setOrdenInfo(null);
     setUploadComplete(false);
-    setVerificationCode('');
   };
 
   const breadcrumbs = [
     { label: 'Inscripción', href: '/registration' },
     { label: 'Completar Inscripción' }
   ];
-
   return (
-    <PageContainer maxWidth="md">
+    <PageContainer maxWidth="4xl" variant="wide">
       <PageHeader
         title="Completar Inscripción"
         subtitle="Suba su comprobante de pago para finalizar el proceso de inscripción"
-        breadcrumbs={breadcrumbs}
-        actions={
+        breadcrumbs={breadcrumbs}        actions={
           <Button 
             variant="secondary" 
-            onClick={() => navigate('/registration')}
+            onClick={() => navigate('/gestionar-inscripciones')}
           >
-            Volver a Inscripción
+            Volver a Gestión
           </Button>
         }
-      />
-
-      {!isVerified ? (
+      />      {!isVerified ? (
         // Paso 1: Verificación de código
-        <div className="space-y-6">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h3 className="font-medium text-blue-900 mb-2">Instrucciones</h3>
-            <ol className="text-sm text-blue-800 list-decimal list-inside space-y-1">
+        <div className="max-w-2xl mx-auto space-y-6">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+            <h3 className="font-semibold text-blue-900 mb-3 text-lg">Instrucciones</h3>
+            <ol className="text-blue-800 list-decimal list-inside space-y-2">
               <li>Ingrese el código de inscripción que recibió al completar su pre-inscripción</li>
               <li>Una vez verificado, podrá subir su comprobante de pago</li>
               <li>Solo se aceptan archivos PDF de máximo 10MB</li>
@@ -137,42 +147,47 @@ export default function CompletarInscripcionPage() {
             buttonText="Verificar Código"
             helperText="Ingrese el código que recibió al completar su pre-inscripción"
           />
-        </div>
-      ) : !uploadComplete ? (
+        </div>      ) : !uploadComplete ? (
         // Paso 2: Información de orden y subida de archivo
-        <div className="space-y-6">
+        <div className="max-w-4xl mx-auto space-y-6">
           {/* Información de la orden */}
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <h3 className="font-medium text-green-900 mb-3">✓ Código verificado correctamente</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="font-medium text-green-800">Código:</span> {ordenInfo?.orden.codigo_unico}
+          <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+            <h3 className="font-semibold text-green-900 mb-4 text-lg">✓ Código verificado correctamente</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-white rounded-lg p-4">
+                <span className="text-sm font-medium text-green-700">Código:</span>
+                <p className="text-lg font-semibold text-green-900">{ordenInfo?.orden.codigo_unico}</p>
               </div>
-              <div>
-                <span className="font-medium text-green-800">Monto:</span> {ordenInfo?.orden.monto_total} Bs.
+              <div className="bg-white rounded-lg p-4">
+                <span className="text-sm font-medium text-green-700">Monto:</span>
+                <p className="text-lg font-semibold text-green-900">{ordenInfo?.orden.monto_total} Bs.</p>
               </div>
               {ordenInfo?.estudiante && (
-                <div>
-                  <span className="font-medium text-green-800">Estudiante:</span> {ordenInfo.estudiante.nombre_completo}
+                <div className="bg-white rounded-lg p-4">
+                  <span className="text-sm font-medium text-green-700">Estudiante:</span>
+                  <p className="text-sm font-semibold text-green-900">{ordenInfo.estudiante.nombre_completo}</p>
                 </div>
               )}
               {ordenInfo?.estudiantes_count && (
-                <div>
-                  <span className="font-medium text-green-800">Estudiantes:</span> {ordenInfo.estudiantes_count}
+                <div className="bg-white rounded-lg p-4">
+                  <span className="text-sm font-medium text-green-700">Estudiantes:</span>
+                  <p className="text-lg font-semibold text-green-900">{ordenInfo.estudiantes_count}</p>
                 </div>
               )}
             </div>
           </div>
 
-          <FileUploadForm
-            onUpload={handleFileUpload}
-            loading={isUploading}
-            error={uploadError}
-            title="Subir Comprobante de Pago"
-            description="Seleccione el comprobante de pago en formato PDF"
-          />
+          <div className="max-w-2xl mx-auto">
+            <FileUploadForm
+              onUpload={handleFileUpload}
+              loading={isUploading}
+              error={uploadError}
+              title="Subir Comprobante de Pago"
+              description="Seleccione el comprobante de pago en formato PDF"
+            />
+          </div>
 
-          <div className="flex justify-between">
+          <div className="flex justify-center">
             <Button
               variant="secondary"
               onClick={handleStartOver}
@@ -181,41 +196,50 @@ export default function CompletarInscripcionPage() {
               Verificar Otro Código
             </Button>
           </div>
-        </div>
-      ) : (
+        </div>      ) : (
         // Paso 3: Confirmación de éxito
-        <div className="text-center space-y-6">
-          <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-            <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="max-w-3xl mx-auto text-center space-y-8">
+          <div className="mx-auto w-20 h-20 bg-green-100 rounded-full flex items-center justify-center">
+            <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
 
-          <div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+          <div className="space-y-4">
+            <h3 className="text-2xl font-bold text-gray-900">
               ¡Comprobante subido exitosamente!
             </h3>
-            <p className="text-gray-600">
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
               Su comprobante de pago ha sido recibido y está siendo procesado. 
               Recibirá una confirmación por correo electrónico una vez que sea verificado.
             </p>
           </div>
 
-          <Alert
-            type="info"
-            title="¿Qué sigue?"
-            message="El proceso de verificación puede tomar hasta 24 horas hábiles. Le notificaremos por correo cuando su pago haya sido confirmado."
-          />
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 max-w-2xl mx-auto">
+            <Alert
+              type="info"
+              title="¿Qué sigue?"
+              message="El proceso de verificación puede tomar hasta 24 horas hábiles. Le notificaremos por correo cuando su pago haya sido confirmado."
+            />
+          </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-lg mx-auto">
+            <Button
+              onClick={() => navigate('/gestionar-inscripciones')}
+              className="flex-1 sm:flex-none"
+            >
+              Volver a Gestión
+            </Button>
             <Button
               onClick={() => navigate('/registration')}
+              className="flex-1 sm:flex-none"
             >
               Nueva Inscripción
             </Button>
             <Button
               variant="secondary"
               onClick={handleStartOver}
+              className="flex-1 sm:flex-none"
             >
               Subir Otro Comprobante
             </Button>
