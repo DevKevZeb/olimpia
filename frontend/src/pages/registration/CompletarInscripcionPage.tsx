@@ -115,7 +115,7 @@ export default function CompletarInscripcionPage() {
     { label: 'Completar Inscripción' }
   ];
   return (
-    <PageContainer maxWidth="4xl" variant="wide">
+    <PageContainer maxWidth="6xl" variant="wide">
       <PageHeader
         title="Completar Inscripción"
         subtitle="Suba su comprobante de pago para finalizar el proceso de inscripción"
