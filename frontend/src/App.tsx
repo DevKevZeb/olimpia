@@ -7,10 +7,8 @@ import DescargarBoletaPage from './pages/registration/DescargarBoletaPage';
 import EstadoInscripcionPage from './pages/registration/EstadoInscripcionPage';
 import GestionarInscripciones from './pages/GestionarInscripciones';
 import AdminPanel from './pages/AdminPanel';
-import CamposObligatorios from './pages/CamposObligatorios';
 import RegistroExcel from './pages/RegistroExcel';
 import Reportes from './pages/ReportesConvocatoria';
-import AgregarDocumento from './pages/AgregarDocumento';
 import LlenarExcel from './pages/LlenarExcel';
 
 function App() {
@@ -21,20 +19,18 @@ function App() {
         v7_relativeSplatPath: true
       }}
     >
-      <Layout>
-        <Routes>
+      <Layout>        <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/registration" element={<RegistrationPage />} />
-          <Route path="/inscripcion" element={<RegistrationPage />} />          <Route path="/complete-registration" element={<CompletarInscripcionPage />} />
+          <Route path="/inscripcion" element={<RegistrationPage />} />
+          <Route path="/complete-registration" element={<CompletarInscripcionPage />} />
           <Route path="/download-payment-slip" element={<DescargarBoletaPage />} />
           <Route path="/download-boleta" element={<DescargarBoletaPage />} />
           <Route path="/gestionar-inscripciones" element={<GestionarInscripciones />} />
           <Route path="/admin/*" element={<AdminPanel />} />
-          <Route path="/camposobligatorios" element={<CamposObligatorios />} />
           <Route path="/registroexcel" element={<RegistroExcel />} />
           <Route path="/reportes" element={<Reportes />} />
           <Route path="/estado-inscripcion" element={<EstadoInscripcionPage />} />
-          <Route path="/agregarDoc" element={<AgregarDocumento />} />
           <Route path="/llenarexcel" element={<LlenarExcel />} />
           <Route path="*" element={<Navigate to="/admin/convocatorias" replace />} />
         </Routes>

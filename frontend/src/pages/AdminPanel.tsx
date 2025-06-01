@@ -1,4 +1,3 @@
-import React from 'react';
 import { Routes, Route, NavLink, Navigate } from 'react-router-dom';
 import ConvocatoriasPage from './ConvocatoriasPage';
 import AsignarAreasPage from './AsignarAreasPage';
@@ -50,19 +49,31 @@ const navItems = [
 ];
 
 export default function AdminPanel() {
+  // Callback handlers for components that require them
+  const handleNivelCreado = () => {
+    // This callback is triggered when a new nivel is successfully created
+    // You could add additional logic here like refreshing data if needed
+    console.log('Nivel creado exitosamente');
+  };
+
+  const handleCostoAsignado = () => {
+    // This callback is triggered when costs are successfully assigned
+    // You could add additional logic here like refreshing data if needed
+    console.log('Costo asignado exitosamente');
+  };
+
   return (
     <div className="flex min-h-screen bg-gray-50">
       {/* Sidebar */}
       <aside className="w-64 bg-white border-r shadow-sm hidden md:flex flex-col">
         <div className="h-20 flex items-center justify-center border-b">
           <span className="text-2xl font-bold text-blue-700">Administrador</span>
-        </div>
-        <nav className="flex-1 py-6">
+        </div>        <nav className="flex-1 py-6">
           <ul className="space-y-2">
             {navItems.map(item => (
               <li key={item.path}>
                 <NavLink
-                  to={item.path}
+                  to={`/admin/${item.path}`}
                   end={item.path === ''}
                   className={({ isActive }) =>
                     `flex items-center px-6 py-3 rounded-lg transition font-medium gap-3 ${
@@ -79,20 +90,19 @@ export default function AdminPanel() {
         </nav>
       </aside>
       {/* Main content */}
-      <main className="flex-1 p-6 md:p-12">
-        <Routes>
+      <main className="flex-1 p-6 md:p-12">        <Routes>
           <Route path="" element={<DashboardHome />} />
           <Route path="convocatorias" element={<ConvocatoriasPage />} />
           <Route path="ampliar-fecha" element={<AmpliarFecha />} />
           <Route path="areas" element={<AsignarAreasPage />} />
           <Route path="niveles" element={<ConfigurarNivelesPage />} />
-          <Route path="crear-nivel" element={<CrearNivelPage />} />
+          <Route path="crear-nivel" element={<CrearNivelPage onNivelCreado={handleNivelCreado} />} />
           <Route path="crear-area" element={<CrearAreas />} />
-          <Route path="costos" element={<AsignarCostoGeneralPage />} />
-          <Route path="/camposobligatorios" element={<CamposObligatorios />} />
+          <Route path="costos" element={<AsignarCostoGeneralPage onCostoAsignado={handleCostoAsignado} />} />
+          <Route path="camposobligatorios" element={<CamposObligatorios />} />
           <Route path="reportes/*" element={<ReportesPage />} />
           <Route path="*" element={<Navigate to="" replace />} />
-          <Route path="/subir-anexos" element={<AgregarDocumento />} />
+          <Route path="subir-anexos" element={<AgregarDocumento />} />
         </Routes>
       </main>
     </div>
