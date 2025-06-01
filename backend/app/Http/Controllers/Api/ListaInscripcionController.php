@@ -15,10 +15,9 @@ class ListaInscripcionController extends ApiController
 {
     /**
      * Display a listing of the resource.
-     */
-    public function index(Request $request): JsonResponse
+     */    public function index(Request $request): JsonResponse
     {
-        $query = ListaInscripcion::with('unidadEducativa');
+        $query = ListaInscripcion::query();
 
         // Filter by unidad_educativa if provided
         if ($request->has('unidad_educativa_id')) {
@@ -99,10 +98,8 @@ class ListaInscripcionController extends ApiController
                 ]);
             }
 
-            DB::commit();
-
-            return $this->successResponse(
-                new ListaInscripcionResource($lista->load(['unidadEducativa', 'detalles.estudiante', 'detalles.convocatoriaNivel.convocatoriaArea', 'detalles.convocatoriaNivel.nivel'])),
+            DB::commit();            return $this->successResponse(
+                new ListaInscripcionResource($lista->load(['detalles.estudiante', 'detalles.convocatoriaNivel.convocatoriaArea', 'detalles.convocatoriaNivel.nivel'])),
                 'Lista de inscripción creada correctamente',
                 201
             );
@@ -114,10 +111,9 @@ class ListaInscripcionController extends ApiController
 
     /**
      * Display the specified resource.
-     */
-    public function show(int $id): JsonResponse
+     */    public function show(int $id): JsonResponse
     {
-        $lista = ListaInscripcion::with(['unidadEducativa', 'detalles.estudiante', 'detalles.convocatoriaNivel.convocatoriaArea.area', 'detalles.convocatoriaNivel.nivel'])
+        $lista = ListaInscripcion::with(['detalles.estudiante', 'detalles.convocatoriaNivel.convocatoriaArea.area', 'detalles.convocatoriaNivel.nivel'])
             ->find($id);
 
         if (!$lista) {
@@ -149,10 +145,8 @@ class ListaInscripcionController extends ApiController
             return $this->errorResponse($validator->errors()->first(), 422);
         }
 
-        $lista->update($request->all());
-
-        return $this->successResponse(
-            new ListaInscripcionResource($lista->fresh(['unidadEducativa', 'detalles.estudiante'])),
+        $lista->update($request->all());        return $this->successResponse(
+            new ListaInscripcionResource($lista->fresh(['detalles.estudiante'])),
             'Lista de inscripción actualizada correctamente'
         );
     }

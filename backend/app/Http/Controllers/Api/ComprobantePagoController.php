@@ -283,10 +283,9 @@ class ComprobantePagoController extends ApiController
 
         if ($validator->fails()) {
             return $this->errorResponse($validator->errors()->first(), 422);
-        }
-          try {
+        }          try {
             $orden = OrdenPago::where('codigo_unico', $request->codigo_orden)
-                ->with(['lista.unidadEducativa'])
+                ->with(['lista']) // Removido .unidadEducativa del eager loading
                 ->first();
                 
             if (!$orden) {
@@ -321,10 +320,10 @@ class ComprobantePagoController extends ApiController
                         'nombre_completo' => $primerDetalle->estudiante->nombres . ' ' . $primerDetalle->estudiante->apellidos,
                         'ci' => $primerDetalle->estudiante->ci,
                     ];
-                }
-            } elseif ($orden->tipo_origen === 'lista' && $orden->lista) {
-                if ($orden->lista->unidadEducativa) {
-                    $response['unidad_educativa'] = $orden->lista->unidadEducativa->nombre;
+                }            } elseif ($orden->tipo_origen === 'lista' && $orden->lista) {
+                $unidadEducativa = $orden->lista->unidadEducativa(); // Acceso directo al método
+                if ($unidadEducativa) {
+                    $response['unidad_educativa'] = $unidadEducativa->nombre;
                 }
                 
                 // Count students safely
@@ -345,10 +344,10 @@ class ComprobantePagoController extends ApiController
 
     /**
      * Display the specified resource.
-     */
-    public function show(int $id): JsonResponse
-    {        // Updated to remove obsolete inscripcion relationship since Inscripcion model was deleted
-        $comprobante = ComprobantePago::with(['orden.lista.unidadEducativa'])
+     */    public function show(int $id): JsonResponse
+    {
+        // Updated to remove obsolete inscripcion relationship since Inscripcion model was deleted
+        $comprobante = ComprobantePago::with(['orden.lista']) // Removido .unidadEducativa del eager loading
             ->find($id);
         
         if (!$comprobante) {

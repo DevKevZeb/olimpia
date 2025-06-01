@@ -18,9 +18,8 @@ class ListaInscripcionResource extends JsonResource
             'id' => $this->id_lista,
             'codigo_lista' => $this->codigo_lista,
             'id_unidad_educativa' => $this->id_unidad_educativa,
-            'fecha_creacion' => $this->fecha_creacion,
-            'unidad_educativa' => $this->whenLoaded('unidadEducativa', function() {
-                return new UnidadEducativaResource($this->unidadEducativa);
+            'fecha_creacion' => $this->fecha_creacion,            'unidad_educativa' => $this->when($this->unidadEducativa(), function() {
+                return new UnidadEducativaResource($this->unidadEducativa());
             }),
             'detalles' => $this->whenLoaded('detalles', function() {
                 return DetalleListaInscripcionResource::collection($this->detalles);

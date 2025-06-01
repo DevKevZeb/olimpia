@@ -19,7 +19,7 @@ class OrdenPagoController extends ApiController
      */    public function index(Request $request): JsonResponse
     {
         // Updated to remove obsolete inscripcion relationship since Inscripcion model was deleted
-        $query = OrdenPago::with(['lista.unidadEducativa']);
+        $query = OrdenPago::with(['lista']);
         
         // Filter by estado if provided
         if ($request->has('estado')) {
