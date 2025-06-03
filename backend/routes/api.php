@@ -158,6 +158,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/admin/convocatorias/{id}/estado', [AdminConvocatoriaController::class, 'getEstadoConvocatoria']);
     Route::put('/admin/convocatorias/{id}/estado', [AdminConvocatoriaController::class, 'transicionarEstado']);
     Route::post('/admin/convocatorias/cerrar-expiradas', [AdminConvocatoriaController::class, 'cerrarConvocatoriasExpiradas']);
+    Route::get('/admin/convocatorias/{id}/niveles/{area}', [AdminConvocatoriaController::class, 'getNivelesPorConvocatoria']);
 
     // Rutas para el controlador de RequisitoConvocatoria
     Route::get('convocatorias/{convocatoria}/requisitos', [RequisitoConvocatoriaController::class, 'index'])->name('convocatorias.requisitos.index');

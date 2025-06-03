@@ -163,9 +163,12 @@ export const getAreasPorConvocatoria = async (idConvocatoria) => {
  * Obtiene los niveles asociados a las áreas de una convocatoria específica
  * @param idConvocatoria ID de la convocatoria
  */
-export const getNivelesPorConvocatoria = async (idConvocatoria) => {
+export const getNivelesPorConvocatoria = async (idConvocatoria, idAreaConvocatoria = null) => {
   try {
-    const response = await axiosInstance.get(`/v1/admin/convocatorias/${idConvocatoria}/niveles`);
+    const areas = idAreaConvocatoria ? `/${idAreaConvocatoria}` : '' ;   
+
+    console.log("entonces ", `/v1/admin/convocatorias/${idConvocatoria}/niveles${areas}`); 
+    const response = await axiosInstance.get(`/v1/admin/convocatorias/${idConvocatoria}/niveles${areas}`);
     return response.data?.data || response.data;
   } catch (error) {
     console.error(`Error al obtener niveles para la convocatoria ${idConvocatoria}:`, error);
