@@ -1,12 +1,11 @@
 // filepath: c:\xampp\htdocs\oh-sansi\frontend\src\hooks\useMultipleStudents.ts
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { EstudianteFormData, AreaSeleccionada } from '../types/index';
 import { 
   createNewEstudiante,
   updateActiveStudent as updateActiveStudentUtil,
   removeStudent as removeStudentUtil,
   isCurrentStudentValid as isCurrentStudentValidUtil,
-  calculateStudentCost,
   calculateTotalCost
 } from '../../utils/registration/formUtils';
 
@@ -43,8 +42,7 @@ export const useMultipleStudents = ({
     const costoGeneral = calculateTotalCost(estudiantes);
     setCostoTotalGeneral(costoGeneral);
   }, [estudiantes]);
-
-  const updateActiveStudent = (newFormData: EstudianteFormData, newSelectedAreas: AreaSeleccionada[]) => {
+  const updateActiveStudent = useCallback((newFormData: EstudianteFormData, newSelectedAreas: AreaSeleccionada[]) => {
     updateActiveStudentUtil(
       estudiantes,
       activeStudentIndex,
@@ -52,21 +50,20 @@ export const useMultipleStudents = ({
       newFormData,
       newSelectedAreas
     );
-  };
-
-  const removeStudent = (index: number) => {
+  }, [estudiantes, activeStudentIndex]);
+  const removeStudent = useCallback((index: number) => {
     removeStudentUtil(index, estudiantes, setEstudiantes, activeStudentIndex, setActiveStudentIndex);
-  };
+  }, [estudiantes, activeStudentIndex]);
 
-  const isCurrentStudentValid = () => {
+  const isCurrentStudentValid = useCallback(() => {
     return isCurrentStudentValidUtil(estudiantes, activeStudentIndex);
-  };
+  }, [estudiantes, activeStudentIndex]);
 
-  const initializeFirstStudent = () => {
+  const initializeFirstStudent = useCallback(() => {
     const newEstudiante = createNewEstudiante(convocatoria);
     setEstudiantes([newEstudiante]);
     setActiveStudentIndex(0);
-  };
+  }, [convocatoria]);
 
   const handleAddNewStudent = (
     setStep: React.Dispatch<React.SetStateAction<number>>,

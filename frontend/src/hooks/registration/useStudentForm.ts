@@ -1,5 +1,5 @@
 // filepath: c:\xampp\htdocs\oh-sansi\frontend\src\hooks\useStudentForm.ts
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { 
   EstudianteFormData, 
   FormErrors, 
@@ -51,18 +51,24 @@ export const useStudentForm = ({
     console.log('📊 useStudentForm: formData cambió:');
     console.log('  - id_grado:', formData.id_grado, '(tipo:', typeof formData.id_grado, ')');
     console.log('  - id_convocatoria:', formData.id_convocatoria, '(tipo:', typeof formData.id_convocatoria, ')');
-  }, [formData.id_grado, formData.id_convocatoria]);// Sync formData when initialFormData changes
+  }, [formData.id_grado, formData.id_convocatoria]);  // Sync formData when initialFormData changes (but avoid unnecessary re-syncs)
+  const prevInitialFormDataRef = useRef(initialFormData);
   useEffect(() => {
-    console.log('🔧 useStudentForm: Sincronizando formData con initialFormData:');
-    console.log('  - initialFormData.id_grado:', initialFormData.id_grado);
-    console.log('  - initialFormData.id_convocatoria:', initialFormData.id_convocatoria);
-    setFormData(initialFormData);
-    
-    // Update requirements when form data is initialized
-    if (updateRequisitos && Object.keys(initialFormData).length > 0) {
-      updateRequisitos(initialFormData);
+    // Only sync if the initialFormData actually changed (not just reference)
+    if (JSON.stringify(prevInitialFormDataRef.current) !== JSON.stringify(initialFormData)) {
+      console.log('🔧 useStudentForm: Sincronizando formData con initialFormData:');
+      console.log('  - initialFormData.id_grado:', initialFormData.id_grado);
+      console.log('  - initialFormData.id_convocatoria:', initialFormData.id_convocatoria);
+      setFormData(initialFormData);
+      
+      // Update requirements when form data is initialized
+      if (updateRequisitos && Object.keys(initialFormData).length > 0) {
+        updateRequisitos(initialFormData);
+      }
+      
+      prevInitialFormDataRef.current = initialFormData;
     }
-  }, [initialFormData, updateRequisitos]);  const handleFormChange = (field: string, value: string) => {
+  }, [initialFormData, updateRequisitos]);const handleFormChange = (field: string, value: string) => {
     // Debug: Log field changes, especially for id_grado
     if (field === 'id_grado') {
       console.log('🎯 useStudentForm: handleFormChange para id_grado:');

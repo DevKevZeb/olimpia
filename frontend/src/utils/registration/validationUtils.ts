@@ -61,10 +61,16 @@ export const validateField = (name: string, value: any) => {
       } else if (value && !/^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]*$/.test(value)) {
         error = 'No se permiten números ni caracteres especiales.';
       }
-      break;
-    case 'id_grado':
+      break;    case 'id_grado':
       if (!value) {
         error = 'Debe seleccionar un grado.';
+      }
+      break;
+    case 'genero':
+      if (!value) {
+        error = 'Debe seleccionar un género.';
+      } else if (!['Masculino', 'Femenino'].includes(value)) {
+        error = 'Debe seleccionar una opción válida.';
       }
       break;
     default:
@@ -111,10 +117,15 @@ export const validateStep1 = (
     currentErrors.email = emailError;
     isValid = false;
   }
-  
-  const gradoError = validateField('id_grado', formData.id_grado);
+    const gradoError = validateField('id_grado', formData.id_grado);
   if (gradoError) {
     currentErrors.id_grado = gradoError;
+    isValid = false;
+  }
+  
+  const generoError = validateField('genero', formData.genero);
+  if (generoError) {
+    currentErrors.genero = generoError;
     isValid = false;
   }
   

@@ -163,9 +163,7 @@ const StudentForm: React.FC<StudentFormProps> = ({
             onChange={(e) => onFormChange('email', e.target.value)}
             required
           />
-        </div>
-
-        {/* Genero */}
+        </div>        {/* Genero */}
         <div>
             <label htmlFor="genero" className="block text-sm font-medium text-gray-700 mb-1">
               Genero<span className="text-red-500">*</span>
@@ -181,6 +179,7 @@ const StudentForm: React.FC<StudentFormProps> = ({
               <option value="Masculino">Masculino</option>
               <option value="Femenino">Femenino</option>
             </select>
+            {formErrors.genero && <p className="text-red-500 text-xs mt-1">{formErrors.genero}</p>}
           </div>
 
         {/* Teléfono */}
