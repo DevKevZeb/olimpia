@@ -11,9 +11,11 @@ export const validateField = (name: string, value: any) => {
     case 'tutor_legal.nombres':
     case 'tutor_legal.apellidos':
       if (value && value.length > 50) {
-        error = 'El campo debe contener menos de 50 caracteres.';
+        error = value, 'El campo debe contener menos de 50 caracteres.';
       } else if (value && !/^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]*$/.test(value)) {
         error = 'No se permiten números ni caracteres especiales.';
+      } else if (value === ''){
+        error = 'Este campo no debe estar vacio';
       }
       break;
     case 'ci':
@@ -29,6 +31,8 @@ export const validateField = (name: string, value: any) => {
         if (selectedDate >= currentDate) {
           error = 'La fecha debe ser menor a la fecha actual.';
         }
+      } else if (value === ''){
+        error = 'Este campo no debe estar vacio';
       }
       break;
     }
@@ -36,6 +40,8 @@ export const validateField = (name: string, value: any) => {
     case 'tutor_legal.telefono':
       if (value && !/^\d{1,8}$/.test(value)) {
         error = 'Solo se permiten números con un máximo de 8 dígitos.';
+      } else if (value === ''){
+        error = 'Este campo no debe estar vacio';
       }
       break;
     case 'email':
@@ -45,6 +51,8 @@ export const validateField = (name: string, value: any) => {
         if (!emailRegex.test(value)) {
           error = 'El formato del correo electrónico no es válido';
         }
+      } else if (value === ''){
+        error = 'Este campo no debe estar vacio';
       }
       break;
     case 'unidad_educativa.nombre':
@@ -52,14 +60,18 @@ export const validateField = (name: string, value: any) => {
         error = 'Debe contener menos de 50 caracteres.';
       } else if (value && !/^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]*$/.test(value)) {
         error = 'No se permiten números ni caracteres especiales.';
+      } else if (value === ''){
+        error = 'Este campo no debe estar vacio';
       }
       break;
     case 'unidad_educativa.provincia':
     case 'tutor_legal.parentesco':
       if (value && value.length > 50) {
         error = 'Debe contener menos de 50 caracteres.';
-      } else if (value && !/^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]*$/.test(value)) {
+      } else if (value && !/^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s/]*$/.test(value)) {
         error = 'No se permiten números ni caracteres especiales.';
+      } else if (value === ''){
+        error = 'Este campo no debe estar vacio';
       }
       break;
     case 'id_grado':
