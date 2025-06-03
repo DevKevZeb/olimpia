@@ -42,16 +42,12 @@ export default function Layout({ children }: LayoutProps) {
                 className="text-gray-700 hover:text-blue-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-200 hover:bg-blue-50"
               >
                 Inscripción excel
-              </Link>
-              <Link 
-                to="/admin" 
-                className="text-gray-700 hover:text-blue-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-200 hover:bg-blue-50"
+              </Link>              <Link 
+                to="/admin/login" 
+                className="bg-blue-600 text-white px-5 py-2.5 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors duration-200 shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               >
-                Panel Admin
+                Iniciar Sesión
               </Link>
-              <button className="bg-red-600 text-white px-5 py-2.5 rounded-md text-sm font-medium hover:bg-red-700 transition-colors duration-200 shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
-                Cerrar Sesión
-              </button>
             </div>
           </div>
         </div>

@@ -30,6 +30,7 @@ use App\Http\Controllers\Api\EstadoInscripcionController;
 use App\Http\Controllers\Api\DocumentoController;
 
 use App\Http\Controllers\Api\HomeController;
+use App\Http\Controllers\Auth\AdminAuthController;
 
 /*
 |--------------------------------------------------------------------------
@@ -41,6 +42,21 @@ use App\Http\Controllers\Api\HomeController;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
+
+/*
+|--------------------------------------------------------------------------
+| Admin Authentication Routes
+|--------------------------------------------------------------------------
+*/
+Route::prefix('admin')->group(function () {
+    Route::post('/login', [AdminAuthController::class, 'login']);
+    
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/logout', [AdminAuthController::class, 'logout']);
+        Route::get('/profile', [AdminAuthController::class, 'profile']);
+        Route::get('/check-auth', [AdminAuthController::class, 'checkAuth']);
+    });
+});
 
 Route::get('/areas-de-convocatoria', [HomeController::class, 'areasDeConvocatoriaActiva']);
 Route::get('/area/{idArea}/documento', [HomeController::class, 'documentoDeArea']);
