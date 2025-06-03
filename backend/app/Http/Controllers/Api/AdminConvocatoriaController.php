@@ -12,6 +12,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx\Rels;
 
 class AdminConvocatoriaController extends ApiController
 {
@@ -323,7 +324,7 @@ class AdminConvocatoriaController extends ApiController
      * @param int $id ID de la convocatoria
      * @return JsonResponse
      */
-    public function getNivelesPorConvocatoria(int $id): JsonResponse
+        public function getNivelesPorConvocatoria( int $id, int $id_area = null ): JsonResponse
     {
         try {
             // Verificar que la convocatoria exista
@@ -332,7 +333,15 @@ class AdminConvocatoriaController extends ApiController
             // Obtener las áreas de la convocatoria
             $areasConvocatoria = ConvocatoriaArea::where('id_convocatoria', $id)->get();
             $idAreasConvocatoria = $areasConvocatoria->pluck('id_convocatoria_area')->toArray();
-            
+            if($id_area){
+                $areasConvocatoria = ConvocatoriaArea::where([
+                    ['id_convocatoria', '=' ,$id],
+                    ['id_area', '=', $id_area]])
+                ->get();
+            }else{
+                $areasConvocatoria = ConvocatoriaArea::where('id_convocatoria', $id)->get();
+            }
+
             // Obtener los niveles asignados a esas áreas
             $nivelesAsignados = ConvocatoriaNivel::whereIn('id_convocatoria_area', $idAreasConvocatoria)
                 ->with(['nivel', 'convocatoriaArea.area', 'gradoMinimo', 'gradoMaximo'])

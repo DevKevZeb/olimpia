@@ -136,6 +136,7 @@ Route::prefix('v1')->group(function () {
     Route::post('/admin/convocatorias/asociar-niveles-grados', [AdminConvocatoriaController::class, 'asociarNivelesGrados']);
     Route::get('/admin/convocatorias/{id}/areas', [AdminConvocatoriaController::class, 'getAreasPorConvocatoria']);
     Route::get('/admin/convocatorias/{id}/niveles', [AdminConvocatoriaController::class, 'getNivelesPorConvocatoria']);
+    Route::get('/admin/convocatorias/{id}/niveles/{area}', [AdminConvocatoriaController::class, 'getNivelesPorConvocatoria']);
 
     // Rutas para el controlador de RequisitoConvocatoria
     Route::get('convocatorias/{convocatoria}/requisitos', [RequisitoConvocatoriaController::class, 'index'])->name('convocatorias.requisitos.index');
