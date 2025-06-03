@@ -218,12 +218,39 @@ export default function ConvocatoriasPage() {
                       <div className="text-xs text-gray-500">Máx. {convocatoria.max_areas_por_estudiante} áreas</div>
                     </td>                    <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
-                        Del {new Date(convocatoria.fecha_inicio_inscripcion).toLocaleDateString()}
+                        <div className="font-medium text-gray-700 mb-1">Fechas de Inscripción:</div>
+                        <div>Del {new Date(convocatoria.fecha_inicio_inscripcion).toLocaleDateString()}</div>
+                        <div>al {new Date(convocatoria.fecha_fin_inscripcion).toLocaleDateString()}</div>
+                        
+                        {convocatoria.fecha_apertura && (
+                          <div className="mt-2 pt-2 border-t border-gray-200">
+                            <div className="font-medium text-green-700 mb-1">Convocatoria Abierta:</div>
+                            <div className="text-green-600">
+                              {new Date(convocatoria.fecha_apertura).toLocaleDateString()} a las{' '}
+                              {new Date(convocatoria.fecha_apertura).toLocaleTimeString()}
+                            </div>
+                            <div className="text-xs text-green-600 mt-1">
+                              Duración: {(() => {
+                                const now = new Date();
+                                const apertura = new Date(convocatoria.fecha_apertura);
+                                const diffMs = now.getTime() - apertura.getTime();
+                                const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                                const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                                const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                                
+                                if (diffDays > 0) {
+                                  return `${diffDays} día${diffDays > 1 ? 's' : ''}, ${diffHours}h`;
+                                } else if (diffHours > 0) {
+                                  return `${diffHours}h ${diffMinutes}m`;
+                                } else {
+                                  return `${diffMinutes} minutos`;
+                                }
+                              })()}
+                            </div>
+                          </div>
+                        )}
                       </div>
-                      <div className="text-sm text-gray-900">
-                        al {new Date(convocatoria.fecha_fin_inscripcion).toLocaleDateString()}
-                      </div>
-                    </td>                    <td className="px-6 py-4">
+                    </td><td className="px-6 py-4">
                       <EstadoConvocatoria 
                         convocatoriaId={convocatoria.id_convocatoria}
                         onEstadoChanged={() => refetch()}

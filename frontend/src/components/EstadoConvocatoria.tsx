@@ -18,6 +18,7 @@ interface EstadoInfo {
   estado_actual: string;
   puede_abrir: boolean;
   debe_cerrar: boolean;
+  fecha_apertura?: string;
   requisitos: {
     areas_asignadas: boolean;
     niveles_configurados: boolean;
@@ -194,9 +195,7 @@ const EstadoConvocatoria: React.FC<EstadoConvocatoriaProps> = ({
             </div>
           )}
         </div>
-      )}
-
-      {/* Información para convocatoria abierta */}
+      )}      {/* Información para convocatoria abierta */}
       {estadoInfo.estado_actual === 'abierta' && (
         <div className="mb-6">
           <h4 className="text-md font-medium text-gray-800 mb-3">
@@ -210,10 +209,40 @@ const EstadoConvocatoria: React.FC<EstadoConvocatoriaProps> = ({
                 <p className="text-sm font-medium text-green-800 mb-2">
                   ✅ Convocatoria actualmente abierta para inscripciones
                 </p>
-                <p className="text-sm text-green-700">
+                <p className="text-sm text-green-700 mb-3">
                   La convocatoria se cerrará automáticamente cuando pase la fecha fin de inscripciones. 
                   No es necesario realizar ninguna acción manual.
                 </p>
+                
+                {estadoInfo.fecha_apertura && (
+                  <div className="mt-3 p-3 bg-white border border-green-300 rounded-md">
+                    <div className="text-sm">
+                      <div className="font-medium text-green-800 mb-1">📅 Información de Apertura:</div>
+                      <div className="text-green-700">
+                        Abierta el: {new Date(estadoInfo.fecha_apertura).toLocaleDateString()} a las{' '}
+                        {new Date(estadoInfo.fecha_apertura).toLocaleTimeString()}
+                      </div>
+                      <div className="text-green-600 mt-1">
+                        ⏱️ Tiempo transcurrido: {(() => {
+                          const now = new Date();
+                          const apertura = new Date(estadoInfo.fecha_apertura);
+                          const diffMs = now.getTime() - apertura.getTime();
+                          const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                          const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                          const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                          
+                          if (diffDays > 0) {
+                            return `${diffDays} día${diffDays > 1 ? 's' : ''}, ${diffHours} hora${diffHours > 1 ? 's' : ''}`;
+                          } else if (diffHours > 0) {
+                            return `${diffHours} hora${diffHours > 1 ? 's' : ''}, ${diffMinutes} minuto${diffMinutes > 1 ? 's' : ''}`;
+                          } else {
+                            return `${diffMinutes} minuto${diffMinutes > 1 ? 's' : ''}`;
+                          }
+                        })()}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

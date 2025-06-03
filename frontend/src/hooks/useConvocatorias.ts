@@ -18,6 +18,7 @@ interface Convocatoria {
   fecha_fin_inscripcion: string;
   max_areas_por_estudiante: number;
   estado: string;
+  fecha_apertura?: string;
   areas?: AreaConvocatoria[];
 }
 

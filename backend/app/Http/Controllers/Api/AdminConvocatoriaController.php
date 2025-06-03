@@ -437,12 +437,11 @@ class AdminConvocatoriaController extends ApiController
 
         $requisitos = $convocatoria->obtenerRequisitosApertura();
         $puedeAbrir = $convocatoria->puedeAbrirse();
-        $debeCerrar = $convocatoria->debeSerCerrada();
-
-        return $this->successResponse([
+        $debeCerrar = $convocatoria->debeSerCerrada();        return $this->successResponse([
             'estado_actual' => $convocatoria->estado,
             'puede_abrir' => $puedeAbrir,
             'debe_cerrar' => $debeCerrar,
+            'fecha_apertura' => $convocatoria->fecha_apertura,
             'requisitos' => $requisitos,
             'transiciones_validas' => $this->getTransicionesValidas($convocatoria->estado)
         ], 'Estado de convocatoria obtenido correctamente');

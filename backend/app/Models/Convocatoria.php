@@ -10,19 +10,19 @@ class Convocatoria extends Model
     use HasFactory;
 
     protected $primaryKey = 'id_convocatoria';
-    protected $table = 'convocatorias';
-
-    protected $fillable = [
+    protected $table = 'convocatorias';    protected $fillable = [
         'nombre',
         'fecha_inicio_inscripcion',
         'fecha_fin_inscripcion',
         'max_areas_por_estudiante',
-        'estado'
+        'estado',
+        'fecha_apertura'
     ];
 
     protected $casts = [
         'fecha_inicio_inscripcion' => 'date',
         'fecha_fin_inscripcion' => 'date',
+        'fecha_apertura' => 'datetime',
     ];
 
     public function areas()
@@ -160,10 +160,14 @@ class Convocatoria extends Model
                 'message' => 'No se cumplen los requisitos para abrir la convocatoria',
                 'requisitos_faltantes' => $requisitos['requisitos_faltantes']
             ];
-        }
-
-        // Aplicar la transición
+        }        // Aplicar la transición
         $this->estado = $nuevoEstado;
+        
+        // Si se está abriendo la convocatoria, guardar la fecha de apertura
+        if ($nuevoEstado === 'abierta') {
+            $this->fecha_apertura = now();
+        }
+        
         $this->save();
 
         return [
