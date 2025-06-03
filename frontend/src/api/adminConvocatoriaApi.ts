@@ -187,3 +187,60 @@ export const setCostoGeneralConvocatoria = async (idConvocatoria: string, costo_
     throw error;
   }
 };
+
+/**
+ * Obtiene el estado y requisitos de una convocatoria
+ * @param idConvocatoria ID de la convocatoria
+ */
+export const getEstadoConvocatoria = async (idConvocatoria: number) => {
+  try {
+    const response = await axiosInstance.get(`/v1/admin/convocatorias/${idConvocatoria}/estado`);
+    return response.data?.data || response.data;
+  } catch (error) {
+    console.error('Error al obtener estado de convocatoria:', error);
+    throw error;
+  }
+};
+
+/**
+ * Transiciona el estado de una convocatoria
+ * @param idConvocatoria ID de la convocatoria
+ * @param nuevoEstado Nuevo estado a aplicar
+ */
+export const transicionarEstadoConvocatoria = async (idConvocatoria: number, nuevoEstado: string) => {
+  try {
+    const response = await axiosInstance.put(`/v1/admin/convocatorias/${idConvocatoria}/estado`, {
+      nuevo_estado: nuevoEstado
+    });
+    return response.data?.data || response.data;
+  } catch (error) {
+    console.error('Error al transicionar estado:', error);
+    throw error;
+  }
+};
+
+/**
+ * Cierra automáticamente convocatorias expiradas
+ */
+export const cerrarConvocatoriasExpiradas = async () => {
+  try {
+    const response = await axiosInstance.post('/v1/admin/convocatorias/cerrar-expiradas');
+    return response.data?.data || response.data;
+  } catch (error) {
+    console.error('Error al cerrar convocatorias expiradas:', error);
+    throw error;
+  }
+};
+
+/**
+ * Obtiene todas las convocatorias (todos los estados)
+ */
+export const getAllConvocatorias = async () => {
+  try {
+    const response = await axiosInstance.get('/v1/admin/convocatorias');
+    return response.data?.data || response.data;
+  } catch (error) {
+    console.error('Error al obtener todas las convocatorias:', error);
+    throw error;
+  }
+};

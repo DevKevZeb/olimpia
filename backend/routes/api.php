@@ -30,6 +30,7 @@ use App\Http\Controllers\Api\EstadoInscripcionController;
 use App\Http\Controllers\Api\DocumentoController;
 
 use App\Http\Controllers\Api\HomeController;
+use App\Http\Controllers\Auth\AdminAuthController;
 
 /*
 |--------------------------------------------------------------------------
@@ -41,6 +42,22 @@ use App\Http\Controllers\Api\HomeController;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
+
+/*
+|--------------------------------------------------------------------------
+| Admin Authentication Routes
+|--------------------------------------------------------------------------
+*/
+Route::prefix('admin')->group(function () {
+    Route::post('/login', [AdminAuthController::class, 'login']);
+    
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/logout', [AdminAuthController::class, 'logout']);
+        Route::get('/profile', [AdminAuthController::class, 'profile']);
+        Route::get('/check-auth', [AdminAuthController::class, 'checkAuth']);
+        Route::get('/login-statistics', [AdminAuthController::class, 'getLoginStatistics']);
+    });
+});
 
 Route::get('/areas-de-convocatoria', [HomeController::class, 'areasDeConvocatoriaActiva']);
 Route::get('/area/{idArea}/documento', [HomeController::class, 'documentoDeArea']);
@@ -125,9 +142,8 @@ Route::prefix('v1')->group(function () {
     // Endpoints para página de Administración
     Route::get('/admin/dashboard-data', [AdminDashboardController::class, 'getDashboardData']);
     //Route::post('/admin/convocatorias/completa', [ConvocatoriaCompletaController::class, 'crearConvocatoriaCompleta']);
-    //Route::get('/admin/convocatorias/{id}/completa', [ConvocatoriaCompletaController::class, 'getConvocatoriaCompleta']);
-
-    // Endpoints para el panel de administración de convocatorias
+    //Route::get('/admin/convocatorias/{id}/completa', [ConvocatoriaCompletaController::class, 'getConvocatoriaCompleta']);    // Endpoints para el panel de administración de convocatorias
+    Route::get('/admin/convocatorias', [AdminConvocatoriaController::class, 'getAllConvocatorias']);
     Route::get('/admin/convocatorias-activas', [AdminConvocatoriaController::class, 'getConvocatoriasActivas']);
     Route::get('/admin/convocatorias-planificadas', [AdminConvocatoriaController::class, 'getConvocatoriasPlanificadas']);
     Route::get('/admin/areas-competencia', [AdminConvocatoriaController::class, 'getAreasCompetencia']);
@@ -135,9 +151,13 @@ Route::prefix('v1')->group(function () {
     Route::get('/admin/grados', [AdminConvocatoriaController::class, 'getGrados']); // Ruta añadida para obtener grados
     Route::post('/admin/convocatorias', [AdminConvocatoriaController::class, 'crearConvocatoria']);
     Route::post('/admin/convocatorias/asociar-areas', [AdminConvocatoriaController::class, 'asociarAreas']);
-    Route::post('/admin/convocatorias/asociar-niveles-grados', [AdminConvocatoriaController::class, 'asociarNivelesGrados']);
-    Route::get('/admin/convocatorias/{id}/areas', [AdminConvocatoriaController::class, 'getAreasPorConvocatoria']);
+    Route::post('/admin/convocatorias/asociar-niveles-grados', [AdminConvocatoriaController::class, 'asociarNivelesGrados']);    Route::get('/admin/convocatorias/{id}/areas', [AdminConvocatoriaController::class, 'getAreasPorConvocatoria']);
     Route::get('/admin/convocatorias/{id}/niveles', [AdminConvocatoriaController::class, 'getNivelesPorConvocatoria']);
+    
+    // Rutas para gestión de estados de convocatorias
+    Route::get('/admin/convocatorias/{id}/estado', [AdminConvocatoriaController::class, 'getEstadoConvocatoria']);
+    Route::put('/admin/convocatorias/{id}/estado', [AdminConvocatoriaController::class, 'transicionarEstado']);
+    Route::post('/admin/convocatorias/cerrar-expiradas', [AdminConvocatoriaController::class, 'cerrarConvocatoriasExpiradas']);
 
     // Rutas para el controlador de RequisitoConvocatoria
     Route::get('convocatorias/{convocatoria}/requisitos', [RequisitoConvocatoriaController::class, 'index'])->name('convocatorias.requisitos.index');

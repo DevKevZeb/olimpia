@@ -98,15 +98,13 @@ class AdminConvocatoriaController extends ApiController
      * 
      * @param Request $request
      * @return JsonResponse
-     */
-    public function crearConvocatoria(Request $request): JsonResponse
+     */    public function crearConvocatoria(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
             'nombre' => 'required|string|max:100',
             'fecha_inicio_inscripcion' => 'required|date',
             'fecha_fin_inscripcion' => 'required|date|after_or_equal:fecha_inicio_inscripcion',
             'max_areas_por_estudiante' => 'required|integer|min:1',
-            'estado' => 'required|in:planificada,abierta,cerrada,finalizada',
         ]);
 
         if ($validator->fails()) {
@@ -114,7 +112,11 @@ class AdminConvocatoriaController extends ApiController
         }
 
         try {
-            $convocatoria = Convocatoria::create($request->all());
+            // Forzar estado inicial como "planificada"
+            $datosConvocatoria = $request->all();
+            $datosConvocatoria['estado'] = 'planificada';
+            
+            $convocatoria = Convocatoria::create($datosConvocatoria);
             
             // Verificar que la convocatoria se haya creado y tenga un ID
             if (!$convocatoria || !$convocatoria->id_convocatoria) {
@@ -409,9 +411,7 @@ class AdminConvocatoriaController extends ApiController
                 // Validar que el grado mínimo no sea mayor que el máximo
                 if ($nivel['id_grado_min'] > $nivel['id_grado_max']) {
                     throw new \Exception('El grado mínimo no puede ser mayor que el grado máximo');
-                }
-
-                ConvocatoriaNivel::create([
+                }                ConvocatoriaNivel::create([
                     'id_convocatoria_area' => $nivel['id_convocatoria_area'],
                     'id_nivel' => $nivel['id_nivel'],
                     'id_grado_min' => $nivel['id_grado_min'],
@@ -419,5 +419,131 @@ class AdminConvocatoriaController extends ApiController
                 ]);
             }
         }
+    }
+
+    /**
+     * Obtiene el estado y requisitos de una convocatoria
+     * 
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function getEstadoConvocatoria(int $id): JsonResponse
+    {
+        $convocatoria = Convocatoria::find($id);
+        
+        if (!$convocatoria) {
+            return $this->errorResponse('Convocatoria no encontrada', 404);
+        }
+
+        $requisitos = $convocatoria->obtenerRequisitosApertura();
+        $puedeAbrir = $convocatoria->puedeAbrirse();
+        $debeCerrar = $convocatoria->debeSerCerrada();        return $this->successResponse([
+            'estado_actual' => $convocatoria->estado,
+            'puede_abrir' => $puedeAbrir,
+            'debe_cerrar' => $debeCerrar,
+            'fecha_apertura' => $convocatoria->fecha_apertura,
+            'requisitos' => $requisitos,
+            'transiciones_validas' => $this->getTransicionesValidas($convocatoria->estado)
+        ], 'Estado de convocatoria obtenido correctamente');
+    }
+
+    /**
+     * Transiciona el estado de una convocatoria
+     * 
+     * @param Request $request
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function transicionarEstado(Request $request, int $id): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'nuevo_estado' => 'required|in:planificada,abierta,cerrada,finalizada'
+        ]);
+
+        if ($validator->fails()) {
+            return $this->errorResponse($validator->errors()->first(), 422);
+        }
+
+        $convocatoria = Convocatoria::find($id);
+        
+        if (!$convocatoria) {
+            return $this->errorResponse('Convocatoria no encontrada', 404);
+        }
+
+        $resultado = $convocatoria->transicionarEstado($request->nuevo_estado);
+
+        if ($resultado['success']) {
+            return $this->successResponse([
+                'id_convocatoria' => $convocatoria->id_convocatoria,
+                'estado_nuevo' => $convocatoria->estado
+            ], $resultado['message']);
+        } else {
+            return $this->errorResponse(
+                $resultado['message'], 
+                422, 
+                $resultado['requisitos_faltantes'] ?? null
+            );
+        }
+    }
+
+    /**
+     * Cierra automáticamente convocatorias expiradas
+     * 
+     * @return JsonResponse
+     */
+    public function cerrarConvocatoriasExpiradas(): JsonResponse
+    {
+        $convocatorias = Convocatoria::paraCerrarAutomaticamente()->get();
+        $cerradas = 0;
+
+        foreach ($convocatorias as $convocatoria) {
+            $resultado = $convocatoria->transicionarEstado('cerrada');
+            if ($resultado['success']) {
+                $cerradas++;
+            }
+        }
+
+        return $this->successResponse([
+            'convocatorias_cerradas' => $cerradas,
+            'total_verificadas' => $convocatorias->count()
+        ], "Se cerraron {$cerradas} convocatorias expiradas");
+    }
+
+    /**
+     * Obtiene las transiciones válidas para un estado
+     */    private function getTransicionesValidas(string $estado): array
+    {
+        $transiciones = [
+            'planificada' => [
+                ['estado' => 'abierta', 'label' => 'Abrir Convocatoria', 'requiere_validacion' => true]
+            ],
+            'abierta' => [
+                // No hay transiciones manuales desde abierta
+                // El cierre es automático cuando pasa la fecha
+            ],
+            'cerrada' => [
+                ['estado' => 'finalizada', 'label' => 'Finalizar Convocatoria', 'requiere_validacion' => false]
+            ],
+            'finalizada' => []
+        ];
+
+        return $transiciones[$estado] ?? [];
+    }
+
+    /**
+     * Obtiene todas las convocatorias (todos los estados)
+     * 
+     * @return JsonResponse
+     */
+    public function getAllConvocatorias(): JsonResponse
+    {
+        $convocatorias = Convocatoria::with(['areas.area'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return $this->successResponse(
+            $convocatorias,
+            'Todas las convocatorias obtenidas correctamente'
+        );
     }
 }
