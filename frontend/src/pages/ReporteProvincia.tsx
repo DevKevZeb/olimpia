@@ -143,7 +143,7 @@ const ReporteProvincia = () => {
                       departamento:selectedDepartamento,
                       provincia:selectedProvincia
                      };
-                    const data = await obtenerReportePorCampoId('departamento', selectedConvocatoriaId , params);
+                    const data = await obtenerReportePorCampoId('provincia', selectedConvocatoriaId , params);
                     setReporteData(data as ReporteInscripciones[]);
                 } catch (err: any) {
                     console.error('Error al obtener el reporte de inscripciones:', err);
