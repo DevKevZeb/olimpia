@@ -1,5 +1,4 @@
-import React from 'react';
-import { Routes, Route, NavLink, Navigate } from 'react-router-dom';
+import { Routes, Route, NavLink } from 'react-router-dom';
 import ReporteConvocatoria from './ReporteConvocatoria';
 import ReporteAreas from './ReporteAreas';
 import ReporteNiveles from './ReporteNiveles';
@@ -21,12 +20,11 @@ const reportNav = [
 export default function ReportesPage() {
   return (
     <div className="min-h-screen">
-      <h1 className="text-2xl font-bold mb-6">Reportes</h1>
-      <nav className="mb-8 flex gap-4">
+      <h1 className="text-2xl font-bold mb-6">Reportes</h1>      <nav className="mb-8 flex gap-4">
         {reportNav.map(item => (
           <NavLink
             key={item.path}
-            to={item.path}
+            to={`/admin/reportes/${item.path}`}
             className={({ isActive }) =>
               `px-4 py-2 rounded-md font-medium transition-colors ${isActive ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-blue-100'}`
             }
@@ -34,8 +32,8 @@ export default function ReportesPage() {
             {item.label}
           </NavLink>
         ))}
-      </nav>
-      <Routes>
+      </nav><Routes>
+        <Route index element={<ReporteConvocatoria />} />
         <Route path="convocatoria" element={<ReporteConvocatoria />} />
         <Route path="areas" element={<ReporteAreas />} />
         <Route path="niveles" element={<ReporteNiveles />} />
@@ -43,7 +41,6 @@ export default function ReportesPage() {
         <Route path="departamento" element={<ReporteDepartamento />} />
         <Route path="provincia" element={<ReporteProvincia />} />
         <Route path="genero" element={<ReporteGenero />} />
-        <Route path="*" element={<Navigate to="convocatoria" replace />} />
       </Routes>
     </div>
   );

@@ -1,4 +1,5 @@
 import { Routes, Route, NavLink, Navigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import ConvocatoriasPage from './ConvocatoriasPage';
 import AsignarAreasPage from './AsignarAreasPage';
 import ConfigurarNivelesPage from './ConfigurarNivelesPage';
@@ -9,6 +10,7 @@ import CamposObligatorios from './CamposObligatorios';
 import CrearAreas from './CrearAreas';
 import AmpliarFecha from './AmpliarFecha';
 import AgregarDocumento from './AgregarDocumento';
+import SecurityDashboard from './SecurityDashboard';
 
 function DashboardHome() {
   // Aquí podrías traer métricas/resúmenes del backend
@@ -46,9 +48,12 @@ const navItems = [
   { path: 'camposobligatorios', label: 'Campos Obligatorios', icon: '📝' },
   { path: 'subir-anexos', label: 'Subir Anexos', icon: '📁' },
   { path: 'reportes', label: 'Reportes', icon: '📊' },
+  { path: 'seguridad', label: 'Seguridad', icon: '🛡️' },
 ];
 
 export default function AdminPanel() {
+  const { admin, logout } = useAuth();
+
   // Callback handlers for components that require them
   const handleNivelCreado = () => {
     // This callback is triggered when a new nivel is successfully created
@@ -62,13 +67,38 @@ export default function AdminPanel() {
     console.log('Costo asignado exitosamente');
   };
 
+  const handleLogout = () => {
+    logout();
+  };
+
   return (
     <div className="flex min-h-screen bg-gray-50">
       {/* Sidebar */}
       <aside className="w-64 bg-white border-r shadow-sm hidden md:flex flex-col">
         <div className="h-20 flex items-center justify-center border-b">
           <span className="text-2xl font-bold text-blue-700">Administrador</span>
-        </div>        <nav className="flex-1 py-6">
+        </div>
+        
+        {/* User info */}
+        <div className="px-6 py-4 border-b bg-gray-50">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+              <span className="text-blue-600 font-semibold text-sm">
+                {admin?.nombre?.charAt(0).toUpperCase() || 'A'}
+              </span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900 truncate">
+                {admin?.nombre || 'Admin'}
+              </p>
+              <p className="text-xs text-gray-500 truncate">
+                {admin?.email || ''}
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <nav className="flex-1 py-6">
           <ul className="space-y-2">
             {navItems.map(item => (
               <li key={item.path}>
@@ -88,6 +118,17 @@ export default function AdminPanel() {
             ))}
           </ul>
         </nav>
+        
+        {/* Logout button */}
+        <div className="p-6 border-t">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition font-medium gap-3"
+          >
+            <span className="text-xl">🚪</span>
+            Cerrar Sesión
+          </button>
+        </div>
       </aside>
       {/* Main content */}
       <main className="flex-1 p-6 md:p-12">        <Routes>
@@ -101,6 +142,7 @@ export default function AdminPanel() {
           <Route path="costos" element={<AsignarCostoGeneralPage onCostoAsignado={handleCostoAsignado} />} />
           <Route path="camposobligatorios" element={<CamposObligatorios />} />
           <Route path="reportes/*" element={<ReportesPage />} />
+          <Route path="seguridad" element={<SecurityDashboard />} />
           <Route path="*" element={<Navigate to="" replace />} />
           <Route path="subir-anexos" element={<AgregarDocumento />} />
         </Routes>
