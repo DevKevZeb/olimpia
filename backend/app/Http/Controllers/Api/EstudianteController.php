@@ -228,7 +228,6 @@ class EstudianteController extends ApiController
         $estudianteArray = [
             'nombres' => $estudianteData->nombres,
             'apellidos' => $estudianteData->apellidos,
-            'ci' => $estudianteData->ci,
             'fecha_nacimiento' => $estudianteData->fecha_nacimiento,
             'genero' => $estudianteData->genero,
             'email' => $estudianteData->email,
