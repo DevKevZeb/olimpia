@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { crearConvocatoria } from '../api/adminConvocatoriaApi';
 import { CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/react/24/solid';
 import FormInput from '../components/FormInput';
-import FormSelect from '../components/FormSelect';
+import EstadoConvocatoria from '../components/EstadoConvocatoria';
 import { useConvocatorias } from '../hooks/useConvocatorias';
 
-function formatNombre(str) {
+function formatNombre(str: string): string {
   if (!str) return '';
   const s = str.normalize('NFC').trim();
   return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
@@ -14,29 +14,25 @@ function formatNombre(str) {
 export default function ConvocatoriasPage() {
   const { convocatorias, loading } = useConvocatorias();
   const [isLoading, setIsLoading] = useState(false);
-  const [showCrearConvocatoriaForm, setShowCrearConvocatoriaForm] = useState(false);
-  const [formDataConvocatoria, setFormDataConvocatoria] = useState({
+  const [showCrearConvocatoriaForm, setShowCrearConvocatoriaForm] = useState(false);  const [formDataConvocatoria, setFormDataConvocatoria] = useState({
     nombre: '',
     fecha_inicio_inscripcion: '',
     fecha_fin_inscripcion: '',
     max_areas_por_estudiante: 2,
-    estado: 'planificada',
   });
   const [formErrors, setFormErrors] = useState({
     nombre: '',
     fecha_inicio_inscripcion: '',
     fecha_fin_inscripcion: '',
     general: ''
-  });
-  const [toast, setToast] = useState({ show: false, type: '', message: '' });
-  const toastTimeout = useRef(null);
-  const showToast = (type, message) => {
+  });  const [toast, setToast] = useState({ show: false, type: '', message: '' });
+  const toastTimeout = useRef<number | null>(null);
+  const showToast = (type: string, message: string) => {
     setToast({ show: true, type, message });
     if (toastTimeout.current) clearTimeout(toastTimeout.current);
     toastTimeout.current = setTimeout(() => setToast({ show: false, type: '', message: '' }), 3000);
   };
-
-  const handleInputChangeConvocatoria = (e) => {
+  const handleInputChangeConvocatoria = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     let newValue = value;
     if (name === 'nombre') {
@@ -88,8 +84,7 @@ export default function ConvocatoriasPage() {
     setFormErrors(errores);
     return esValido;
   };
-
-  const handleCrearConvocatoria = async (e) => {
+  const handleCrearConvocatoria = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormErrors({
       nombre: '',
@@ -107,24 +102,24 @@ export default function ConvocatoriasPage() {
       return;
     }
     setIsLoading(true);
-    try {
-      await crearConvocatoria(formDataConvocatoria);
-      showToast('success', 'Convocatoria creada exitosamente');
+    try {      await crearConvocatoria(formDataConvocatoria);
+      showToast('success', 'Convocatoria creada exitosamente');      
       setFormDataConvocatoria({
         nombre: '',
         fecha_inicio_inscripcion: '',
         fecha_fin_inscripcion: '',
         max_areas_por_estudiante: 2,
-        estado: 'planificada',
       });
       setShowCrearConvocatoriaForm(false);
-    } catch (error) {
-      if (error.response && error.response.data && error.response.data.message) {
-        setFormErrors(prev => ({...prev, general: `Error: ${error.response.data.message}`}));
+      // Refresh the page to show the new convocatoria
+      window.location.reload();    } catch (error) {
+      const err = error as { response?: { data?: { message?: string } } };
+      if (err.response?.data?.message) {
+        setFormErrors(prev => ({...prev, general: `Error: ${err.response?.data?.message}`}));
       } else {
         setFormErrors(prev => ({...prev, general: 'Error al crear la convocatoria. Por favor, inténtelo de nuevo.'}));
       }
-    } finally {
+    }finally {
       setIsLoading(false);
     }
   };
@@ -173,28 +168,16 @@ export default function ConvocatoriasPage() {
             onChange={handleInputChangeConvocatoria}
             required
             error={formErrors.fecha_fin_inscripcion}
-          />
-          <FormInput
+          />          <FormInput
             label="Máximo de Áreas por Estudiante"
             type="number"
             name="max_areas_por_estudiante"
             value={formDataConvocatoria.max_areas_por_estudiante}
-            onChange={handleInputChangeConvocatoria}
+            onChange={handleInputChangeConvocatoria}            
             min="1"
             required
+            error=""
           />
-          <FormSelect
-            label="Estado"
-            name="estado"
-            value={formDataConvocatoria.estado}
-            onChange={handleInputChangeConvocatoria}
-            required
-          >
-            <option value="planificada">Planificada</option>
-            <option value="abierta">Abierta</option>
-            <option value="cerrada">Cerrada</option>
-            <option value="finalizada">Finalizada</option>
-          </FormSelect>
           <div className="flex justify-end mt-8">
             <button
               type="submit"
@@ -221,11 +204,10 @@ export default function ConvocatoriasPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
+              <thead className="bg-gray-50">                <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fechas</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado y Gestión</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Áreas</th>
                 </tr>
               </thead>
@@ -235,8 +217,7 @@ export default function ConvocatoriasPage() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">{convocatoria.nombre}</div>
                       <div className="text-xs text-gray-500">Máx. {convocatoria.max_areas_por_estudiante} áreas</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    </td>                    <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
                         Del {new Date(convocatoria.fecha_inicio_inscripcion).toLocaleDateString()}
                       </div>
@@ -244,14 +225,11 @@ export default function ConvocatoriasPage() {
                         al {new Date(convocatoria.fecha_fin_inscripcion).toLocaleDateString()}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                        ${convocatoria.estado === 'abierta' ? 'bg-green-100 text-green-800' : 
-                          convocatoria.estado === 'cerrada' ? 'bg-red-100 text-red-800' : 
-                          convocatoria.estado === 'finalizada' ? 'bg-gray-100 text-gray-800' : 
-                          'bg-blue-100 text-blue-800'}`}>
-                        {convocatoria.estado.charAt(0).toUpperCase() + convocatoria.estado.slice(1)}
-                      </span>
+                    <td className="px-6 py-4">
+                      <EstadoConvocatoria 
+                        convocatoriaId={convocatoria.id_convocatoria}
+                        onEstadoChanged={() => window.location.reload()}
+                      />
                     </td>
                     <td className="px-6 py-4">
                       {convocatoria.areas && convocatoria.areas.length > 0 ? (

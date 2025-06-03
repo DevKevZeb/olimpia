@@ -11,9 +11,9 @@ class Kernel extends ConsoleKernel
      * The Artisan commands provided by your application.
      *
      * @var array
-     */
-    protected $commands = [
+     */    protected $commands = [
         Commands\CleanOldLoginAttempts::class,
+        Commands\CerrarConvocatoriasExpiradas::class,
     ];
 
     /**
@@ -29,10 +29,11 @@ class Kernel extends ConsoleKernel
                 ->where('estado', 'pendiente')
                 ->where('fecha_vencimiento', '<', now()->format('Y-m-d'))
                 ->update(['estado' => 'vencida']);
-        })->daily();
-
-        // Clean old login attempts daily at 3:00 AM
+        })->daily();        // Clean old login attempts daily at 3:00 AM
         $schedule->command('auth:clean-login-attempts')->dailyAt('03:00');
+        
+        // Close expired convocatorias every hour
+        $schedule->command('convocatorias:cerrar-expiradas')->hourly();
     }
 
     /**
