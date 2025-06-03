@@ -128,15 +128,25 @@ export default function AdminLogin() {
                   placeholder="••••••••"
                 />
               </div>
-            </div>
-
-            {/* Mensaje de error */}
+            </div>            {/* Mensaje de error */}
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-md p-4">
+              <div className={`border rounded-md p-4 ${
+                error.includes('Demasiados intentos') 
+                  ? 'bg-orange-50 border-orange-200' 
+                  : 'bg-red-50 border-red-200'
+              }`}>
                 <div className="flex">
-                  <AlertCircle className="h-5 w-5 text-red-400" />
+                  <AlertCircle className={`h-5 w-5 ${
+                    error.includes('Demasiados intentos') 
+                      ? 'text-orange-400' 
+                      : 'text-red-400'
+                  }`} />
                   <div className="ml-3">
-                    <p className="text-sm text-red-700">{error}</p>
+                    <p className={`text-sm ${
+                      error.includes('Demasiados intentos') 
+                        ? 'text-orange-700' 
+                        : 'text-red-700'
+                    }`}>{error}</p>
                   </div>
                 </div>
               </div>

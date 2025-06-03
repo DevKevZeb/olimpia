@@ -10,6 +10,7 @@ import CamposObligatorios from './CamposObligatorios';
 import CrearAreas from './CrearAreas';
 import AmpliarFecha from './AmpliarFecha';
 import AgregarDocumento from './AgregarDocumento';
+import SecurityDashboard from './SecurityDashboard';
 
 function DashboardHome() {
   // Aquí podrías traer métricas/resúmenes del backend
@@ -47,6 +48,7 @@ const navItems = [
   { path: 'camposobligatorios', label: 'Campos Obligatorios', icon: '📝' },
   { path: 'subir-anexos', label: 'Subir Anexos', icon: '📁' },
   { path: 'reportes', label: 'Reportes', icon: '📊' },
+  { path: 'seguridad', label: 'Seguridad', icon: '🛡️' },
 ];
 
 export default function AdminPanel() {
@@ -140,6 +142,7 @@ export default function AdminPanel() {
           <Route path="costos" element={<AsignarCostoGeneralPage onCostoAsignado={handleCostoAsignado} />} />
           <Route path="camposobligatorios" element={<CamposObligatorios />} />
           <Route path="reportes/*" element={<ReportesPage />} />
+          <Route path="seguridad" element={<SecurityDashboard />} />
           <Route path="*" element={<Navigate to="" replace />} />
           <Route path="subir-anexos" element={<AgregarDocumento />} />
         </Routes>

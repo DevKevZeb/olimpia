@@ -72,11 +72,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           return { 
             success: false, 
             message: error.response.data?.message || 'Credenciales incorrectas' 
-          };
-        } else if (error.response.status === 422) {
+          };        } else if (error.response.status === 422) {
           return { 
             success: false, 
             message: error.response.data?.message || 'Datos de entrada inválidos' 
+          };
+        } else if (error.response.status === 429) {
+          return { 
+            success: false, 
+            message: error.response.data?.message || 'Demasiados intentos. Intenta más tarde.' 
           };
         } else {
           return { 

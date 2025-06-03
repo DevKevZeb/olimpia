@@ -55,6 +55,7 @@ Route::prefix('admin')->group(function () {
         Route::post('/logout', [AdminAuthController::class, 'logout']);
         Route::get('/profile', [AdminAuthController::class, 'profile']);
         Route::get('/check-auth', [AdminAuthController::class, 'checkAuth']);
+        Route::get('/login-statistics', [AdminAuthController::class, 'getLoginStatistics']);
     });
 });
 
