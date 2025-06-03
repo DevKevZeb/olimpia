@@ -33,13 +33,14 @@ const StudentForm: React.FC<StudentFormProps> = ({
     try {
       const data = await getDatosEstudiante(ci);
       if (data) {
-        if (!formData.nombres) onFormChange('nombres', data.nombres || '');
-        if (!formData.apellidos) onFormChange('apellidos', data.apellidos || '');
-        if (!formData.fecha_nacimiento) onFormChange('fecha_nacimiento', data.fecha_nacimiento || '');
-        if (!formData.email) onFormChange('email', data.email || '');
-        if (!formData.genero) onFormChange('genero', data.genero || '');
-        if (!formData.telefono) onFormChange('telefono', data.telefono || '');
-        if (!formData.unidad_educativa?.nombre) onNestedChange('unidad_educativa', 'nombre', data.unidad_educativa?.nombre || '');
+          if (!formData.nombres) onFormChange('nombres', data.nombres || '');
+          if (!formData.apellidos) onFormChange('apellidos', data.apellidos || '');
+          if (!formData.fecha_nacimiento) onFormChange('fecha_nacimiento', data.fecha_nacimiento || '');
+          if (!formData.email) onFormChange('email', data.email || '');
+          if (!formData.genero) onFormChange('genero', data.genero || '');
+          if (!formData.telefono) onFormChange('telefono', data.telefono || '');
+          if (!formData.unidad_educativa?.nombre) onNestedChange('unidad_educativa', 'nombre', data.unidad_educativa?.nombre || '');
+          onFormChange('ci', ci);
       }
     } catch (error) {
       console.error('Error al cargar datos del estudiante', error);
@@ -78,11 +79,11 @@ const StudentForm: React.FC<StudentFormProps> = ({
               const ci = e.target.value;
               // Solo permitir dígitos numéricos y hasta 8 caracteres
               if (/^\d*$/.test(ci) && ci.length <= 9) {
-                onFormChange('ci', ci);
                 // Solo llamar si ya tiene 7 dígitos y nombre vacío
-                if (ci.length === 7 && !formData.nombre) {
+                if (ci.length >= 7 && !formData.nombre) {
                   cargarDatosEstudiante(ci);
                 }
+                onFormChange('ci', ci);
               }
             }}
             required
