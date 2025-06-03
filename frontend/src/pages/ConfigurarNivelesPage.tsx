@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getAreasPorConvocatoria, getNivelesPorConvocatoria, getNivelesCategoria, getGrados, asociarNivelesGrados } from '../api/adminConvocatoriaApi';
 import FormSelect from '../components/FormSelect';
-import { useConvocatorias } from '../hooks/useConvocatorias';
+import { useConvocatoriasPlanificadas } from '../hooks/useConvocatorias';
 import Modal from '../components/Modal'; // Debes tener un componente Modal reutilizable
 
 // Tipos explícitos
@@ -47,7 +47,7 @@ const NIVEL_GRADO_AUTOMATICO: { [nivel: string]: string } = {
 type NivelGradosMap = { [nivelId: number]: number[] };
 
 export default function ConfigurarNivelesPage() {
-  const { convocatorias, loading: loadingConvocatorias } = useConvocatorias();
+  const { convocatorias, loading: loadingConvocatorias } = useConvocatoriasPlanificadas();
   const [areasConvocatoria, setAreasConvocatoria] = useState<Area[]>([]);
   const [nivelesAsignados, setNivelesAsignados] = useState<NivelAsignado[]>([]);
   const [nivelesDisponibles, setNivelesDisponibles] = useState<Nivel[]>([]);

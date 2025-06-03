@@ -1,4 +1,5 @@
 import React from 'react';
+import { useState } from 'react';
 import { Plus, X, Check } from 'lucide-react';
 import { 
   Convocatoria, 
@@ -93,6 +94,7 @@ const ResumenInscripcion: React.FC<ResumenInscripcionProps> = ({
   onAddNewStudent,
   onPrevStep
 }) => {
+  const [habilitar, setHabilitar] = useState(false);
   return (
     <>
       <div>
@@ -239,83 +241,6 @@ const ResumenInscripcion: React.FC<ResumenInscripcionProps> = ({
             <li>Suba el comprobante de pago para finalizar la inscripción de todos los estudiantes</li>
           </ol>
         </div>
-
-        <div className="border rounded-lg p-6 mb-8">
-          <h2 className="text-xl font-semibold mb-2">Encargado de Pago</h2>
-          <p className="text-sm text-gray-600 mb-4">
-            La persona encargada deberá ir a realizar el pago para la inscripción
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-            {/* Encargado de pago nombres */}
-            <div>
-              <label htmlFor="encargadoPago" className="block text-sm font-medium text-gray-700 mb-1">
-                Nombres del encargado de pago<span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                id="encargadoPago"
-                className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Nombres del encargado"
-                value={encargadoNombre}
-                onChange={(e) => onEncargadoNombreChange(e.target.value)}
-                required
-              />
-            </div>
-            {/* Encargado de pago apellidos */}
-            <div>
-              <label htmlFor="encargadoPago_apellido" className="block text-sm font-medium text-gray-700 mb-1">
-                Apellidos del encargado de pago<span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                id="encargadoPago_apellido"
-                className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Apellidos del encargado"
-                value={encargadoApellido}
-                onChange={(e) => onEncargadoApellidoChange(e.target.value)}
-                required
-              />
-            </div>
-          </div>
-    
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-            {/* Correo Electrónico */}
-            <div>
-              <label htmlFor="emailencargado" className="block text-sm font-medium text-gray-700 mb-1">
-                Correo Electrónico<span className="text-red-500">*</span>
-              </label>
-              <input
-                type="email"
-                id="emailencargado"
-                className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-                placeholder="ejemplo@email.com"
-                value={encargadoCorreo}
-                onChange={(e) => onEncargadoCorreoChange(e.target.value)}
-                required
-              />
-            </div>
-            {/* Cédula de Identidad */}
-            <div>
-              <label htmlFor="cedulaencargado" className="block text-sm font-medium text-gray-700 mb-1">
-                Cédula de Identidad<span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                id="cedulaencargado"
-                className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Número de CI"
-                value={encargadoCI}
-                onChange={(e) => {
-                  // Validar que solo se ingresen números
-                  const value = e.target.value.replace(/[^0-9]/g, '');
-                  onEncargadoCIChange(value);
-                }}
-                required
-                maxLength={8}
-              />
-            </div>
-          </div>
-        </div>
         
         {/* Botones de acción */}
         <div className="flex gap-3 mb-6">
@@ -323,7 +248,7 @@ const ResumenInscripcion: React.FC<ResumenInscripcionProps> = ({
             className="w-full bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 flex items-center justify-center"
             onClick={() => {
               console.log(estudiantes);
-              onFetchCodigoUnico();
+              setHabilitar(true);
               // Abre el modal con los detalles de la boleta
               // La funcionalidad de descarga se implementará posteriormente
             }}
@@ -331,7 +256,7 @@ const ResumenInscripcion: React.FC<ResumenInscripcionProps> = ({
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M3 17a1 1 011-1h12a1 1 110 2H4a1 1 01-1-1zm3.293-7.707a1 1 011.414 0L9 10.586V3a1 1 112 0v7.586l1.293-1.293a1 1 011.414 1.414l-3 3a1 1 01-1.414 0l-3-3a1 1 010-1.414z" clipRule="evenodd" />
             </svg>
-            Terminar Pre-inscripción
+            Registrar encargado de pago
           </button>
           <button
             className="bg-green-600 text-white px-6 py-3 rounded-md hover:bg-green-700 flex items-center justify-center"
@@ -342,6 +267,102 @@ const ResumenInscripcion: React.FC<ResumenInscripcionProps> = ({
             Agregar Estudiante
           </button>
         </div>
+
+        {habilitar && (
+          <>
+            <div className="border rounded-lg p-6 mb-8">
+              <h2 className="text-xl font-semibold mb-2">Encargado de Pago</h2>
+              <p className="text-sm text-gray-600 mb-4">
+                La persona encargada deberá ir a realizar el pago para la inscripción
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                {/* Encargado de pago nombres */}
+                <div>
+                  <label htmlFor="encargadoPago" className="block text-sm font-medium text-gray-700 mb-1">
+                    Nombres del encargado de pago<span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="encargadoPago"
+                    className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Nombres del encargado"
+                    value={encargadoNombre}
+                    onChange={(e) => onEncargadoNombreChange(e.target.value)}
+                    required
+                  />
+                </div>
+                {/* Encargado de pago apellidos */}
+                <div>
+                  <label htmlFor="encargadoPago_apellido" className="block text-sm font-medium text-gray-700 mb-1">
+                    Apellidos del encargado de pago<span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="encargadoPago_apellido"
+                    className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Apellidos del encargado"
+                    value={encargadoApellido}
+                    onChange={(e) => onEncargadoApellidoChange(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+        
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                {/* Correo Electrónico */}
+                <div>
+                  <label htmlFor="emailencargado" className="block text-sm font-medium text-gray-700 mb-1">
+                    Correo Electrónico<span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    id="emailencargado"
+                    className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="ejemplo@email.com"
+                    value={encargadoCorreo}
+                    onChange={(e) => onEncargadoCorreoChange(e.target.value)}
+                    required
+                  />
+                </div>
+                {/* Cédula de Identidad */}
+                <div>
+                  <label htmlFor="cedulaencargado" className="block text-sm font-medium text-gray-700 mb-1">
+                    Cédula de Identidad<span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="cedulaencargado"
+                    className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Número de CI"
+                    value={encargadoCI}
+                    onChange={(e) => {
+                      // Validar que solo se ingresen números
+                      const value = e.target.value.replace(/[^0-9]/g, '');
+                      onEncargadoCIChange(value);
+                    }}
+                    required
+                    maxLength={8}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <button
+              className="w-full bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 flex items-center justify-center"
+              onClick={() => {
+                console.log(estudiantes);
+                onFetchCodigoUnico();
+                // Abre el modal con los detalles de la boleta
+                // La funcionalidad de descarga se implementará posteriormente
+              }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M3 17a1 1 011-1h12a1 1 110 2H4a1 1 01-1-1zm3.293-7.707a1 1 011.414 0L9 10.586V3a1 1 112 0v7.586l1.293-1.293a1 1 011.414 1.414l-3 3a1 1 01-1.414 0l-3-3a1 1 010-1.414z" clipRule="evenodd" />
+              </svg>
+              Terminar Pre-inscripción
+            </button>
+          </>
+        )}
 
         <div className="flex justify-end mt-6">
           <button

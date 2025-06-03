@@ -6,7 +6,7 @@ import '../styles/DataSummary.css';
 import * as XLSX from 'xlsx';
 import { fetchConvocatorias } from '../api/requisitoConvocatoria'; // Import para obtener la configuración de la convocatoria
 import { loadAllConvocatoriaNivelConfigs, loadAllGrades, buscarIdConvocatoriaNivelEnMemoria, getGradoIdByName} from '../api/datosExcel';
-import { inscribirEstudiante } from '../api/registration/inscripcionCompletaApi';
+import { inscribirEstudiante, estudianteEstaInscrito } from '../api/registration/inscripcionCompletaApi';
 import DownloadTemplate from './DownloadTemplate';
 import 'react-toastify/dist/ReactToastify.css';
 import { toast, ToastContainer } from 'react-toastify';
@@ -315,6 +315,29 @@ const UploadAndScan: React.FC<UploadAndScanProps> = ({ selectedConvocatoriaId, o
                       }
                   }
 
+                  try {
+                      const payload = {
+                          lista_inscripcion: transformedData,
+                          id_convocatoria: selectedConvocatoriaId,
+                      };
+
+                      const response = await estudianteEstaInscrito(payload);
+
+                      // Si la respuesta es exitosa (código 2xx), no hay errores de backend
+                      console.log('Respuesta de verificación exitosa:', response);
+
+                  } catch (error: any) {
+                    if (error.response?.status === 422 && error.response?.data?.errors) {
+                      const messages = Object.values(error.response.data.errors).flat() as string[];
+                      errors.push(`\nErrores de validación:\n${messages.join('\n')}`);
+                      
+                    } else if (error.response?.status === 409) {
+                      errors.push("Opsie! El estudiante ya está inscrito en esta materia y nivel.");
+                    } else {
+                      errors.push(`Opsie! Algo salió mal: ${error.response?.data?.message || error.message || 'Error desconocido'}`);
+                    }
+                  }
+
                   if (errors.length > 0) {
                       setScanError(`Se encontraron los siguientes errores en el archivo Excel:\n${errors.join('\n')}`);
                       return;
@@ -343,7 +366,7 @@ const UploadAndScan: React.FC<UploadAndScanProps> = ({ selectedConvocatoriaId, o
           >
               {isLoadingData ? 'Cargando datos...' : 'Escanear y Convertir'}
           </button>
-          {scanError && <p style={{ color: 'red' }}>{scanError}</p>}
+          {scanError && <p style={{ color: 'red', whiteSpace: 'pre-wrap' }}>{scanError}</p>}
           {isLoadingData && (
               <p style={{ color: 'blue' }}>Cargando datos de configuración y grados...</p>
           )}
@@ -366,6 +389,7 @@ const DataSummary = ({ scannedData, onCancel, onSave }: { scannedData: any[]; on
     email_encargado: '',
   });
   const [isPagoFormValid, setIsPagoFormValid] = useState(false); 
+  const [showTable, setShowTable] = useState(true);
 
   const handlePagoFormInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = event.target;
@@ -393,6 +417,7 @@ const DataSummary = ({ scannedData, onCancel, onSave }: { scannedData: any[]; on
         encargado_pago: pagoFormData,
       };
       onSave(dataConPago);
+      alert('Inscripcion realizada satisfactoriamente')
     } else if (!isPagoFormValid) {
       alert('Por favor, completa todos los campos del formulario del encargado de pago.');
     } else {
@@ -400,78 +425,89 @@ const DataSummary = ({ scannedData, onCancel, onSave }: { scannedData: any[]; on
     }
   };
 
+  const toggleTableVisibility = () => {
+      setShowTable(!showTable);
+  };
+
   return (
     <div className='data-summary-container'>
-      <h2>Vista Previa de Datos para Inscripción</h2>
+        <h2>Vista Previa de Datos para Inscripción</h2>
 
-      {/* MODIFICACIÓN CLAVE AQUÍ */}
-      {scannedData.length === 0 ? (
-        <p style={{ textAlign: 'center', color: '#555', marginTop: '20px' }}>
-          No hay datos para mostrar en la vista previa. Asegúrate de que el archivo Excel contenga datos válidos y que no haya errores durante el escaneo.
-        </p>
-      ) : (
-        <div className="table-container" style={{ overflowX: 'auto' }}>
-          <table style={{ borderCollapse: 'collapse', width: '100%' }}>
-            <thead>
-              <tr>
-                {headers.map((header) => (
-                  <th
-                    key={header}
-                    style={{ border: '1px solid #ddd', padding: '8px', backgroundColor: '#f2f2f2' }}
-                  >
-                    {header}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {scannedData.map((row, index) => (
-                <tr key={index}>
-                  {headers.map((header) => (
-                    <td key={`${index}-${header}`} style={{ border: '1px solid #ddd', padding: '8px' }}>
-                      {header === 'unidad_educativa' ? (
-                        <>
-                          {row.unidad_educativa?.nombre}
-                          {row.unidad_educativa?.departamento && ` (${row.unidad_educativa.departamento})`}
-                          {row.unidad_educativa?.provincia && `, ${row.unidad_educativa.provincia}`}
-                        </>
-                      ) : header === 'tutor_legal' ? (
-                        <>
-                          Nombre: {row.tutor_legal?.nombres} {row.tutor_legal?.apellidos}<br />
-                          CI: {row.tutor_legal?.ci}<br />
-                          Teléfono: {row.tutor_legal?.telefono}<br />
-                          Email: {row.tutor_legal?.email}<br />
-                          Parentesco: {row.tutor_legal?.parentesco}
-                        </>
-                      ) : header === 'areas_seleccionadas' ? (
-                        // Muestra los IDs de convocatoria_nivel.
-                        // Si quieres mostrar los nombres de Área y Nivel, necesitarías un mapeo adicional.
-                        row.areas_seleccionadas?.map((area: { id_convocatoria_nivel: any }) => area.id_convocatoria_nivel).join(', ')
-                      ) : header === 'tutores_academicos' ? (
-                        row.tutores_academicos?.length > 0 ? (
-                          row.tutores_academicos.map((tutor: { nombres: any; apellidos: any; ci: any; telefono: any; email: any }, index: number) => (
-                            <React.Fragment key={index}>
-                              Nombre: {tutor.nombres} {tutor.apellidos}<br />
-                              CI: {tutor.ci}<br />
-                              Teléfono: {tutor.telefono}<br />
-                              Email: {tutor.email}<br />
-                              {index < row.tutores_academicos.length - 1 && <hr />}
-                            </React.Fragment>
-                          ))
-                        ) : (
-                          'No asignado'
-                        )
-                      ) : (
-                        row[header]
-                      )}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+        {scannedData.length === 0 ? (
+            <p style={{ textAlign: 'center', color: '#555', marginTop: '20px' }}>
+                No hay datos para mostrar en la vista previa. Asegúrate de que el archivo Excel contenga datos válidos y que no haya errores durante el escaneo.
+            </p>
+        ) : (
+            <>
+                {/* Botón para alternar la visibilidad de la tabla */}
+                <button onClick={toggleTableVisibility} style={{ marginBottom: '15px' }}>
+                    {showTable ? 'Ocultar Tabla' : 'Mostrar Tabla'}
+                </button>
+
+                {/* La tabla se renderiza condicionalmente */}
+                {showTable && (
+                    <div className="table-container" style={{ overflowX: 'auto' }}>
+                        <table style={{ borderCollapse: 'collapse', width: '100%' }}>
+                            <thead>
+                                <tr>
+                                    {headers.map((header) => (
+                                        <th
+                                            key={header}
+                                            style={{ border: '1px solid #ddd', padding: '8px', backgroundColor: '#f2f2f2' }}
+                                        >
+                                            {header}
+                                        </th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {scannedData.map((row, index) => (
+                                    <tr key={index}>
+                                        {headers.map((header) => (
+                                            <td key={`${index}-${header}`} style={{ border: '1px solid #ddd', padding: '8px' }}>
+                                                {header === 'unidad_educativa' ? (
+                                                    <>
+                                                        {row.unidad_educativa?.nombre}
+                                                        {row.unidad_educativa?.departamento && ` (${row.unidad_educativa.departamento})`}
+                                                        {row.unidad_educativa?.provincia && `, ${row.unidad_educativa.provincia}`}
+                                                    </>
+                                                ) : header === 'tutor_legal' ? (
+                                                    <>
+                                                        Nombre: {row.tutor_legal?.nombres} {row.tutor_legal?.apellidos}<br />
+                                                        CI: {row.tutor_legal?.ci}<br />
+                                                        Teléfono: {row.tutor_legal?.telefono}<br />
+                                                        Email: {row.tutor_legal?.email}<br />
+                                                        Parentesco: {row.tutor_legal?.parentesco}
+                                                    </>
+                                                ) : header === 'areas_seleccionadas' ? (
+                                                    row.areas_seleccionadas?.map((area: { id_convocatoria_nivel: any }) => area.id_convocatoria_nivel).join(', ')
+                                                ) : header === 'tutores_academicos' ? (
+                                                    row.tutores_academicos?.length > 0 ? (
+                                                        row.tutores_academicos.map((tutor: { nombres: any; apellidos: any; ci: any; telefono: any; email: any }, index: number) => (
+                                                            <React.Fragment key={index}>
+                                                                Nombre: {tutor.nombres} {tutor.apellidos}<br />
+                                                                CI: {tutor.ci}<br />
+                                                                Teléfono: {tutor.telefono}<br />
+                                                                Email: {tutor.email}<br />
+                                                                {index < row.tutores_academicos.length - 1 && <hr />}
+                                                            </React.Fragment>
+                                                        ))
+                                                    ) : (
+                                                        'No asignado'
+                                                    )
+                                                ) : (
+                                                    row[header]
+                                                )}
+                                            </td>
+                                        ))}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </>
+        )}
 
       <div className="actions">
         <button onClick={onCancel}>Volver</button>

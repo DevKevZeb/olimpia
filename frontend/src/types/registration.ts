@@ -58,6 +58,7 @@ export interface EstudianteFormData {
   email: string;
   telefono?: string;
   id_grado: string;
+  genero: string;
   id_convocatoria: string;
   unidad_educativa: {
     id_unidad_educativa: number | null;
@@ -86,6 +87,7 @@ export interface FormErrors {
   email?: string;
   telefono?: string;
   id_grado?: string;
+  genero: string;
   unidad_educativa?: {
     nombre?: string;
     provincia?: string;

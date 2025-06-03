@@ -67,7 +67,7 @@ class EstudianteController extends ApiController
      */
     public function show(int $id): JsonResponse
     {
-        $estudiante = Estudiante::with(['unidadEducativa', 'grado', 'tutorLegal', 'inscripciones'])
+        $estudiante = Estudiante::with(['unidadEducativa', 'grado', 'tutorLegal'])
             ->find($id);
         
         if (!$estudiante) {
@@ -194,5 +194,64 @@ class EstudianteController extends ApiController
             ],
             'Resultados de búsqueda obtenidos correctamente'
            );
+    }
+
+    public function showWithJoins(int $id): JsonResponse
+    {
+        // 1. Selecciona campos específicos para evitar conflictos de nombres de columnas (si los hubiera)
+        // y para aplanar los datos de las relaciones.
+        $estudianteData = Estudiante::select(
+            'estudiantes.*', // Selecciona todos los campos de la tabla estudiantes
+            'unidades_educativas.nombre as unidad_educativa_nombre', // Renombra el campo para evitar colisiones
+            'unidades_educativas.departamento as unidad_educativa_departamento',
+            'unidades_educativas.provincia as unidad_educativa_provincia',
+            'grados.nombre_grado as grado_nombre', // Necesitas seleccionar el nombre del grado también
+            'tutores_legales.nombres as tutor_legal_nombres',
+            'tutores_legales.apellidos as tutor_legal_apellidos',
+            'tutores_legales.email as tutor_legal_email',
+            'tutores_legales.parentesco as tutor_legal_parentesco',
+            'tutores_legales.telefono as tutor_legal_telefono'
+        )
+        // 2. Asegúrate de que los nombres de las tablas en los joins sean correctos
+        ->leftJoin('unidades_educativas', 'estudiantes.id_unidad_educativa', '=', 'unidades_educativas.id_unidad_educativa')
+        ->leftJoin('grados', 'estudiantes.id_grado', '=', 'grados.id_grado') // Incluye la tabla de grados
+        ->leftJoin('tutores_legales', 'estudiantes.id_tutor_legal', '=', 'tutores_legales.id_tutor_legal')
+        // 3. ¡Importante! Estás buscando por 'ci', no por 'id'.
+        ->where('estudiantes.ci', $id) 
+        ->first(); // Usamos first() porque esperamos un único estudiante por CI
+
+        if (!$estudianteData) { // Ahora verificamos si el resultado es null
+            return $this->errorResponse('Estudiante no encontrado', 404);
+        }
+
+        // 4. Reconstruye el array para la respuesta JSON con los campos aplanados
+        $estudianteArray = [
+            'nombres' => $estudianteData->nombres,
+            'apellidos' => $estudianteData->apellidos,
+            'ci' => $estudianteData->ci,
+            'fecha_nacimiento' => $estudianteData->fecha_nacimiento,
+            'genero' => $estudianteData->genero,
+            'email' => $estudianteData->email,
+            'unidad_educativa' => [
+                'nombre' => $estudianteData->unidad_educativa_nombre,
+                'departamento' => $estudianteData->unidad_educativa_departamento,
+                'provincia' => $estudianteData->unidad_educativa_provincia,
+            ],
+            'grado' => [ // Añade la información del grado
+                'nombre' => $estudianteData->grado_nombre,
+            ],
+            'tutor_legal' => [
+                'nombres' => $estudianteData->tutor_legal_nombres,
+                'apellidos' => $estudianteData->tutor_legal_apellidos, // Aquí era un error, estaba 'nombres' de nuevo
+                'email' => $estudianteData->tutor_legal_email,
+                'parentesco' => $estudianteData->tutor_legal_parentesco,
+                'telefono' => $estudianteData->tutor_legal_telefono,
+            ],
+        ];
+
+        return response()->json([
+            'message' => 'Estudiante obtenido correctamente',
+            'data' => $estudianteArray,
+        ], 200);
     }
 }

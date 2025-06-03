@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Check, X } from 'lucide-react';
 
-import { getDatosInscripcion, inscribirEstudiante } from '../../api/registration/inscripcionCompletaApi';
+import { getDatosInscripcion, inscribirEstudiante, estudianteEstaInscrito } from '../../api/registration/inscripcionCompletaApi';
 import { 
   EstudianteFormData, 
   Convocatoria, 
@@ -60,6 +60,8 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
   const [encargadoCI, setEncargadoCI] = useState('');
   const [encargadoCorreo, setEncargadoCorreo] = useState('');
   const codigo_unico = `O-SANSI-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
+  
+  const [showEncargadoForm, setShowEncargadoForm] = useState(false);
   
   // Estados para la inscripción
   const [isLoading, setIsLoading] = useState(false);
@@ -149,6 +151,7 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
     updateActiveStudent,
     isStep2: step === 2  // Usamos esto solo para optimizar la visualización, no para bloquear la carga
   });
+
   // useEffect para cargar requisitos obligatorios cuando cambia la convocatoria
   useEffect(() => {
     const loadRequisitos = async () => {
@@ -226,6 +229,38 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
   // Función para enviar la inscripción
   const fetchCodigoUnico = async () => {
     try {
+        const payload = {
+          lista_inscripcion: estudiantes,
+          id_convocatoria: convocatoria!.id.toString(),
+        };
+        const response = await estudianteEstaInscrito(payload);
+        console.log('Respuesta de verificación exitosa:', response);
+    } catch (error: any) {
+      if (error.response?.status === 422 && error.response?.data?.errors) {
+        const messages = Object.values(error.response.data.errors).flat() as string[];
+        alert(`\nErrores de validación:\n${messages.join('\n')}`);
+        return;
+      } else if (error.response?.status === 409) {
+        alert("Opsie! El estudiante ya está inscrito en esta materia y nivel.");
+        return;
+      } else {
+        alert(`Opsie! Algo salió mal: ${error.response?.data?.message || error.message || 'Error desconocido'}`);
+        return;
+      }
+    }
+    
+    const isEmailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(encargadoCorreo);
+    const isEncargadoValido =
+      encargadoNombre.trim() !== '' &&
+      encargadoApellido.trim() !== '' &&
+      isEmailValido &&
+      encargadoCI.trim().length >= 7;
+
+    if (!isEncargadoValido) {
+      alert("Por favor completa correctamente todos los campos del encargado de pago antes de continuar.");
+      return;
+    }
+    try {
       const datos = {
         lista_inscripcion: estudiantes,
         id_convocatoria: convocatoria!.id.toString(),
@@ -286,6 +321,7 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
       fecha_nacimiento: '',
       email: '',
       id_grado: '',
+      genero: '',
       unidad_educativa: {
         id_unidad_educativa: null,
         nombre: '',
@@ -305,7 +341,9 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
       areas_seleccionadas: [],
       tutores_academicos: [],
     });
-  };  const handleNextStep = () => {
+  }
+  
+  const handleNextStep = () => {
     if (step === 1) {
       if (validateStep1Hook()) {
         const validation = validateStep1(formData, requisitosGuardados);
@@ -313,7 +351,8 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
         if (validation.camposObligatoriosVacios.length > 0) {
           setFormErrorMessage(`Por favor, complete los siguientes campos obligatorios: ${validation.camposObligatoriosVacios.join(', ')}`);
           return;
-        }        setFormErrorMessage('');
+        }        
+        setFormErrorMessage('');
         console.log("📋 RegistrationPage: Paso 1->2 - Datos del formulario:");
         console.log("  - formData completo:", JSON.stringify(formData, null, 2));
         console.log("  - id_grado:", formData.id_grado, "(tipo:", typeof formData.id_grado, ")");
@@ -341,6 +380,7 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
       setFormErrorMessage('');
       setStep(3);
     } else if (step === 3) {
+      setShowEncargadoForm(true);
       setStep(4);
     }
   };
@@ -365,13 +405,35 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
   };
 
   // Función que maneja la adición de un nuevo estudiante con validación
-  const handleAddNewStudent = () => {
+  const handleAddNewStudent = async () => {
+    try {
+        const payload = {
+          lista_inscripcion: estudiantes,
+          id_convocatoria: convocatoria!.id.toString(),
+        };
+        const response = await estudianteEstaInscrito(payload);
+        console.log('Respuesta de verificación exitosa:', response);
+    } catch (error: any) {
+      if (error.response?.status === 422 && error.response?.data?.errors) {
+        const messages = Object.values(error.response.data.errors).flat() as string[];
+        alert(`\nErrores de validación:\n${messages.join('\n')}`);
+        return;
+      } else if (error.response?.status === 409) {
+        alert("Opsie! El estudiante ya está inscrito en esta materia y nivel.");
+        return;
+      } else {
+        alert(`Opsie! Algo salió mal: ${error.response?.data?.message || error.message || 'Error desconocido'}`);
+        return;
+      }
+    }
     // Verificar si el estudiante actual tiene datos completos antes de permitir añadir uno nuevo
     if (!isCurrentStudentValid()) {
       setFormErrorMessage('Debe completar los datos del estudiante actual antes de agregar uno nuevo.');
       return;
     }
-      const newStudent = createNewEstudiante(convocatoria || undefined);
+    
+
+    const newStudent = createNewEstudiante(convocatoria || undefined);
     setEstudiantes([...estudiantes, newStudent]);
     setActiveStudentIndex(estudiantes.length);
     
@@ -510,7 +572,8 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
               onPrevStep={() => setStep(2)}
               onNextStep={handleNextStep}
             />
-          )}          {step === 4 && (            <ResumenInscripcion
+          )}          {step === 4 && (            
+            <ResumenInscripcion
               convocatoria={convocatoria}
               estudiantes={estudiantes}
               grados={grados}
@@ -519,6 +582,7 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
               encargadoApellido={encargadoApellido}
               encargadoCorreo={encargadoCorreo}
               encargadoCI={encargadoCI}
+              showEncargadoForm={showEncargadoForm}
               isModalOpen={isModalOpen}
               isBoletaModalOpen={isBoletaModalOpen}
               isComprobanteModalOpen={isComprobanteModalOpen}
@@ -534,7 +598,9 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
               onCloseModal={closeModal}
               onCloseBoletaModal={closeBoletaModal}
               onSetIsComprobanteModalOpen={setIsComprobanteModalOpen}
-              onFetchCodigoUnico={fetchCodigoUnico}              onAddNewStudent={handleAddNewStudent}
+              onFetchCodigoUnico={fetchCodigoUnico} 
+              onFinalizeRegistration={fetchCodigoUnico}             
+              onAddNewStudent={handleAddNewStudent}
               onPrevStep={() => setStep(3)}
             />
           )}
@@ -577,6 +643,10 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
                   <div>
                     <p className="text-sm text-gray-500">Fecha de Nacimiento</p>
                     <p className="font-medium">{selectedStudentDetails.fecha_nacimiento}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Genero</p>
+                    <p className="font-medium">{selectedStudentDetails.genero}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Email</p>

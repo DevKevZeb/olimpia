@@ -9,7 +9,7 @@ interface Props {
 }
 
 const RegistroRequisitos: React.FC<Props> = ({ initialConvocatoriaId }) => {
-  const [convocatorias, setConvocatorias] = useState<{ id_convocatoria: number; nombre: string }[]>([]);
+  const [convocatorias, setConvocatorias] = useState<{ id_convocatoria: number; estado: String; nombre: string }[]>([]);
   const [selectedConvocatoriaId, setSelectedConvocatoriaId] = useState<number | undefined>(initialConvocatoriaId);
   const [requisitosGuardados, setRequisitosGuardados] = useState<Record<string, boolean>>({});
   const [loadingConvocatorias, setLoadingConvocatorias] = useState(true);
@@ -29,7 +29,8 @@ const RegistroRequisitos: React.FC<Props> = ({ initialConvocatoriaId }) => {
     const loadConvocatorias = async () => {
       try {
         const data = await fetchConvocatorias();
-        setConvocatorias(data);
+        const openConvocatorias = data.filter(c => c.estado === 'planificada');
+        setConvocatorias(openConvocatorias);
         setLoadingConvocatorias(false);
         if (initialConvocatoriaId) {
           setSelectedConvocatoriaId(initialConvocatoriaId);

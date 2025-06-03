@@ -15,7 +15,7 @@ export default function AmpliarFecha() {
 
   const obtenerConvocatorias = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/api/convocatorias');
+      const response = await axios.get('http://localhost:8000/api/v1/convocatorias');
       setConvocatorias(response.data.data);
     } catch (err) {
       setError('No se pudo obtener la lista de convocatorias.');

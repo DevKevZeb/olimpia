@@ -6,6 +6,7 @@ use App\Models\Grado;
 use App\Models\OrdenPago;
 use App\Models\Estudiante;
 use App\Models\TutorLegal;
+use App\Models\Inscripcion;
 use Illuminate\Support\Str;
 use App\Models\Convocatoria;
 use App\Models\ConvocatoriaArea;
@@ -82,10 +83,67 @@ class InscripcionCompletaController extends ApiController
         ], 'Áreas y niveles obtenidos correctamente');
     }
 
+    public function estudianteEstaInscrito(Request $request){
+        $validator = Validator::make($request->all(), [
+            'lista_inscripcion' => 'required|array',
+            'id_convocatoria' => 'required|string',
+        ]);
+        $convocatoria = Convocatoria::find($request->id_convocatoria);
+        if (!$convocatoria || $convocatoria->estado !== 'abierta') {
+            return $this->errorResponse('La convocatoria no está abierta para inscripciones', 422);
+        }
+        $inscripciones = $request->lista_inscripcion;
+        $erroresInscripcion = [];
+        foreach ($inscripciones as $index => $inscripcionData) {
+            $validatorInscripcion = Validator::make($inscripcionData, [
+                // Datos del estudiante
+                'nombres' => 'required|string|max:100',
+                'apellidos' => 'required|string|max:100',
+                'ci' => 'required|string|max:20',
+                'id_grado' => 'required|exists:grados,id_grado',
 
+                // Datos de la convocatoria y áreas seleccionadas
+                'areas_seleccionadas' => 'required|array|min:1',
+                'areas_seleccionadas.*.id_convocatoria_nivel' => 'required|exists:convocatoria_niveles,id_convocatoria_nivel',
+            ]);
+    
+            if ($validatorInscripcion->fails()) {
+                $erroresInscripcion[$inscripcionData['ci']] = $validatorInscripcion->errors()->first();
+                continue; // Si la validación básica falla, no continuamos con las otras verificaciones para este estudiante
+            }
+        
+            // 1. Verificar el máximo de áreas permitidas por estudiante
+            if (count($inscripcionData['areas_seleccionadas']) > $convocatoria->max_areas_por_estudiante) {
+                $erroresInscripcion[$inscripcionData['ci']] = "Se ha excedido el máximo de áreas permitidas ({$convocatoria->max_areas_por_estudiante}) para este estudiante.";
+                continue;
+            }
+    
+            $areasInscritas = [];
+            foreach ($inscripcionData['areas_seleccionadas'] as $areaSeleccionada) {
+                $idConvocatoriaNivel = $areaSeleccionada['id_convocatoria_nivel'];
+    
+                // 2. Verificar si el estudiante ya está inscrito en este nivel de competencia
+                if ($this->estaInscritoArea($inscripcionData['ci'], $idConvocatoriaNivel)) {
+                    $nombreArea = $this->getNombreArea($idConvocatoriaNivel);
+                    $erroresInscripcion[$inscripcionData['ci']] = "El estudiante con CI {$inscripcionData['ci']} ya está inscrito en el área '{$nombreArea}'.";
+                    continue 2; // Salir del bucle de áreas para este estudiante
+                }
+    
+                $areasInscritas[] = $idConvocatoriaNivel;
+            }
+        }
+    
+        // Si hay errores en la verificación previa, los devolvemos sin iniciar la transacción
+        if (!empty($erroresInscripcion)) {
+            return $this->errorResponse('No se pudieron inscribir algunos estudiantes debido a los siguientes errores:', 422, $erroresInscripcion);
+        }
+
+        return $this->successResponse(null, 'Todos los estudiantes pueden ser inscritos sin problemas de duplicidad o límites de áreas.', 200);
+    }
     
     public function inscribirEstudiante(Request $request)
     {
+        Log::info(__FUNCTION__);
         $validator = Validator::make($request->all(), [
             'lista_inscripcion' => 'required|array',
             'id_convocatoria' => 'required|string',
@@ -103,11 +161,6 @@ class InscripcionCompletaController extends ApiController
             return $this->errorResponse('La convocatoria no está abierta para inscripciones', 422);
         }
     
-        $listaInscripcion = ListaInscripcion::create([
-            'codigo_lista' => null,
-            'id_unidad_educativa' => null,
-            'fecha_creacion' => now()
-        ]);
         $montoTotal = 0;
         $inscripciones = $request->lista_inscripcion;
         $erroresInscripcion = []; // Array para almacenar errores por estudiante
@@ -189,6 +242,12 @@ class InscripcionCompletaController extends ApiController
         if (!empty($erroresInscripcion)) {
             return $this->errorResponse('No se pudieron inscribir algunos estudiantes debido a los siguientes errores:', 422, $erroresInscripcion);
         }
+
+        $listaInscripcion = ListaInscripcion::create([
+            'codigo_lista' => null,
+            'id_unidad_educativa' => null,
+            'fecha_creacion' => now()
+        ]);
     
         // Si no hay errores, iniciamos la transacción para realizar las inscripciones
         DB::beginTransaction();
@@ -319,11 +378,13 @@ class InscripcionCompletaController extends ApiController
                     $convocatoriaNivel = ConvocatoriaNivel::with('convocatoriaArea')->find($idConvocatoriaNivel);
                     $montoTotal += $convocatoriaNivel->convocatoriaArea->costo_inscripcion;
                 }
-            }            // 5. Crear orden de pago (misma lógica que antes)
+            }
+    
+            // 5. Crear orden de pago (misma lógica que antes)
             $ordenPago = OrdenPago::create([
                 'codigo_unico' => $request->codigo_unico,
                 'tipo_origen' => 'lista',
-                // Removed id_inscripcion since individual inscriptions are no longer supported
+                'id_inscripcion' => null,
                 'id_lista' => $listaInscripcion->id_lista,
                 'monto_total' => $montoTotal,
                 'fecha_emision' => now(),
@@ -382,14 +443,9 @@ class InscripcionCompletaController extends ApiController
     /**
      * Procesa la inscripción completa de un estudiante
      */
-    /**
-     * OBSOLETE METHOD - This method uses the old individual Inscripcion model
-     * which was deleted. This method should be removed or updated to use 
-     * the new DetalleListaInscripcion system.
-     * Currently not used in routes.
-     */
     public function inscribirEstud(Request $request)
     {
+        Log::info(__FUNCTION__);
         $validator = Validator::make($request->all(), [
             // Datos del estudiante
             'nombres' => 'required|string|max:100',
@@ -642,12 +698,14 @@ class InscripcionCompletaController extends ApiController
                 // Sumar el costo de inscripción al monto total
                 $convocatoriaNivel = ConvocatoriaNivel::with('convocatoriaArea')->find($areaSeleccionada['id_convocatoria_nivel']);
                 $montoTotal += $convocatoriaNivel->convocatoriaArea->costo_inscripcion;
-            }            // 5. Crear orden de pago (updated to use lista-only approach)
+            }
+
+            // 5. Crear orden de pago
             $ordenPago = OrdenPago::create([
                 'codigo_unico' => $request->codigo_unico,
-                'tipo_origen' => 'lista',
-                // Removed id_inscripcion since individual inscriptions are no longer supported
-                'id_lista' => $listaInscripcion->id_lista,
+                'tipo_origen' => 'individual',
+                'id_inscripcion' => $inscripciones[0]->id_inscripcion, // Asociamos a la primera inscripción
+                'id_lista' => null,
                 'monto_total' => $montoTotal,
                 'fecha_emision' => now(),
                 'fecha_vencimiento' => now()->addDays(5), // 5 días para pagar

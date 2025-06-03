@@ -41,8 +41,6 @@ class Estudiante extends Model
         return $this->belongsTo(TutorLegal::class, 'id_tutor_legal');
     }
 
-    // Replaced inscripciones() relationship since Inscripcion model was deleted
-    // All registrations now go through detalles_lista_inscripcion
     public function detallesLista()
     {
         return $this->hasMany(DetalleListaInscripcion::class, 'id_estudiante');

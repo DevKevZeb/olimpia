@@ -70,6 +70,28 @@ export const inscribirEstudiante = async (data: any ) => {
   }
 };
 
+export const estudianteEstaInscrito = async (data: any ) => {
+  try {
+    const response = await axiosInstance.post('/v1/public/estudiante-esta-inscrito', data);
+    return response.data?.data || response.data;
+  } catch (error) {
+    console.error('Error al inscribir estudiante:', error);
+    console.error('Detalles del error de validación:', error.response?.data);
+    throw error;
+  }
+};
+
+export const getDatosEstudiante = async (ci: number | string) => {
+  try {
+    const response = await axiosInstance.get(`/v1/show/${ci}`);
+    console.log('🌐 API: Respuesta recibida:', response.data);
+    return response.data?.data || response.data;
+  } catch (error) {
+    console.error('❌ API: Error al obtener los datos del estudiante:', error);
+    throw error;
+  }
+};
+
 /**
  * Procesa la inscripción completa de un estudiante
  * @param data Datos completos del formulario de inscripción

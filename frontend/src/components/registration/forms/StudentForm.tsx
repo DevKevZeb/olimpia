@@ -1,6 +1,7 @@
 import React from 'react';
 import { Calendar, ChevronRight, AlertCircle } from 'lucide-react';
 import { EstudianteFormData, FormErrors, Grado } from '../../../types/registration';
+import { getDatosEstudiante } from '../../../api/registration/inscripcionCompletaApi';
 
 interface StudentFormProps {
   formData: EstudianteFormData;
@@ -25,8 +26,26 @@ const StudentForm: React.FC<StudentFormProps> = ({
   onNestedChange,
   onNextStep,
   onStudentInfoLoaded,
-  onTutorLoaded
+  onTutorLoaded,
 }) => {
+
+  const cargarDatosEstudiante = async (ci: string) => {
+    try {
+      const data = await getDatosEstudiante(ci);
+      if (data) {
+        if (!formData.nombres) onFormChange('nombres', data.nombres || '');
+        if (!formData.apellidos) onFormChange('apellidos', data.apellidos || '');
+        if (!formData.fecha_nacimiento) onFormChange('fecha_nacimiento', data.fecha_nacimiento || '');
+        if (!formData.email) onFormChange('email', data.email || '');
+        if (!formData.genero) onFormChange('genero', data.genero || '');
+        if (!formData.telefono) onFormChange('telefono', data.telefono || '');
+        if (!formData.unidad_educativa?.nombre) onNestedChange('unidad_educativa', 'nombre', data.unidad_educativa?.nombre || '');
+      }
+    } catch (error) {
+      console.error('Error al cargar datos del estudiante', error);
+    }
+  };
+
   return (
     <div>
       <h3 className="text-lg font-semibold mb-2">Datos Personales</h3>
@@ -47,23 +66,26 @@ const StudentForm: React.FC<StudentFormProps> = ({
             Cédula de Identidad<span className="text-red-500">*</span>
           </label>
           <input
-            type="number"
+            type="text"
+            inputMode="numeric"
+            pattern="\d*"
             id="cedula"
+            maxLength={8}
             className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
             placeholder="Número de CI"
-            value={formData.ci}            onChange={(e) => {
-              onFormChange('ci', e.target.value);
-              onStudentInfoLoaded(e.target.value);
-            }}
-            onKeyPress={(event: React.KeyboardEvent<HTMLInputElement>) => {
-              if ((event.target as HTMLInputElement).value.length >= 8 && event.key !== 'Backspace' && event.key !== 'Delete' && !(event.ctrlKey && (event.key === 'c' || event.key === 'v'))) {
-                event.preventDefault();
+            value={formData.ci ?? ''}
+            onChange={(e) => {
+              const ci = e.target.value;
+              // Solo permitir dígitos numéricos y hasta 8 caracteres
+              if (/^\d*$/.test(ci) && ci.length <= 9) {
+                onFormChange('ci', ci);
+                // Solo llamar si ya tiene 7 dígitos y nombre vacío
+                if (ci.length === 7 && !formData.nombre) {
+                  cargarDatosEstudiante(ci);
+                }
               }
             }}
             required
-            min="0" 
-            step="1"
-            maxLength={8}
           />
           {formErrors.ci && <p className="text-red-500 text-xs mt-1">{formErrors.ci}</p>}
         </div>
@@ -141,6 +163,24 @@ const StudentForm: React.FC<StudentFormProps> = ({
             required
           />
         </div>
+
+        {/* Genero */}
+        <div>
+            <label htmlFor="genero" className="block text-sm font-medium text-gray-700 mb-1">
+              Genero<span className="text-red-500">*</span>
+            </label>
+            <select
+              id="genero"
+              className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 bg-white"
+              value={formData.genero}
+              onChange={(e) => onFormChange('genero', e.target.value)}
+              required
+            >
+              <option value="">Seleccione su genero</option>
+              <option value="Masculino">Masculino</option>
+              <option value="Femenino">Femenino</option>
+            </select>
+          </div>
 
         {/* Teléfono */}
         <div>
