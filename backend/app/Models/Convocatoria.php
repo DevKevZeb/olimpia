@@ -73,12 +73,11 @@ class Convocatoria extends Model
         $areasAsignadas = $this->areas()->count() > 0;
 
         // Verificar niveles configurados
-        $nivelesConfigurados = $this->niveles()->count() > 0;
-
-        // Verificar costos establecidos
-        $costosEstablecidos = $this->areas()
-            ->where('costo_inscripcion', '>', 0)
-            ->count() === $this->areas()->count();
+        $nivelesConfigurados = $this->niveles()->count() > 0;        // Verificar costos establecidos
+        // Debe tener áreas asignadas Y todas deben tener costo > 0
+        $totalAreas = $this->areas()->count();
+        $areasConCosto = $this->areas()->where('costo_inscripcion', '>', 0)->count();
+        $costosEstablecidos = $totalAreas > 0 && $areasConCosto === $totalAreas;
 
         return [
             'areas_asignadas' => $areasAsignadas,
