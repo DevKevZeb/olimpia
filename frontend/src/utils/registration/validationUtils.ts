@@ -53,15 +53,20 @@ export const validateField = (name: string, value: any) => {
       } else if (value && !/^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]*$/.test(value)) {
         error = 'No se permiten números ni caracteres especiales.';
       }
-      break;
-    case 'unidad_educativa.provincia':
-    case 'tutor_legal.parentesco':
+      break;    case 'unidad_educativa.provincia':
       if (value && value.length > 50) {
         error = 'Debe contener menos de 50 caracteres.';
       } else if (value && !/^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]*$/.test(value)) {
         error = 'No se permiten números ni caracteres especiales.';
       }
-      break;    case 'id_grado':
+      break;
+    case 'tutor_legal.parentesco':
+      if (value && value.length > 50) {
+        error = 'Debe contener menos de 50 caracteres.';
+      } else if (value && !/^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s/]*$/.test(value)) {
+        error = 'No se permiten números ni caracteres especiales (excepto /).';
+      }
+      break;case 'id_grado':
       if (!value) {
         error = 'Debe seleccionar un grado.';
       }
