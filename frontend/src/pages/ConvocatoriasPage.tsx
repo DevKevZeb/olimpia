@@ -12,7 +12,7 @@ function formatNombre(str: string): string {
 }
 
 export default function ConvocatoriasPage() {
-  const { convocatorias, loading } = useConvocatorias();
+  const { convocatorias, loading, refetch } = useConvocatorias();
   const [isLoading, setIsLoading] = useState(false);
   const [showCrearConvocatoriaForm, setShowCrearConvocatoriaForm] = useState(false);  const [formDataConvocatoria, setFormDataConvocatoria] = useState({
     nombre: '',
@@ -109,10 +109,9 @@ export default function ConvocatoriasPage() {
         fecha_inicio_inscripcion: '',
         fecha_fin_inscripcion: '',
         max_areas_por_estudiante: 2,
-      });
-      setShowCrearConvocatoriaForm(false);
-      // Refresh the page to show the new convocatoria
-      window.location.reload();    } catch (error) {
+      });      setShowCrearConvocatoriaForm(false);
+      // Refresh data instead of reloading the entire page
+      await refetch();} catch (error) {
       const err = error as { response?: { data?: { message?: string } } };
       if (err.response?.data?.message) {
         setFormErrors(prev => ({...prev, general: `Error: ${err.response?.data?.message}`}));
@@ -224,11 +223,10 @@ export default function ConvocatoriasPage() {
                       <div className="text-sm text-gray-900">
                         al {new Date(convocatoria.fecha_fin_inscripcion).toLocaleDateString()}
                       </div>
-                    </td>
-                    <td className="px-6 py-4">
+                    </td>                    <td className="px-6 py-4">
                       <EstadoConvocatoria 
                         convocatoriaId={convocatoria.id_convocatoria}
-                        onEstadoChanged={() => window.location.reload()}
+                        onEstadoChanged={() => refetch()}
                       />
                     </td>
                     <td className="px-6 py-4">

@@ -140,9 +140,8 @@ Route::prefix('v1')->group(function () {
     // Endpoints para página de Administración
     Route::get('/admin/dashboard-data', [AdminDashboardController::class, 'getDashboardData']);
     //Route::post('/admin/convocatorias/completa', [ConvocatoriaCompletaController::class, 'crearConvocatoriaCompleta']);
-    //Route::get('/admin/convocatorias/{id}/completa', [ConvocatoriaCompletaController::class, 'getConvocatoriaCompleta']);
-
-    // Endpoints para el panel de administración de convocatorias
+    //Route::get('/admin/convocatorias/{id}/completa', [ConvocatoriaCompletaController::class, 'getConvocatoriaCompleta']);    // Endpoints para el panel de administración de convocatorias
+    Route::get('/admin/convocatorias', [AdminConvocatoriaController::class, 'getAllConvocatorias']);
     Route::get('/admin/convocatorias-activas', [AdminConvocatoriaController::class, 'getConvocatoriasActivas']);
     Route::get('/admin/convocatorias-planificadas', [AdminConvocatoriaController::class, 'getConvocatoriasPlanificadas']);
     Route::get('/admin/areas-competencia', [AdminConvocatoriaController::class, 'getAreasCompetencia']);

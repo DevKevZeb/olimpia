@@ -512,15 +512,15 @@ class AdminConvocatoriaController extends ApiController
 
     /**
      * Obtiene las transiciones válidas para un estado
-     */
-    private function getTransicionesValidas(string $estado): array
+     */    private function getTransicionesValidas(string $estado): array
     {
         $transiciones = [
             'planificada' => [
                 ['estado' => 'abierta', 'label' => 'Abrir Convocatoria', 'requiere_validacion' => true]
             ],
             'abierta' => [
-                ['estado' => 'cerrada', 'label' => 'Cerrar Convocatoria', 'requiere_validacion' => false]
+                // No hay transiciones manuales desde abierta
+                // El cierre es automático cuando pasa la fecha
             ],
             'cerrada' => [
                 ['estado' => 'finalizada', 'label' => 'Finalizar Convocatoria', 'requiere_validacion' => false]
@@ -529,5 +529,22 @@ class AdminConvocatoriaController extends ApiController
         ];
 
         return $transiciones[$estado] ?? [];
+    }
+
+    /**
+     * Obtiene todas las convocatorias (todos los estados)
+     * 
+     * @return JsonResponse
+     */
+    public function getAllConvocatorias(): JsonResponse
+    {
+        $convocatorias = Convocatoria::with(['areas.area'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return $this->successResponse(
+            $convocatorias,
+            'Todas las convocatorias obtenidas correctamente'
+        );
     }
 }

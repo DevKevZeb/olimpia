@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getConvocatoriasActivas , getConvocatoriasPlanificadas } from '../api/adminConvocatoriaApi';
+import { getAllConvocatorias, getConvocatoriasPlanificadas } from '../api/adminConvocatoriaApi';
 
 interface Area {
   id_area: number;
@@ -24,17 +24,22 @@ interface Convocatoria {
 export function useConvocatorias() {
   const [convocatorias, setConvocatorias] = useState<Convocatoria[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);  const refetch = useCallback(async () => {
+  const [error, setError] = useState<Error | null>(null);
+
+  const refetch = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await getConvocatoriasActivas();
+      const data = await getAllConvocatorias();
       setConvocatorias(data || []);
+      setError(null);
     } catch (err) {
       setError(err as Error);
+      setConvocatorias([]);
     } finally {
       setLoading(false);
     }
   }, []);
+
   useEffect(() => {
     refetch();
   }, [refetch]);

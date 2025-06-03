@@ -53,19 +53,20 @@ const EstadoConvocatoria: React.FC<EstadoConvocatoriaProps> = ({
       setLoading(false);
     }
   }, [convocatoriaId]);
-
   useEffect(() => {
     cargarEstadoInfo();
   }, [cargarEstadoInfo]);
-
   const handleTransicion = async (nuevoEstado: string) => {
     setTransitioning(nuevoEstado);
     setError(null);
     
     try {
       await transicionarEstadoConvocatoria(convocatoriaId, nuevoEstado);
+      // Recargar la información del estado primero
       await cargarEstadoInfo();
-      onEstadoChanged?.();    } catch (err: unknown) {
+      // Luego notificar al componente padre para actualizar la lista
+      onEstadoChanged?.();
+    } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string; data?: unknown } } };
       const errorMessage = error.response?.data?.message || 'Error al cambiar estado';
       setError(errorMessage);
@@ -74,7 +75,7 @@ const EstadoConvocatoria: React.FC<EstadoConvocatoriaProps> = ({
       if (error.response?.data?.data) {
         console.log('Requisitos faltantes:', error.response.data.data);
       }
-    }finally {
+    } finally {
       setTransitioning(null);
     }
   };
@@ -148,9 +149,7 @@ const EstadoConvocatoria: React.FC<EstadoConvocatoriaProps> = ({
             {estadoInfo.estado_actual}
           </span>
         </div>
-      </div>
-
-      {error && (
+      </div>      {error && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md flex items-center">
           <ExclamationTriangleIcon className="w-5 h-5 text-red-400 mr-2" />
           <span className="text-red-700 text-sm">{error}</span>
@@ -194,6 +193,30 @@ const EstadoConvocatoria: React.FC<EstadoConvocatoriaProps> = ({
               </ul>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Información para convocatoria abierta */}
+      {estadoInfo.estado_actual === 'abierta' && (
+        <div className="mb-6">
+          <h4 className="text-md font-medium text-gray-800 mb-3">
+            Estado de la Convocatoria Abierta
+          </h4>
+          
+          <div className="p-4 bg-green-50 border border-green-200 rounded-md">
+            <div className="flex items-start">
+              <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-medium text-green-800 mb-2">
+                  ✅ Convocatoria actualmente abierta para inscripciones
+                </p>
+                <p className="text-sm text-green-700">
+                  La convocatoria se cerrará automáticamente cuando pase la fecha fin de inscripciones. 
+                  No es necesario realizar ninguna acción manual.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

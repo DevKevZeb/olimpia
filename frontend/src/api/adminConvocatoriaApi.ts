@@ -231,3 +231,16 @@ export const cerrarConvocatoriasExpiradas = async () => {
     throw error;
   }
 };
+
+/**
+ * Obtiene todas las convocatorias (todos los estados)
+ */
+export const getAllConvocatorias = async () => {
+  try {
+    const response = await axiosInstance.get('/v1/admin/convocatorias');
+    return response.data?.data || response.data;
+  } catch (error) {
+    console.error('Error al obtener todas las convocatorias:', error);
+    throw error;
+  }
+};
