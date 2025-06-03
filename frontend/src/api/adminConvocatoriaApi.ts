@@ -166,6 +166,8 @@ export const getAreasPorConvocatoria = async (idConvocatoria) => {
 export const getNivelesPorConvocatoria = async (idConvocatoria, idAreaConvocatoria = null) => {
   try {
     const areas = idAreaConvocatoria ? `/${idAreaConvocatoria}` : '' ;   
+
+    console.log("entonces ", `/v1/admin/convocatorias/${idConvocatoria}/niveles${areas}`); 
     const response = await axiosInstance.get(`/v1/admin/convocatorias/${idConvocatoria}/niveles${areas}`);
     return response.data?.data || response.data;
   } catch (error) {
