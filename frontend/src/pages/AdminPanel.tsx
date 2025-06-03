@@ -70,11 +70,10 @@ export default function AdminPanel() {
   const handleLogout = () => {
     logout();
   };
-
   return (
     <div className="flex min-h-screen bg-gray-50">
       {/* Sidebar */}
-      <aside className="w-64 bg-white border-r shadow-sm hidden md:flex flex-col">
+      <aside className="w-64 bg-white border-r shadow-sm hidden md:flex flex-col fixed left-0 top-0 h-screen z-10">
         <div className="h-20 flex items-center justify-center border-b">
           <span className="text-2xl font-bold text-blue-700">Administrador</span>
         </div>
@@ -98,7 +97,7 @@ export default function AdminPanel() {
           </div>
         </div>
         
-        <nav className="flex-1 py-6">
+        <nav className="flex-1 py-6 overflow-y-auto">
           <ul className="space-y-2">
             {navItems.map(item => (
               <li key={item.path}>
@@ -130,8 +129,9 @@ export default function AdminPanel() {
           </button>
         </div>
       </aside>
-      {/* Main content */}
-      <main className="flex-1 p-6 md:p-12">        <Routes>
+      
+      {/* Main content with left margin to account for fixed sidebar */}
+      <main className="flex-1 p-6 md:p-12 md:ml-64"><Routes>
           <Route path="" element={<DashboardHome />} />
           <Route path="convocatorias" element={<ConvocatoriasPage />} />
           <Route path="ampliar-fecha" element={<AmpliarFecha />} />
