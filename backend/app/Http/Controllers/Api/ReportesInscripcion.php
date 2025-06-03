@@ -37,7 +37,7 @@ class ReportesInscripcion extends ApiController
         if($campo == 'provincia' ){
             $departamento = $request->query('departamento');
             $provincia = $request->query('provincia');
-            return $this->getDataPorProvincia($id,$provincia);
+            return $this->getDataPorProvincia($id, $departamento, $provincia);
         }
 
         if($campo == 'nivel' ){
@@ -271,7 +271,7 @@ class ReportesInscripcion extends ApiController
         return $this->successResponse($resultados, 'Datos de la convocatoria obtenidos exitosamente.');
     }
 
-    private function getDataPorProvincia($convocatoriaId, $departamento)
+    private function getDataPorProvincia($convocatoriaId, $departamento, $provincia)
     {
         $convocatoriaAreas = ConvocatoriaArea::where('id_convocatoria', $convocatoriaId)
             ->join('areas_competencia', 'convocatoria_areas.id_area', '=', 'areas_competencia.id_area')
@@ -293,7 +293,7 @@ class ReportesInscripcion extends ApiController
                 $listaInscripciones = DetalleListaInscripcion::where('id_convocatoria_nivel', $convocatoriaNivel->id_convocatoria_nivel)
                     ->with(['estudiante' => function ($query) {
                         $query->select(['id_estudiante', 'nombres', 'apellidos', 'ci', 'id_grado', 'id_unidad_educativa', 'id_tutor_legal'])
-                            ->with(['grado:id_grado,nombre_grado', 'unidadEducativa:id_unidad_educativa,nombre,departamento', 'tutorLegal:id_tutor_legal,nombres,apellidos,ci']);
+                            ->with(['grado:id_grado,nombre_grado', 'unidadEducativa:id_unidad_educativa,nombre,departamento,provincia', 'tutorLegal:id_tutor_legal,nombres,apellidos,ci']);
                     }])
                     ->select(['id_detalle', 'id_estudiante', 'id_lista', 'fecha_registro']) // Seleccionamos id_lista
                     ->get();
@@ -311,7 +311,10 @@ class ReportesInscripcion extends ApiController
                     if ($ordenPago) {
                         $estadoInscripcion = $ordenPago->estado;
                     }
-                    if($inscripcion->estudiante->unidadEducativa->departamento !== $departamento)
+                    if(
+                        $inscripcion->estudiante->unidadEducativa->departamento !== $departamento ||
+                        $inscripcion->estudiante->unidadEducativa->provincia !== $provincia
+                    )
                     {
                         continue;
                     }

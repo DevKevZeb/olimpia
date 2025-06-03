@@ -331,8 +331,6 @@ class AdminConvocatoriaController extends ApiController
             $convocatoria = Convocatoria::findOrFail($id);
             
             // Obtener las áreas de la convocatoria
-            $areasConvocatoria = ConvocatoriaArea::where('id_convocatoria', $id)->get();
-            $idAreasConvocatoria = $areasConvocatoria->pluck('id_convocatoria_area')->toArray();
             if($id_area){
                 $areasConvocatoria = ConvocatoriaArea::where([
                     ['id_convocatoria', '=' ,$id],
@@ -341,6 +339,7 @@ class AdminConvocatoriaController extends ApiController
             }else{
                 $areasConvocatoria = ConvocatoriaArea::where('id_convocatoria', $id)->get();
             }
+            $idAreasConvocatoria = $areasConvocatoria->pluck('id_convocatoria_area')->toArray();
 
             // Obtener los niveles asignados a esas áreas
             $nivelesAsignados = ConvocatoriaNivel::whereIn('id_convocatoria_area', $idAreasConvocatoria)
