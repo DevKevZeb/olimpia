@@ -87,7 +87,7 @@ export interface FormErrors {
   email?: string;
   telefono?: string;
   id_grado?: string;
-  genero: string;
+  genero?: string;
   unidad_educativa?: {
     nombre?: string;
     provincia?: string;

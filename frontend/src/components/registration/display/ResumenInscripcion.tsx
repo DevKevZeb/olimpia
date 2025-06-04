@@ -231,17 +231,6 @@ const ResumenInscripcion: React.FC<ResumenInscripcionProps> = ({
           </div>
         </div>
         
-        <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-md mb-6">
-          <p className="font-medium text-yellow-800 mb-1">Importante: Su inscripción no está completa</p>
-          <p className="text-sm text-yellow-700 mb-2">Para completar su inscripción, siga estos pasos:</p>
-          <ol className="text-sm text-yellow-700 list-decimal pl-5 space-y-1">
-            <li>Descargue la boleta de pago consolidada para todos los estudiantes</li>
-            <li>Realice el pago en las cajas de la facultad</li>
-            <li>Regrese a la página de inscripción e introduzca su código de inscripción</li>
-            <li>Suba el comprobante de pago para finalizar la inscripción de todos los estudiantes</li>
-          </ol>
-        </div>
-        
         {/* Botones de acción */}
         <div className="flex gap-3 mb-6">
           <button

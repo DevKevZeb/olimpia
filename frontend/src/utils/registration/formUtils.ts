@@ -37,9 +37,11 @@ export const updateRequisitosValues = (
           break;
         case 'APELLIDOS':
           fieldValue = formData.apellidos;
-          break;
-        case 'TELEFONO':
+          break;        case 'TELEFONO':
           fieldValue = formData.telefono;
+          break;
+        case 'GENERO':
+          fieldValue = formData.genero;
           break;
       }
     } else if (entidad === 'TUTOR_LEGAL') {
@@ -92,12 +94,12 @@ export const updateRequisitosValues = (
  */
 export const createNewEstudiante = (convocatoria?: Convocatoria): EstudianteFormData => {
   console.log('🆕 createNewEstudiante: Creando nuevo estudiante con convocatoria:', convocatoria?.id);
-  
-  return {
+    return {
     id: Date.now().toString(), // Temporary ID for client-side tracking (converted to string)
     ci: '',
     nombres: '',
     apellidos: '',
+    genero: '',
     fecha_nacimiento: '',
     telefono: '',
     email: '',
@@ -404,7 +406,8 @@ export const isCurrentStudentValid = (estudiantes: EstudianteFormData[], activeS
   const currentStudent = estudiantes[activeStudentIndex];
   if (!currentStudent) return false;
   
-  return !!(
+  // Verificar datos básicos del estudiante
+  const hasBasicData = !!(
     currentStudent.nombres &&
     currentStudent.apellidos &&
     currentStudent.ci &&
@@ -413,6 +416,21 @@ export const isCurrentStudentValid = (estudiantes: EstudianteFormData[], activeS
     currentStudent.id_grado &&
     currentStudent.unidad_educativa?.nombre
   );
+  
+  // Verificar datos del tutor legal
+  const hasTutorData = !!(
+    currentStudent.tutor_legal?.nombres &&
+    currentStudent.tutor_legal?.apellidos &&
+    currentStudent.tutor_legal?.ci
+  );
+  
+  // Verificar que tenga al menos un área seleccionada
+  const hasSelectedAreas = !!(
+    currentStudent.areas_seleccionadas &&
+    currentStudent.areas_seleccionadas.length > 0
+  );
+  
+  return hasBasicData && hasTutorData && hasSelectedAreas;
 };
 
 /**

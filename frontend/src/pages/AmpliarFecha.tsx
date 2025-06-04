@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
 interface Convocatoria {
-  id_convocatoria: number;
+  id: number;
   nombre: string;
   fecha_fin_inscripcion: string;
 }
@@ -40,7 +40,7 @@ export default function AmpliarFecha() {
     setError('');
     try {
       await axios.put(
-        `http://localhost:8000/api/convocatorias/${seleccionada.id_convocatoria}/ampliar-fecha`,
+        `http://localhost:8000/api/convocatorias/${seleccionada.id}/ampliar-fecha`,
         { nueva_fecha: nuevaFecha }
       );
 
@@ -77,10 +77,10 @@ export default function AmpliarFecha() {
         <select
           id="convocatoria"
           className="w-full border px-3 py-2 rounded-md"
-          value={seleccionada?.id_convocatoria || ''}
+          value={seleccionada?.id || ''}
           onChange={(e) => {
             const id = Number(e.target.value);
-            const conv = convocatorias.find((c) => c.id_convocatoria === id) || null;
+            const conv = convocatorias.find((c) => c.id === id) || null;
             setSeleccionada(conv);
             setNuevaFecha('');
             setError('');
@@ -88,7 +88,7 @@ export default function AmpliarFecha() {
         >
           <option value="">-- Seleccione una convocatoria --</option>
           {convocatorias.map((conv) => (
-            <option key={conv.id_convocatoria} value={conv.id_convocatoria}>
+            <option key={conv.id} value={conv.id}>
               {conv.nombre}
             </option>
           ))}

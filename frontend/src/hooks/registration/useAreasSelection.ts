@@ -10,6 +10,8 @@ import {
 
 interface UseAreasSelectionProps {
   formData: EstudianteFormData;
+  id_grado: string;
+  id_convocatoria: string;
   setFormData: React.Dispatch<React.SetStateAction<EstudianteFormData>>;
   convocatoria: Convocatoria | null;
   setFormErrorMessage: React.Dispatch<React.SetStateAction<string>>;
@@ -29,36 +31,66 @@ interface UseAreasSelectionReturn {
 
 export const useAreasSelection = ({
   formData,
+  id_grado,
+  id_convocatoria,
   setFormData,
   convocatoria,
   setFormErrorMessage,
   setIsLoading,
   updateActiveStudent,
   isStep2 = false
-}: UseAreasSelectionProps): UseAreasSelectionReturn => {  // Debug: Log when hook is initialized
-  console.log('🚀 useAreasSelection: Hook inicializado con formData:', {
-    id_grado: formData.id_grado,
-    id_convocatoria: formData.id_convocatoria,
+}: UseAreasSelectionProps): UseAreasSelectionReturn => {
+  // Debug: Log when hook is initialized
+  console.log('🚀 useAreasSelection: Hook inicializado con valores:', {
+    id_grado,
+    id_convocatoria,
     isStep2: isStep2,
     timestamp: new Date().toISOString()
   });
-
   // Estados para áreas
   const [areasNiveles, setAreasNiveles] = useState<AreaNivel[]>([]);
   const [areas_seleccionadas, setSelectedAreas] = useState<AreaSeleccionada[]>([]);
-  const [costoTotal, setCostoTotal] = useState(0);  // Cargar áreas disponibles cuando se selecciona un grado
+  const [costoTotal, setCostoTotal] = useState(0);
+  // Sincronizar el estado local con las áreas del estudiante activo
+  useEffect(() => {
+    console.log('🔄 Sincronizando áreas con el estudiante activo:', {
+      formDataAreas: formData.areas_seleccionadas?.length || 0,
+      timestamp: new Date().toISOString()
+    });
+
+    // Inicializar o actualizar las áreas seleccionadas del estudiante activo
+    if (formData.areas_seleccionadas) {
+      setSelectedAreas(formData.areas_seleccionadas);
+      
+      // Calcular el costo total
+      const total = formData.areas_seleccionadas.reduce((sum, area) => {
+        return sum + (parseFloat(area.costo) || 0);
+      }, 0);
+      setCostoTotal(total);
+      
+      console.log('✅ Áreas sincronizadas:', {
+        areas: formData.areas_seleccionadas.length,
+        costoTotal: total
+      });
+    } else {
+      // Si no hay áreas en formData, resetear el estado local
+      setSelectedAreas([]);
+      setCostoTotal(0);
+      console.log('🔄 Áreas reseteadas - nuevo estudiante sin áreas seleccionadas');
+    }
+  }, [formData.areas_seleccionadas]); // Solo depende de las áreas del formData  // Cargar áreas disponibles cuando se selecciona un grado
   const fetchAreasPorGrado = useCallback(async () => {
     console.log('🔍 fetchAreasPorGrado ejecutado - valores:');
-    console.log('  - id_grado:', formData.id_grado, '(tipo:', typeof formData.id_grado, ')');
-    console.log('  - id_convocatoria:', formData.id_convocatoria, '(tipo:', typeof formData.id_convocatoria, ')');
-    console.log('  - id_grado es truthy:', !!formData.id_grado);
-    console.log('  - id_convocatoria es truthy:', !!formData.id_convocatoria);
+    console.log('  - id_grado:', id_grado, '(tipo:', typeof id_grado, ')');
+    console.log('  - id_convocatoria:', id_convocatoria, '(tipo:', typeof id_convocatoria, ')');
+    console.log('  - id_grado es truthy:', !!id_grado);
+    console.log('  - id_convocatoria es truthy:', !!id_convocatoria);
     
     // Verificar que tenemos los datos necesarios para cargar áreas
-    if (!formData.id_grado || !formData.id_convocatoria) {
+    if (!id_grado || !id_convocatoria) {
       console.log('❌ Faltan datos requeridos para cargar áreas:');
-      console.log('  - id_grado:', formData.id_grado);
-      console.log('  - id_convocatoria:', formData.id_convocatoria);
+      console.log('  - id_grado:', id_grado);
+      console.log('  - id_convocatoria:', id_convocatoria);
       console.log('  - 📋 IMPORTANTE: Las áreas se cargan tan pronto como se selecciona un grado, no solo en Step 2');
       return;
     }
@@ -66,24 +98,16 @@ export const useAreasSelection = ({
     console.log('✅ Todas las condiciones cumplidas, haciendo llamada API...');
     setIsLoading(true);
     try {
-      const gradoId = parseInt(formData.id_grado);
-      const convocatoriaId = parseInt(formData.id_convocatoria);
+      const gradoId = parseInt(id_grado);
+      const convocatoriaId = parseInt(id_convocatoria);
       
       console.log('📞 Llamando getAreasPorGrado con:', { gradoId, convocatoriaId });
       const data = await getAreasPorGrado(gradoId, convocatoriaId);
       
       console.log('📊 Datos recibidos de la API:', data);
-      
-      if (data && data.areas_niveles) {
+        if (data && data.areas_niveles) {
         setAreasNiveles(data.areas_niveles);
         console.log('✅ Áreas cargadas exitosamente:', data.areas_niveles.length, 'áreas disponibles');
-        
-        // Solo resetear áreas seleccionadas si realmente cambió el grado
-        if (areas_seleccionadas.length === 0) {
-          setSelectedAreas([]);
-          setCostoTotal(0);
-          console.log('🔄 Áreas seleccionadas reseteadas');
-        }
       } else {
         console.log('⚠️ No se encontraron áreas para este grado');
         setAreasNiveles([]);
@@ -95,17 +119,17 @@ export const useAreasSelection = ({
     } finally {
       setIsLoading(false);
     }
-  }, [formData.id_grado, formData.id_convocatoria, setIsLoading, setFormErrorMessage, areas_seleccionadas.length]);  // Efecto principal: Cargar áreas tan pronto como se selecciona un grado
+  }, [id_grado, id_convocatoria, setIsLoading, setFormErrorMessage]);  // Efecto principal: Cargar áreas tan pronto como se selecciona un grado
   useEffect(() => {
     console.log('🔄 useAreasSelection: useEffect disparado - valores:', {
-      id_grado: formData.id_grado,
-      id_convocatoria: formData.id_convocatoria,
+      id_grado,
+      id_convocatoria,
       timestamp: new Date().toISOString()
     });
     
     // Las áreas se cargan cuando se selecciona un grado, NO solo en step 2
     fetchAreasPorGrado();
-  }, [fetchAreasPorGrado, formData.id_grado, formData.id_convocatoria]);
+  }, [id_grado, id_convocatoria, fetchAreasPorGrado]);
 
   // Efecto adicional para asegurar que las áreas se muestran cuando llegamos al step 2
   useEffect(() => {
@@ -123,9 +147,8 @@ export const useAreasSelection = ({
       }
     }
   }, [isStep2, formData.id_grado, formData.id_convocatoria, areasNiveles.length, fetchAreasPorGrado]);
-
   // Función para manejar la selección de áreas
-  const handleAreaSelect = (areaNivel: AreaNivel) => {
+  const handleAreaSelect = useCallback((areaNivel: AreaNivel) => {
     // Verificar si ya está seleccionada
     const isSelected = areas_seleccionadas.some(item => item.id_convocatoria_nivel === areaNivel.id_convocatoria_nivel);
     
@@ -157,7 +180,7 @@ export const useAreasSelection = ({
     
     setSelectedAreas(updatedSelectedAreas);
     setCostoTotal(newCostoTotal);
-    
+
     // Actualizar los tutores académicos
     const updatedTutores = [...formData.tutores_academicos];
     if (!isSelected) {
@@ -179,15 +202,23 @@ export const useAreasSelection = ({
         updatedTutores.splice(tutorIndex, 1);
       }
     }
-    
-    const newFormData = {
+      const newFormData = {
       ...formData,
+      areas_seleccionadas: updatedSelectedAreas,
       tutores_academicos: updatedTutores
     };
     
     setFormData(newFormData);
     updateActiveStudent(newFormData, updatedSelectedAreas);
-  };
+  }, [
+    areas_seleccionadas, 
+    convocatoria, 
+    costoTotal, 
+    formData, 
+    setFormData, 
+    setFormErrorMessage, 
+    updateActiveStudent
+  ]);
 
   return {
     areasNiveles,

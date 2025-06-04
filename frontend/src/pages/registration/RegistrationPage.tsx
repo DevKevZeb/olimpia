@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Check, X } from 'lucide-react';
 
 import { getDatosInscripcion, inscribirEstudiante, estudianteEstaInscrito } from '../../api/registration/inscripcionCompletaApi';
@@ -9,7 +10,6 @@ import {
   RequisitoGuardado,
   RequisitoConvocatoria,
   ComprobanteDetails,
-  TutorAcademico,
   AreaSeleccionada
 } from '../../types/index';
 
@@ -53,15 +53,15 @@ import {
 import { validateStep1 } from '../../utils/registration/validationUtils';
 import { createNewEstudiante, updateRequisitosValues } from '../../utils/registration/formUtils';
 
-export default function RegistrationPage() {  // Estados esenciales para navegación y convocatoria
+export default function RegistrationPage() {
+  const navigate = useNavigate();
+  
+  // Estados esenciales para navegación y convocatoria
   const [step, setStep] = useState(1);
   const [encargadoApellido, setEncargadoApellido] = useState('');
   const [encargadoNombre, setEncargadoNombre] = useState('');
   const [encargadoCI, setEncargadoCI] = useState('');
-  const [encargadoCorreo, setEncargadoCorreo] = useState('');
-  const codigo_unico = `O-SANSI-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
-  
-  const [showEncargadoForm, setShowEncargadoForm] = useState(false);
+  const [encargadoCorreo, setEncargadoCorreo] = useState('');  const codigo_unico = `O-SANSI-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
   
   // Estados para la inscripción
   const [isLoading, setIsLoading] = useState(false);
@@ -101,9 +101,19 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
       }
       return currentRequisitos;
     });
-  }, []); // No dependencies needed since we use functional update
+  }, []); // No dependencies needed since we use functional update  // Hook para gestión del formulario del estudiante
+  // Memoizar las props más estables para evitar re-renderizados innecesarios
+  const currentStudent = estudiantes[activeStudentIndex];
+  const initialFormData = useMemo(
+    () => currentStudent || createNewEstudiante(convocatoria || undefined),
+    [currentStudent, convocatoria]
+  );
+  
+  const currentAreasSeleccionadas = useMemo(
+    () => currentStudent?.areas_seleccionadas || [],
+    [currentStudent?.areas_seleccionadas]
+  );
 
-  // Hook para gestión del formulario del estudiante
   const {
     formData,
     formErrors,
@@ -114,27 +124,18 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
     handleNestedChange,
     handleStudentInfoLoaded,
     handleTutorLoaded,
-    validateStep1: validateStep1Hook  } = useStudentForm({
-    initialFormData: estudiantes[activeStudentIndex] || createNewEstudiante(convocatoria || undefined),
-    areas_seleccionadas: estudiantes[activeStudentIndex]?.areas_seleccionadas || [],
+    validateStep1: validateStep1Hook
+  } = useStudentForm({
+    initialFormData,
+    areas_seleccionadas: currentAreasSeleccionadas,
     requisitosGuardados,
     updateActiveStudent,
     updateRequisitos
   });  // Hook para gestión de selección de áreas
-  // Debug: Log formData values before calling useAreasSelection
-  console.log('🔍 RegistrationPage: formData values antes de useAreasSelection:');
-  console.log('  - id_grado:', formData.id_grado, '(tipo:', typeof formData.id_grado, ')');
-  console.log('  - id_convocatoria:', formData.id_convocatoria, '(tipo:', typeof formData.id_convocatoria, ')');
-  console.log('  - step:', step);
+  // Memoizar los valores específicos para evitar re-renderizados
+  const memoizedIdGrado = useMemo(() => formData.id_grado, [formData.id_grado]);
+  const memoizedIdConvocatoria = useMemo(() => formData.id_convocatoria, [formData.id_convocatoria]);
 
-  // Debug: Track formData changes
-  useEffect(() => {
-    console.log('🔄 RegistrationPage: formData cambió:');
-    console.log('  - id_grado:', formData.id_grado, '(tipo:', typeof formData.id_grado, ')');
-    console.log('  - id_convocatoria:', formData.id_convocatoria, '(tipo:', typeof formData.id_convocatoria, ')');
-    console.log('  - step:', step);
-    console.log('  - timestamp:', new Date().toISOString());
-  }, [formData.id_grado, formData.id_convocatoria, step]);
   const {
     areasNiveles,
     areas_seleccionadas,
@@ -144,12 +145,14 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
     setCostoTotal
   } = useAreasSelection({
     formData,
+    id_grado: memoizedIdGrado,
+    id_convocatoria: memoizedIdConvocatoria,
     setFormData,
     convocatoria,
     setFormErrorMessage,
     setIsLoading,
     updateActiveStudent,
-    isStep2: step === 2  // Usamos esto solo para optimizar la visualización, no para bloquear la carga
+    isStep2: step === 2
   });
 
   // useEffect para cargar requisitos obligatorios cuando cambia la convocatoria
@@ -179,9 +182,11 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
 
     loadRequisitos();
   }, [convocatoria]);  // useEffect para inicializar datos cuando se monta el componente
+  
   useEffect(() => {
     fetchInitialData();
   }, [fetchInitialData]); // Solo se ejecuta una vez al montar
+  
   // useEffect para actualizar id_convocatoria cuando se carga la convocatoria
   useEffect(() => {
     if (convocatoria && formData.id_convocatoria !== convocatoria.id.toString()) {
@@ -225,7 +230,6 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
         id_convocatoria: convocatoria.id.toString(),
       }));
     }  }, [convocatoria, setFormData]);
-
   // Función para enviar la inscripción
   const fetchCodigoUnico = async () => {
     try {
@@ -235,16 +239,22 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
         };
         const response = await estudianteEstaInscrito(payload);
         console.log('Respuesta de verificación exitosa:', response);
-    } catch (error: any) {
-      if (error.response?.status === 422 && error.response?.data?.errors) {
-        const messages = Object.values(error.response.data.errors).flat() as string[];
-        alert(`\nErrores de validación:\n${messages.join('\n')}`);
-        return;
-      } else if (error.response?.status === 409) {
-        alert("Opsie! El estudiante ya está inscrito en esta materia y nivel.");
-        return;
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { status?: number; data?: { errors?: unknown; message?: string } } };
+        if (axiosError.response?.status === 422 && axiosError.response?.data?.errors) {
+          const messages = Object.values(axiosError.response.data.errors).flat() as string[];
+          alert(`\nErrores de validación:\n${messages.join('\n')}`);
+          return;
+        } else if (axiosError.response?.status === 409) {
+          alert("Opsie! El estudiante ya está inscrito en esta materia y nivel.");
+          return;        } else {
+          const message = axiosError.response?.data?.message || 'Error desconocido';
+          alert(`Opsie! Algo salió mal: ${message}`);
+          return;
+        }
       } else {
-        alert(`Opsie! Algo salió mal: ${error.response?.data?.message || error.message || 'Error desconocido'}`);
+        alert(`Opsie! Algo salió mal: ${error instanceof Error ? error.message : 'Error desconocido'}`);
         return;
       }
     }
@@ -271,15 +281,13 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
           apellidos_encargado: encargadoApellido,
           email_encargado: encargadoCorreo
         },
-      };
-      await inscribirEstudiante(JSON.stringify(datos));
-      alert("Pre-inscripcion realizada satisfactoriamente! Yey! 🎉 \n  su codigo de inscripcion es: " + codigo_unico);
+      };      await inscribirEstudiante(JSON.stringify(datos));
+      setIsSuccessModalOpen(true);
     } catch (error) {
       console.error("Error al obtener el código:", error);
       setIsLoading(false);
     }
   };
-
   // Estados para el modal de detalles de estudiante
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedStudentDetails, setSelectedStudentDetails] = useState<EstudianteFormData | null>(null);
@@ -287,6 +295,8 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
   const [isBoletaModalOpen, setIsBoletaModalOpen] = useState(false);
   // Estado para el modal de detalles del comprobante
   const [isComprobanteModalOpen, setIsComprobanteModalOpen] = useState(false);
+  // Estado para el modal de éxito de pre-inscripción
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   // Estado para los detalles del comprobante (solo lectura)
   const [comprobanteDetails] = useState<ComprobanteDetails | null>(null);
   // Estado para ordenInfo (solo lectura)
@@ -301,7 +311,6 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
     setIsModalOpen(false);
     setSelectedStudentDetails(null);
   };
-
   // Función para cerrar el modal de la boleta de pago y resetear
   const closeBoletaModal = () => {
     setIsBoletaModalOpen(false);
@@ -341,6 +350,9 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
       areas_seleccionadas: [],
       tutores_academicos: [],
     });
+    
+    // Scroll hacia arriba para mostrar el inicio del formulario
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
   
   const handleNextStep = () => {
@@ -375,18 +387,13 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
       if (!hasSelectedAreas) {
         setFormErrorMessage('Debe seleccionar al menos un área para un estudiante');
         return;
-      }
-
-      setFormErrorMessage('');
+      }      setFormErrorMessage('');
       setStep(3);
     } else if (step === 3) {
-      setShowEncargadoForm(true);
       setStep(4);
     }
-  };
-
-  // Actualizar los tutores en el paso 3
-  const handleTutorAcademicoChange = (index: number, field: keyof TutorAcademico, value: string) => {
+  };  // Actualizar los tutores en el paso 3
+  const handleTutorAcademicoChange = (index: number, field: string | number | symbol, value: string) => {
     const newTutores = [...formData.tutores_academicos];
     if (index >= 0) {
       newTutores[index] = { 
@@ -403,41 +410,49 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
       updateActiveStudent(newFormData, areas_seleccionadas);
     }
   };
-
   // Función que maneja la adición de un nuevo estudiante con validación
   const handleAddNewStudent = async () => {
-    try {
-        const payload = {
-          lista_inscripcion: estudiantes,
-          id_convocatoria: convocatoria!.id.toString(),
-        };
-        const response = await estudianteEstaInscrito(payload);
-        console.log('Respuesta de verificación exitosa:', response);
-    } catch (error: any) {
-      if (error.response?.status === 422 && error.response?.data?.errors) {
-        const messages = Object.values(error.response.data.errors).flat() as string[];
-        alert(`\nErrores de validación:\n${messages.join('\n')}`);
-        return;
-      } else if (error.response?.status === 409) {
-        alert("Opsie! El estudiante ya está inscrito en esta materia y nivel.");
-        return;
-      } else {
-        alert(`Opsie! Algo salió mal: ${error.response?.data?.message || error.message || 'Error desconocido'}`);
-        return;
-      }
-    }
-    // Verificar si el estudiante actual tiene datos completos antes de permitir añadir uno nuevo
+    // PRIMERO: Verificar si el estudiante actual tiene datos completos antes de permitir añadir uno nuevo
     if (!isCurrentStudentValid()) {
       setFormErrorMessage('Debe completar los datos del estudiante actual antes de agregar uno nuevo.');
       return;
     }
     
+    // SEGUNDO: Verificar que el estudiante actual no tenga conflictos de inscripción
+    try {
+      const payload = {
+        lista_inscripcion: estudiantes,
+        id_convocatoria: convocatoria!.id.toString(),
+      };      const response = await estudianteEstaInscrito(payload);
+      console.log('Respuesta de verificación exitosa:', response);
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { status?: number; data?: { errors?: unknown; message?: string } } };
+        if (axiosError.response?.status === 422 && axiosError.response?.data?.errors) {
+          const messages = Object.values(axiosError.response.data.errors).flat() as string[];
+          alert(`\nErrores de validación:\n${messages.join('\n')}`);
+          return;
+        } else if (axiosError.response?.status === 409) {
+          alert("Opsie! El estudiante ya está inscrito en esta materia y nivel.");
+          return;
+        } else {
+          const message = axiosError.response?.data?.message || 'Error desconocido';
+          alert(`Opsie! Algo salió mal: ${message}`);
+          return;
+        }
+      } else {
+        alert(`Opsie! Algo salió mal: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+        return;
+      }
+    }
 
+    // TERCERO: Si todo está bien, crear el nuevo estudiante y navegar al paso 1
+    setFormErrorMessage(''); // Limpiar cualquier mensaje de error anterior
     const newStudent = createNewEstudiante(convocatoria || undefined);
     setEstudiantes([...estudiantes, newStudent]);
     setActiveStudentIndex(estudiantes.length);
     
-    // Redirigir al paso 1 para completar los datos del nuevo estudiante    
+    // Redirigir al paso 1 para completar los datos del nuevo estudiante
     setStep(1);
   };
   return (
@@ -573,8 +588,7 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
               onPrevStep={() => setStep(2)}
               onNextStep={handleNextStep}
             />
-          )}          {step === 4 && (            
-            <ResumenInscripcion
+          )}          {step === 4 && (              <ResumenInscripcion
               convocatoria={convocatoria}
               estudiantes={estudiantes}
               grados={grados}
@@ -583,7 +597,6 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
               encargadoApellido={encargadoApellido}
               encargadoCorreo={encargadoCorreo}
               encargadoCI={encargadoCI}
-              showEncargadoForm={showEncargadoForm}
               isModalOpen={isModalOpen}
               isBoletaModalOpen={isBoletaModalOpen}
               isComprobanteModalOpen={isComprobanteModalOpen}
@@ -599,8 +612,7 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
               onCloseModal={closeModal}
               onCloseBoletaModal={closeBoletaModal}
               onSetIsComprobanteModalOpen={setIsComprobanteModalOpen}
-              onFetchCodigoUnico={fetchCodigoUnico} 
-              onFinalizeRegistration={fetchCodigoUnico}             
+              onFetchCodigoUnico={fetchCodigoUnico}
               onAddNewStudent={handleAddNewStudent}
               onPrevStep={() => setStep(3)}
             />
@@ -941,8 +953,65 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
               >
                 Cerrar
               </button>
+            </div>          </div>        </div>
+      )}
+
+      {/* Modal de éxito de pre-inscripción */}
+      {isSuccessModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-lg p-6">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Check size={32} className="text-green-600" />
+              </div>
+              
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                ¡Pre-inscripción completada con éxito!
+              </h3>
+              
+              <p className="text-gray-600 mb-4">
+                Su código de inscripción es: <span className="font-bold text-blue-600">{codigo_unico}</span>
+              </p>
+              
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6 text-left">
+                <h4 className="font-semibold text-yellow-800 mb-2">⚠️ Importante:</h4>
+                <p className="text-yellow-700 text-sm mb-2">
+                  Su inscripción <strong>NO está completa</strong>. Para finalizar el proceso debe:
+                </p>
+                <ol className="text-yellow-700 text-sm list-decimal list-inside space-y-1">
+                  <li>Descargar su boleta de pago</li>
+                  <li>Realizar el pago en las cajas de la facultad</li>
+                  <li>Regresar a "Completar Inscripción" con su código</li>
+                  <li>Subir el comprobante de pago</li>
+                </ol>
+              </div>
+              
+              <p className="text-sm text-gray-500 mb-6">
+                Se ha enviado el código a: <strong>{encargadoCorreo}</strong>
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={() => {
+                    setIsSuccessModalOpen(false);
+                    closeBoletaModal(); // This will reset the form and return to step 1
+                  }}
+                  className="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors"
+                >
+                  Aceptar
+                </button>                <button
+                  onClick={() => {
+                    setIsSuccessModalOpen(false);
+                    navigate(`/download-boleta?codigo=${codigo_unico}`);
+                  }}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  Ir a descargar boleta de pago
+                </button>
+              </div>
             </div>
-          </div>        </div>
+          </div>
+        </div>
       )}
     </>
   );

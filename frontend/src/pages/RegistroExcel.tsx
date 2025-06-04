@@ -203,11 +203,9 @@ const UploadAndScan: React.FC<UploadAndScanProps> = ({ selectedConvocatoriaId, o
                       if (tutor_legal_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(tutor_legal_email)) {
                           isValidRow = false;
                           rowErrors.push('"Email Tutor Legal" tiene un formato inválido.');
-                      }
-
-                      const tutor_legal_parentesco = String(row[19] || '').trim();
+                      }                      const tutor_legal_parentesco = String(row[19] || '').trim();
                       if (!tutor_legal_parentesco) { isValidRow = false; rowErrors.push('"Parentesco del Tutor Legal" es obligatorio.'); }
-                      else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(tutor_legal_parentesco)) { isValidRow = false; rowErrors.push('"Parentesco del Tutor Legal" debe contener solo letras y espacios.'); }
+                      else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s/]+$/.test(tutor_legal_parentesco)) { isValidRow = false; rowErrors.push('"Parentesco del Tutor Legal" debe contener solo letras, espacios y el caracter /.'); }
 
                       let tutor_academico_nombres = String(row[21] || '').trim();
                       let tutor_academico_apellidos = String(row[22] || '').trim();
