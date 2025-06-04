@@ -438,7 +438,7 @@ const DataSummary = ({ scannedData, onCancel, onSave }: { scannedData: any[]; on
         ) : (
             <>
                 {/* Botón para alternar la visibilidad de la tabla */}
-                <button onClick={toggleTableVisibility} style={{ marginBottom: '15px' }}>
+                <button className = "toggle-button" onClick={toggleTableVisibility} style={{ marginBottom: '15px' }}>
                     {showTable ? 'Ocultar Tabla' : 'Mostrar Tabla'}
                 </button>
 

@@ -199,9 +199,7 @@ const StudentForm: React.FC<StudentFormProps> = ({
             maxLength={50}
             required
           />
-          {formErrors.unidad_educativa?.nombre && (
-            <p className="text-red-500 text-xs mt-1">{formErrors.unidad_educativa.nombre}</p>
-          )}
+          {formErrors.unidad_educativa?.nombre && <p className="text-red-500 text-xs mt-1">{formErrors.unidad_educativa?.nombre}</p>}
         </div>
 
         {/* Grado */}
@@ -231,11 +229,7 @@ const StudentForm: React.FC<StudentFormProps> = ({
               ))
             )}
           </select>
-          {formData.id_grado && (
-            <p className="text-xs text-green-600 mt-1">
-              Los grados determinan las áreas y niveles disponibles en la siguiente sección.
-            </p>
-          )}
+          {formErrors.id_grado && <p className="text-red-500 text-xs mt-1">{formErrors.id_grado}</p>}
         </div>
 
         {/* Departamento */}
@@ -261,6 +255,7 @@ const StudentForm: React.FC<StudentFormProps> = ({
             <option value="Pando">Pando</option>
             <option value="Chuquisaca">Chuquisaca</option>
           </select>
+          {formErrors.unidad_educativa?.departamento && <p className="text-red-500 text-xs mt-1">{formErrors.unidad_educativa?.departamento}</p>}
         </div>
         
         {/* Provincia */}
@@ -278,9 +273,7 @@ const StudentForm: React.FC<StudentFormProps> = ({
             maxLength={50}
             required
           />
-          {formErrors.unidad_educativa?.provincia && (
-            <p className="text-red-500 text-xs mt-1">{formErrors.unidad_educativa.provincia}</p>
-          )}
+          {formErrors.unidad_educativa?.provincia && <p className="text-red-500 text-xs mt-1">{formErrors.unidad_educativa?.provincia}</p>}
         </div>
       </div>
 
@@ -309,6 +302,7 @@ const StudentForm: React.FC<StudentFormProps> = ({
               required
               maxLength={8}
             />
+            {formErrors.tutor_legal?.ci && <p className="text-red-500 text-xs mt-1">{formErrors.tutor_legal.ci}</p>}
           </div>
 
           {/* Nombres del Tutor */}
@@ -325,6 +319,7 @@ const StudentForm: React.FC<StudentFormProps> = ({
               onChange={(e) => onNestedChange('tutor_legal', 'nombres', e.target.value)}
               required
             />
+            {formErrors.tutor_legal?.nombres && <p className="text-red-500 text-xs mt-1">{formErrors.tutor_legal.nombres}</p>}
           </div>
 
           {/* Apellidos del Tutor */}
@@ -341,6 +336,7 @@ const StudentForm: React.FC<StudentFormProps> = ({
               onChange={(e) => onNestedChange('tutor_legal', 'apellidos', e.target.value)}
               required
             />
+            {formErrors.tutor_legal?.apellidos && <p className="text-red-500 text-xs mt-1">{formErrors.tutor_legal.apellidos}</p>}
           </div>
 
           {/* Parentesco */}
@@ -363,6 +359,7 @@ const StudentForm: React.FC<StudentFormProps> = ({
               <option value="Hermano/a">Hermano/a</option>
               <option value="Otro">Otro</option>
             </select>
+            {formErrors.tutor_legal?.parentesco && <p className="text-red-500 text-xs mt-1">{formErrors.tutor_legal.parentesco}</p>}
           </div>
 
           {/* Correo Electrónico del Tutor */}
@@ -379,6 +376,7 @@ const StudentForm: React.FC<StudentFormProps> = ({
               onChange={(e) => onNestedChange('tutor_legal', 'email', e.target.value)}
               required
             />
+            {formErrors.tutor_legal?.email && <p className="text-red-500 text-xs mt-1">{formErrors.tutor_legal.email}</p>}
           </div>
 
           {/* Teléfono del Tutor */}
@@ -400,6 +398,7 @@ const StudentForm: React.FC<StudentFormProps> = ({
               required
               maxLength={8}
             />
+            {formErrors.tutor_legal?.telefono && <p className="text-red-500 text-xs mt-1">{formErrors.tutor_legal.telefono}</p>}
           </div>
         </div>
       </div>

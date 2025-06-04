@@ -89,6 +89,7 @@ export interface FormErrors {
   id_grado?: string;
   genero?: string;
   unidad_educativa?: {
+    departamento?: string;
     nombre?: string;
     provincia?: string;
   };
@@ -103,8 +104,9 @@ export interface FormErrors {
 }
 
 export interface RequisitoGuardado {
-  obligatorio: boolean;
-  valor: unknown;
+  entidad: string;
+  campo: string;
+  es_obligatorio: boolean;
 }
 
 export interface RequisitoConvocatoria {

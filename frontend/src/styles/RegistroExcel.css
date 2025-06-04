@@ -75,6 +75,31 @@
     font-size: 16px;
     transition: background-color 0.3s ease;
   }
+
+  .toggle-button {
+    background-color: #007bff; /* Un azul primario */
+    color: white;             /* Texto blanco */
+    padding: 10px 20px;       /* Espaciado interno */
+    border: none;             /* Sin borde por defecto */
+    border-radius: 5px;       /* Esquinas ligeramente redondeadas */
+    cursor: pointer;          /* Indicador de que es clickeable */
+    font-size: 16px;          /* Tamaño de fuente legible */
+    transition: background-color 0.3s ease, transform 0.1s ease; /* Transiciones suaves para hover y click */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Sutil sombra para profundidad */
+}
+
+/* Efecto al pasar el ratón (hover) */
+.toggle-button:hover {
+    background-color: #0056b3; /* Un azul más oscuro al pasar el ratón */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Sombra un poco más pronunciada */
+}
+
+/* Efecto al hacer click (active) */
+.toggle-button:active {
+    background-color: #004085; /* Azul aún más oscuro al clickear */
+    transform: translateY(1px); /* Ligero desplazamiento hacia abajo para simular "presión" */
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); /* Sombra más pequeña */
+}
   
   .upload-and-scan button:hover {
     background-color: #0056b3;

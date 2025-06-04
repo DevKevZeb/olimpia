@@ -166,8 +166,9 @@ export default function RegistrationPage() {
           data.forEach((requisito: RequisitoConvocatoria) => {
             const key = `${requisito.entidad}.${requisito.campo}`;
             initialRequisitosGuardados[key] = {
-              obligatorio: requisito.es_obligatorio,
-              valor: undefined,
+              entidad: requisito.entidad, 
+              campo: requisito.campo,       
+              es_obligatorio: requisito.es_obligatorio, 
             };
           });          setRequisitosGuardados(initialRequisitosGuardados);
           console.log('Requirements loaded for convocatoria:', convocatoria.id);
@@ -360,19 +361,7 @@ export default function RegistrationPage() {
       if (validateStep1Hook()) {
         const validation = validateStep1(formData, requisitosGuardados);
         
-        if (validation.camposObligatoriosVacios.length > 0) {
-          setFormErrorMessage(`Por favor, complete los siguientes campos obligatorios: ${validation.camposObligatoriosVacios.join(', ')}`);
-          return;
-        }        
-        setFormErrorMessage('');
-        console.log("📋 RegistrationPage: Paso 1->2 - Datos del formulario:");
-        console.log("  - formData completo:", JSON.stringify(formData, null, 2));
-        console.log("  - id_grado:", formData.id_grado, "(tipo:", typeof formData.id_grado, ")");
-        console.log("  - id_convocatoria:", formData.id_convocatoria, "(tipo:", typeof formData.id_convocatoria, ")");
-        console.log("  - ¿Los valores están definidos?", {
-          id_grado_defined: formData.id_grado !== undefined && formData.id_grado !== null && formData.id_grado !== '',
-          id_convocatoria_defined: formData.id_convocatoria !== undefined && formData.id_convocatoria !== null && formData.id_convocatoria !== ''
-        });
+  
         
         // Ir al paso 2
         setStep(2);
@@ -392,7 +381,9 @@ export default function RegistrationPage() {
     } else if (step === 3) {
       setStep(4);
     }
-  };  // Actualizar los tutores en el paso 3
+  };  
+  
+  // Actualizar los tutores en el paso 3
   const handleTutorAcademicoChange = (index: number, field: string | number | symbol, value: string) => {
     const newTutores = [...formData.tutores_academicos];
     if (index >= 0) {

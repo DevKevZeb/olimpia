@@ -113,12 +113,14 @@ export const validateField = (name: string, value: any) => {
   return error;
 };
 
+import {RequisitoGuardado, FormErrors} from'../../types/registration'
+
 export const validateStep1 = (
   formData: any,
-  requisitosGuardados: Array<{ entidad: string; campo: string; es_obligatorio: boolean }>
+  requisitosGuardados: Record<string, RequisitoGuardado>
 ) => {
   let isValid = true;
-  let currentErrors: Record<string, string> = {};
+  let currentErrors: FormErrors = {};
   let errorMessage = '';
 
   // 1. Validar campos del estudiante usando validateField
@@ -139,8 +141,10 @@ export const validateStep1 = (
     currentErrors.ci = ciError;
     isValid = false;
   }
+
+  const todosLosRequisitosArray = Object.values(requisitosGuardados);
   
-  const requisitoFechaNacimiento = requisitosGuardados.find(
+  const requisitoFechaNacimiento = todosLosRequisitosArray.find(
     req =>req.entidad ==='postulante' && req.campo === 'fecha_nacimiento'
   );
   if (requisitoFechaNacimiento){
@@ -162,7 +166,7 @@ export const validateStep1 = (
     isValid = false;
   }
 
-  const requisitoGenero = requisitosGuardados.find(
+  const requisitoGenero = todosLosRequisitosArray.find(
     req =>req.entidad ==='postulante' && req.campo === 'genero'
   );
   if(requisitoGenero){
@@ -173,35 +177,35 @@ export const validateStep1 = (
     }
   }
   
-  const requisitoUnidadEducativa = requisitosGuardados.find(
+  const requisitoUnidadEducativa = todosLosRequisitosArray.find(
     req =>req.entidad ==='postulante' && req.campo === 'id_unidad_educativa'
   );
   if(requisitoUnidadEducativa){
     const unidadEducativaError = validateField('unidad_educativa.nombre', formData.unidad_educativa.nombre);
     if (unidadEducativaError) {
-      currentErrors['unidad_educativa.nombre'] = unidadEducativaError;
+      currentErrors.unidad_educativa = { ...currentErrors.unidad_educativa, nombre: unidadEducativaError };
       isValid = false;
     }
   }
 
-  const requisitoDepartamneto = requisitosGuardados.find(
+  const requisitoDepartamneto = todosLosRequisitosArray.find(
     req =>req.entidad ==='postulante' && req.campo === 'departamento'
   );
   if(requisitoDepartamneto){
-    const unidadEducativaDepartamnetoError = validateField('unidad_educativa.departamento', formData.unidad_educativa.departamento);
-    if (unidadEducativaDepartamnetoError) {
-      currentErrors['unidad_educativa.departamento'] = unidadEducativaDepartamnetoError;
+    const unidadEducativaDepartamentoError = validateField('unidad_educativa.departamento', formData.unidad_educativa.departamento);
+    if (unidadEducativaDepartamentoError) {
+      currentErrors.unidad_educativa = { ...currentErrors.unidad_educativa, departamento: unidadEducativaDepartamentoError };
       isValid = false;
     }
   }
 
-  const requisitoProvincia = requisitosGuardados.find(
+  const requisitoProvincia = todosLosRequisitosArray.find(
     req =>req.entidad ==='postulante' && req.campo === 'provincia'
   );
   if(requisitoProvincia){
     const unidadEducativaProvinciaError = validateField('unidad_educativa.provincia', formData.unidad_educativa.provincia);
     if (unidadEducativaProvinciaError) {
-      currentErrors['unidad_educativa.provincia'] = unidadEducativaProvinciaError;
+      currentErrors.unidad_educativa = { ...currentErrors.unidad_educativa, provincia: unidadEducativaProvinciaError };
       isValid = false;
     }
   }
@@ -209,53 +213,61 @@ export const validateStep1 = (
   // 2. Validar campos del tutor legal usando validateField
   const tutorNombresError = validateField('tutor_legal.nombres', formData.tutor_legal.nombres);
   if (tutorNombresError) {
-    currentErrors['tutor_legal.nombres'] = tutorNombresError;
+    currentErrors.tutor_legal = { ...currentErrors.unidad_educativa, nombres: tutorNombresError };
     isValid = false;
   }
   
   const tutorApellidosError = validateField('tutor_legal.apellidos', formData.tutor_legal.apellidos);
   if (tutorApellidosError) {
-    currentErrors['tutor_legal.apellidos'] = tutorApellidosError;
+    currentErrors.tutor_legal = { ...currentErrors.unidad_educativa, apellidos: tutorApellidosError };
     isValid = false;
   }
   
   const tutorCiError = validateField('tutor_legal.ci', formData.tutor_legal.ci);
   if (tutorCiError) {
-    currentErrors['tutor_legal.ci'] = tutorCiError;
+    currentErrors.tutor_legal = { ...currentErrors.unidad_educativa, ci: tutorCiError };
     isValid = false;
   }
   
   const tutorEmailError = validateField('tutor_legal.email', formData.tutor_legal.email);
   if (tutorEmailError) {
-    currentErrors['tutor_legal.email'] = tutorEmailError;
+    currentErrors.tutor_legal = { ...currentErrors.unidad_educativa, email: tutorEmailError };
     isValid = false;
   }
   
-  const requisitoTutorTelefono = requisitosGuardados.find(
+  const requisitoTutorTelefono = todosLosRequisitosArray.find(
     req =>req.entidad ==='tutorLegal' && req.campo === 'telefono'
   );
   if(requisitoTutorTelefono){
     const tutorTelefonoError = validateField('tutor_legal.telefono', formData.tutor_legal.telefono);
     if (tutorTelefonoError) {
-      currentErrors['tutor_legal.telefono'] = tutorTelefonoError;
+      currentErrors.tutor_legal = { ...currentErrors.unidad_educativa, telefono: tutorTelefonoError };
       isValid = false;
     }
   }
   
-  const requisitoTutorParentesco = requisitosGuardados.find(
+  const requisitoTutorParentesco = todosLosRequisitosArray.find(
     req =>req.entidad ==='tutorLegal' && req.campo === 'parentesco'
   );
   if(requisitoTutorParentesco){
     const tutorParentescoError = validateField('tutor_legal.parentesco', formData.tutor_legal.parentesco);
     if (tutorParentescoError) {
-      currentErrors['tutor_legal.parentesco'] = tutorParentescoError;
+      currentErrors.tutor_legal = { ...currentErrors.unidad_educativa, parentesco: tutorParentescoError };
       isValid = false;
     }
+  }
+
+  let camposObligatoriosVaciosArray: string[] = [];
+  for (const fieldName in currentErrors) {
+      if (currentErrors) { // Si hay un error para este campo
+          camposObligatoriosVaciosArray.push(fieldName);
+      }
   }
 
   return {
     isValid,
     errors: currentErrors,
     errorMessage,
+    camposObligatoriosVacios: camposObligatoriosVaciosArray
   };
 };
