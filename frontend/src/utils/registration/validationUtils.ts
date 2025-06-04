@@ -11,17 +11,27 @@ export const validateField = (name: string, value: any) => {
     case 'tutor_legal.nombres':
     case 'tutor_legal.apellidos':
       if (value && value.length > 50) {
-        error = value, 'El campo debe contener menos de 50 caracteres.';
+        error = `El campo ${name} debe contener menos de 50 caracteres.`;
       } else if (value && !/^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]*$/.test(value)) {
-        error = 'No se permiten números ni caracteres especiales.';
+        error = `El campo ${name} no se permiten números ni caracteres especiales.`;
       } else if (value === ''){
-        error = 'Este campo no debe estar vacio';
+        error = `El campo ${name} no debe estar vacio`;
+      }
+      break;
+    case 'unidad_educativa.departamento':
+    case 'unidad_educativa.provincia':
+      if (value && value.length > 50) {
+        error = `El campo ${name} debe contener menos de 50 caracteres.`;
+      } else if (value && !/^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]*$/.test(value)) {
+        error = `El campo ${name} no se permiten números ni caracteres especiales.`;
+      } else if (value === ''){
+        error = `El campo ${name} no debe estar vacio`;
       }
       break;
     case 'ci':
     case 'tutor_legal.ci':
       if (value && !/^\d{1,8}$/.test(value)) {
-        error = 'Debe ser un valor numérico de hasta 8 dígitos.';
+        error = `El campo ${name} Debe ser un valor numérico de hasta 8 dígitos.`;
       }
       break;
     case 'fecha_nacimiento': {
@@ -29,19 +39,19 @@ export const validateField = (name: string, value: any) => {
         const selectedDate = new Date(value);
         const currentDate = new Date();
         if (selectedDate >= currentDate) {
-          error = 'La fecha debe ser menor a la fecha actual.';
+          error = `El campo ${name} La fecha debe ser menor a la fecha actual.`;
         }
       } else if (value === ''){
-        error = 'Este campo no debe estar vacio';
+        error = `El campo ${name} Este campo no debe estar vacio`;
       }
       break;
     }
     case 'telefono':
     case 'tutor_legal.telefono':
       if (value && !/^\d{1,8}$/.test(value)) {
-        error = 'Solo se permiten números con un máximo de 8 dígitos.';
+        error = `El campo ${name} Solo se permiten números con un máximo de 8 dígitos.`;
       } else if (value === ''){
-        error = 'Este campo no debe estar vacio';
+        error = `El campo ${name} Este campo no debe estar vacio`;
       }
       break;
     case 'email':
@@ -49,34 +59,36 @@ export const validateField = (name: string, value: any) => {
       if (value) {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(value)) {
-          error = 'El formato del correo electrónico no es válido';
+          error = `El campo ${name} El formato del correo electrónico no es válido`;
         }
       } else if (value === ''){
-        error = 'Este campo no debe estar vacio';
+        error = `El campo ${name} Este campo no debe estar vacio`;
       }
       break;
     case 'unidad_educativa.nombre':
       if (value && value.length > 50) {
-        error = 'Debe contener menos de 50 caracteres.';
+        error = `El campo ${name} Debe contener menos de 50 caracteres.`;
       } else if (value && !/^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]*$/.test(value)) {
-        error = 'No se permiten números ni caracteres especiales.';
+        error = `El campo ${name} no se permiten números ni caracteres especiales.`;
       } else if (value === ''){
-        error = 'Este campo no debe estar vacio';
+        error = `El campo ${name} Este campo no debe estar vacio`;
       }
       break;
     case 'unidad_educativa.provincia':
     case 'tutor_legal.parentesco':
       if (value && value.length > 50) {
-        error = 'Debe contener menos de 50 caracteres.';
+        error = `El campo ${name} Debe contener menos de 50 caracteres.`;
       } else if (value && !/^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s/]*$/.test(value)) {
-        error = 'No se permiten números ni caracteres especiales.';
+        error = `El campo ${name} no se permiten números ni caracteres especiales.`;
       } else if (value === ''){
-        error = 'Este campo no debe estar vacio';
+        error = `El campo ${name} Este campo no debe estar vacio`;
       }
       break;
     case 'id_grado':
       if (!value) {
-        error = 'Debe seleccionar un grado.';
+        error = `El campo ${name} Debe seleccionar un grado.`;
+      }else if (value === ''){
+        error = `El campo ${name} Este campo no debe estar vacio`;
       }
       break;
     default:
@@ -133,6 +145,18 @@ export const validateStep1 = (
   const unidadEducativaError = validateField('unidad_educativa.nombre', formData.unidad_educativa.nombre);
   if (unidadEducativaError) {
     currentErrors['unidad_educativa.nombre'] = unidadEducativaError;
+    isValid = false;
+  }
+
+  const unidadEducativaDepartamnetoError = validateField('unidad_educativa.departamento', formData.unidad_educativa.departamento);
+  if (unidadEducativaDepartamnetoError) {
+    currentErrors['unidad_educativa.departamento'] = unidadEducativaDepartamnetoError;
+    isValid = false;
+  }
+
+  const unidadEducativaProvinciaError = validateField('unidad_educativa.provincia', formData.unidad_educativa.provincia);
+  if (unidadEducativaProvinciaError) {
+    currentErrors['unidad_educativa.provincia'] = unidadEducativaProvinciaError;
     isValid = false;
   }
 

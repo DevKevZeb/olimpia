@@ -437,7 +437,8 @@ export default function RegistrationPage() {  // Estados esenciales para navegac
     setEstudiantes([...estudiantes, newStudent]);
     setActiveStudentIndex(estudiantes.length);
     
-    // Redirigir al paso 1 para completar los datos del nuevo estudiante    setStep(1);
+    // Redirigir al paso 1 para completar los datos del nuevo estudiante    
+    setStep(1);
   };
   return (
     <>

@@ -29,24 +29,6 @@ const StudentForm: React.FC<StudentFormProps> = ({
   onTutorLoaded,
 }) => {
 
-  const cargarDatosEstudiante = async (ci: string) => {
-    try {
-      const data = await getDatosEstudiante(ci);
-      if (data) {
-          if (!formData.nombres) onFormChange('nombres', data.nombres || '');
-          if (!formData.apellidos) onFormChange('apellidos', data.apellidos || '');
-          if (!formData.fecha_nacimiento) onFormChange('fecha_nacimiento', data.fecha_nacimiento || '');
-          if (!formData.email) onFormChange('email', data.email || '');
-          if (!formData.genero) onFormChange('genero', data.genero || '');
-          if (!formData.telefono) onFormChange('telefono', data.telefono || '');
-          if (!formData.unidad_educativa?.nombre) onNestedChange('unidad_educativa', 'nombre', data.unidad_educativa?.nombre || '');
-          onFormChange('ci', ci);
-      }
-    } catch (error) {
-      console.error('Error al cargar datos del estudiante', error);
-    }
-  };
-
   return (
     <div>
       <h3 className="text-lg font-semibold mb-2">Datos Personales</h3>
@@ -67,26 +49,23 @@ const StudentForm: React.FC<StudentFormProps> = ({
             Cédula de Identidad<span className="text-red-500">*</span>
           </label>
           <input
-            type="text"
-            inputMode="numeric"
-            pattern="\d*"
+            type="number"
             id="cedula"
-            maxLength={8}
             className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
             placeholder="Número de CI"
-            value={formData.ci ?? ''}
-            onChange={(e) => {
-              const ci = e.target.value;
-              // Solo permitir dígitos numéricos y hasta 8 caracteres
-              if (/^\d*$/.test(ci) && ci.length <= 9) {
-                // Solo llamar si ya tiene 7 dígitos y nombre vacío
-                if (ci.length >= 7 && !formData.nombre) {
-                  cargarDatosEstudiante(ci);
-                }
-                onFormChange('ci', ci);
+            value={formData.ci}            onChange={(e) => {
+              onFormChange('ci', e.target.value);
+              onStudentInfoLoaded(e.target.value);
+            }}
+            onKeyPress={(event: React.KeyboardEvent<HTMLInputElement>) => {
+              if ((event.target as HTMLInputElement).value.length >= 8 && event.key !== 'Backspace' && event.key !== 'Delete' && !(event.ctrlKey && (event.key === 'c' || event.key === 'v'))) {
+                event.preventDefault();
               }
             }}
             required
+            min="0" 
+            step="1"
+            maxLength={8}
           />
           {formErrors.ci && <p className="text-red-500 text-xs mt-1">{formErrors.ci}</p>}
         </div>
