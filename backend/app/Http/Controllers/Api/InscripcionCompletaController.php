@@ -93,6 +93,7 @@ class InscripcionCompletaController extends ApiController
             return $this->errorResponse('La convocatoria no está abierta para inscripciones', 422);
         }
         $inscripciones = $request->lista_inscripcion;
+        $idConvocatoria = $request->id_convocatoria;
         $erroresInscripcion = [];
         foreach ($inscripciones as $index => $inscripcionData) {
             $validatorInscripcion = Validator::make($inscripcionData, [
@@ -112,17 +113,45 @@ class InscripcionCompletaController extends ApiController
                 continue; // Si la validación básica falla, no continuamos con las otras verificaciones para este estudiante
             }
         
-            // 1. Verificar el máximo de áreas permitidas por estudiante
-            if (count($inscripcionData['areas_seleccionadas']) >= $convocatoria->max_areas_por_estudiante) {
-                $erroresInscripcion[$inscripcionData['ci']] = "Se ha excedido el máximo de áreas permitidas ({$convocatoria->max_areas_por_estudiante}) para este estudiante.";
+            $maxAreasPermitidas = $convocatoria->max_areas_por_estudiante;
+
+            // 1. Contar cuántas áreas está intentando seleccionar en esta inscripción
+            $areasSeleccionadas = isset($inscripcionData['areas_seleccionadas']) ? count($inscripcionData['areas_seleccionadas']) : 0;
+
+            // 2. Obtener al estudiante por CI
+            $estudiante = Estudiante::where('ci', $inscripcionData['ci'])->first();
+
+            $numInscripcionesPrevias = 0;
+
+            if ($estudiante) {
+                $id_estudiante = $estudiante->id_estudiante;
+
+                // Obtener todas las áreas de la convocatoria
+                $areasHabilitadas = ConvocatoriaArea::where('id_convocatoria', $idConvocatoria)->pluck('id_convocatoria_area');
+
+                // Obtener todos los niveles de esas áreas
+                $nivelesHabilitados = ConvocatoriaNivel::whereIn('id_convocatoria_area', $areasHabilitadas)->pluck('id_convocatoria_nivel');
+
+                // Contar inscripciones previas en esta convocatoria
+                $numInscripcionesPrevias = DetalleListaInscripcion::where('id_estudiante', $id_estudiante)
+                    ->whereIn('id_convocatoria_nivel', $nivelesHabilitados)
+                    ->count();
+            }
+
+            // 3. Validar el total de inscripciones (actuales + anteriores)
+            $totalInscripciones = $areasSeleccionadas + $numInscripcionesPrevias;
+
+            if ($totalInscripciones > $maxAreasPermitidas) {
+                $erroresInscripcion[$inscripcionData['ci']] = "El estudiante con CI {$inscripcionData['ci']} ya tiene {$numInscripcionesPrevias} inscripción(es) previa(s) y está intentando registrar {$areasSeleccionadas} más, excediendo el máximo de $maxAreasPermitidas área(s) permitida(s).";
                 continue;
             }
+
     
             $areasInscritas = [];
             foreach ($inscripcionData['areas_seleccionadas'] as $areaSeleccionada) {
                 $idConvocatoriaNivel = $areaSeleccionada['id_convocatoria_nivel'];
     
-                // 2. Verificar si el estudiante ya está inscrito en este nivel de competencia
+                // 3. Verificar si el estudiante ya está inscrito en este nivel de competencia
                 if ($this->estaInscritoArea($inscripcionData['ci'], $idConvocatoriaNivel)) {
                     $nombreArea = $this->getNombreArea($idConvocatoriaNivel);
                     $erroresInscripcion[$inscripcionData['ci']] = "El estudiante con CI {$inscripcionData['ci']} ya está inscrito en el área '{$nombreArea}'.";
@@ -255,42 +284,49 @@ class InscripcionCompletaController extends ApiController
     
         try {
             foreach ($inscripciones as $inscripcionData) {
-                // 1. Crear o actualizar unidad educativa (misma lógica que antes)
+                // 1. Crear o actualizar unidad educativa
                 $idUnidadEducativa = null;
+
                 if (isset($inscripcionData['unidad_educativa']['id_unidad_educativa'])) {
                     $idUnidadEducativa = $inscripcionData['unidad_educativa']['id_unidad_educativa'];
                 } else {
                     $unidadEducativaDepartamento = $inscripcionData['unidad_educativa']['departamento'] ?? '';
                     $unidadEducativaProvincia = $inscripcionData['unidad_educativa']['provincia'] ?? '';
                     $unidadEducativaNombre = $inscripcionData['unidad_educativa']['nombre'] ?? '';
-    
+
                     $departamentoParaGuardar = $unidadEducativaDepartamento !== "" ? $unidadEducativaDepartamento : 'No Especificado';
                     $provinciaParaGuardar = $unidadEducativaProvincia !== "" ? $unidadEducativaProvincia : 'No Especificado';
                     $nombreParaGuardar = $unidadEducativaNombre !== "" ? $unidadEducativaNombre : 'Colegio Desconocido';
-    
-                    $unidadEducativa = UnidadEducativa::create([
-                        'nombre' => $nombreParaGuardar,
-                        'departamento' => $departamentoParaGuardar,
-                        'provincia' => $provinciaParaGuardar,
-                    ]);
+
+                    $unidadEducativa = UnidadEducativa::where('nombre', $nombreParaGuardar)
+                        ->where('departamento', $departamentoParaGuardar)
+                        ->where('provincia', $provinciaParaGuardar)
+                        ->first();
+
+                    if ($unidadEducativa) {
+                        // Ya existe, actualizar por si hay cambios
+                        $unidadEducativa->update([
+                            'nombre' => $nombreParaGuardar,
+                            'departamento' => $departamentoParaGuardar,
+                            'provincia' => $provinciaParaGuardar,
+                        ]);
+                    } else {
+                        // No existe, crear nueva
+                        $unidadEducativa = UnidadEducativa::create([
+                            'nombre' => $nombreParaGuardar,
+                            'departamento' => $departamentoParaGuardar,
+                            'provincia' => $provinciaParaGuardar,
+                        ]);
+                    }
+
                     $idUnidadEducativa = $unidadEducativa->id_unidad_educativa;
                 }
     
-                Log::info('ID Unidad Educativa (inscribirEstudiante): ' . $idUnidadEducativa);
-    
-                // 2. Crear tutor legal (misma lógica que antes)
-                $tutorLegalEmail = $inscripcionData['tutor_legal']['email'] ?? '';
-                if ($tutorLegalEmail === "") {
-                    $tutorLegalEmail = 'tutor.sin.email@miinstitucion.edu.bo';
-                }
-                $tutorLegalTelefono = $inscripcionData['tutor_legal']['telefono'] ?? '';
-                if ($tutorLegalTelefono === "") {
-                    $tutorLegalTelefono = 'Sin Teléfono';
-                }
-                $tutorLegalParentesco = $inscripcionData['tutor_legal']['parentesco'] ?? '';
-                if ($tutorLegalParentesco === "") {
-                    $tutorLegalParentesco = 'No Especificado';
-                }
+                // 2. Crear tutor legal
+                $tutorLegalEmail = $inscripcionData['tutor_legal']['email'] ?? 'tutor.sin.email@miinstitucion.edu.bo';
+                $tutorLegalTelefono = $inscripcionData['tutor_legal']['telefono'] ?? 'Sin Teléfono';
+                $tutorLegalParentesco = $inscripcionData['tutor_legal']['parentesco'] ?? 'No Especificado';
+
                 $tutorLegalData = [
                     'nombres' => $inscripcionData['tutor_legal']['nombres'],
                     'apellidos' => $inscripcionData['tutor_legal']['apellidos'],
@@ -300,29 +336,25 @@ class InscripcionCompletaController extends ApiController
                     'parentesco' => $tutorLegalParentesco,
                     'es_el_mismo_estudiante' => $inscripcionData['tutor_legal']['es_el_mismo_estudiante'],
                 ];
-                $tutorLegal = TutorLegal::create($tutorLegalData);
+
+                // Buscar si ya existe un tutor legal con ese CI
+                $tutorLegal = TutorLegal::where('ci', $inscripcionData['tutor_legal']['ci'])->first();
+
+                if ($tutorLegal) {
+                    // Ya existe, actualizar sus datos
+                    $tutorLegal->update($tutorLegalData);
+                } else {
+                    // No existe, crear nuevo
+                    $tutorLegal = TutorLegal::create($tutorLegalData);
+                }
     
                 // 3. Crear estudiante (misma lógica que antes)
-                $estudianteEmail = $inscripcionData['email'] ?? '';
-                if ($estudianteEmail === "") {
-                    $estudianteEmail = 'estudiante.no.tiene.correo@miinstitucion.edu.bo';
-                }
-                $estudianteDepartamento = $inscripcionData['departamento'] ?? '';
-                if ($estudianteDepartamento === "") {
-                    $estudianteDepartamento = 'No Especificado';
-                }
-                $estudianteProvincia = $inscripcionData['provincia'] ?? '';
-                if ($estudianteProvincia === "") {
-                    $estudianteProvincia = 'No Especificado';
-                }
-                $estudianteGenero = $inscripcionData['genero'] ?? '';
-                if ($estudianteGenero === "") {
-                    $estudianteGenero = 'No Especificado';
-                }
-                $estudianteTelefono = $inscripcionData['telefono'] ?? '';
-                if ($estudianteTelefono === "") {
-                    $estudianteTelefono = 0;
-                }
+                $estudianteEmail = $inscripcionData['email'] ?? 'estudiante.no.tiene.correo@miinstitucion.edu.bo';
+                $estudianteDepartamento = $inscripcionData['departamento'] ?? 'No Especificado';
+                $estudianteProvincia = $inscripcionData['provincia'] ?? 'No Especificado';
+                $estudianteGenero = $inscripcionData['genero'] ?? 'No Especificado';
+                $estudianteTelefono = $inscripcionData['telefono'] ?? 0;
+
                 $estudianteData = [
                     'nombres' => $inscripcionData['nombres'],
                     'apellidos' => $inscripcionData['apellidos'],
@@ -337,8 +369,18 @@ class InscripcionCompletaController extends ApiController
                     'departamento' => $estudianteDepartamento,
                     'provincia' => $estudianteProvincia,
                 ];
-                $estudiante = Estudiante::create($estudianteData);
-    
+
+                // Verificar si ya existe un estudiante con ese CI
+                $estudiante = Estudiante::where('ci', $inscripcionData['ci'])->first();
+
+                if ($estudiante) {
+                    // Ya existe: actualiza los datos existentes
+                    $estudiante->update($estudianteData);
+                } else {
+                    // No existe: crea uno nuevo
+                    $estudiante = Estudiante::create($estudianteData);
+                }
+
                 // 4. Crear inscripciones y tutores académicos para cada área seleccionada
                 foreach ($inscripcionData['areas_seleccionadas'] as $areaSeleccionada) {
                     $idConvocatoriaNivel = $areaSeleccionada['id_convocatoria_nivel'];
@@ -357,16 +399,24 @@ class InscripcionCompletaController extends ApiController
                     $tutorAcademicoCi = $tutorData['ci'] ?? 'SN';
                     $tutorAcademicoTelefono = $tutorData['telefono'] ?? 'No Registrado';
                     $tutorAcademicoEmail = $tutorData['email'] ?? 'tutoracademico.no.email@miinstitucion.edu.bo';
-    
+
                     $tutorAcademicoData = [
                         'nombres' => $tutorAcademicoNombres,
                         'apellidos' => $tutorAcademicoApellidos,
                         'ci' => $tutorAcademicoCi,
                         'telefono' => $tutorAcademicoTelefono,
                         'email' => $tutorAcademicoEmail,
-                        'id_convocatoria_nivel' => $idConvocatoriaNivel,
                     ];
-                    $tutorAcademico = TutorAcademico::create($tutorAcademicoData);
+
+                    // Buscar si ya existe un tutor académico con mismo CI y convocatoria
+                    $tutorAcademico = TutorAcademico::where('ci', $tutorAcademicoCi)
+                        ->first();
+
+                    if ($tutorAcademico) {
+                        $tutorAcademico->update($tutorAcademicoData);
+                    } else {
+                        $tutorAcademico = TutorAcademico::create($tutorAcademicoData);
+                    }
     
                     DetalleListaInscripcion::create([
                         'id_lista' => $listaInscripcion->id_lista,
@@ -682,7 +732,6 @@ class InscripcionCompletaController extends ApiController
                     'ci' => $tutorAcademicoCi,
                     'telefono' => $tutorAcademicoTelefono,
                     'email' => $tutorAcademicoEmail,
-                    'id_convocatoria_nivel' => $areaSeleccionada['id_convocatoria_nivel'],
                 ];
                 $tutorAcademico = TutorAcademico::create($tutorAcademicoData);
 

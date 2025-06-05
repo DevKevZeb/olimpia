@@ -33,6 +33,7 @@ function App() {
           <Route path="/download-boleta" element={<Layout><DescargarBoletaPage /></Layout>} />
           <Route path="/gestionar-inscripciones" element={<Layout><GestionarInscripciones /></Layout>} />
           <Route path="/estado-inscripcion" element={<Layout><EstadoInscripcionPage /></Layout>} />
+          <Route path="/llenarexcel" element={<Layout><LlenarExcel /></Layout>} />
           
           {/* Admin login route (public) */}
           <Route path="/admin/login" element={<AdminLogin />} />
@@ -55,14 +56,6 @@ function App() {
             element={
               <ProtectedRoute>
                 <Layout><Reportes /></Layout>
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/llenarexcel" 
-            element={
-              <ProtectedRoute>
-                <Layout><LlenarExcel /></Layout>
               </ProtectedRoute>
             } 
           />

@@ -249,16 +249,12 @@ const UploadAndScan: React.FC<UploadAndScanProps> = ({ selectedConvocatoriaId, o
                           continue;
                       }
 
-                      // --- Logic to get id_convocatoria_nivel from memory ---
                       if (ci && nombre_area && nombre_nivel && nombre_grado) {
-                          // Initialize studentAreaCounts for CI if not already done
                           if (studentAreaCounts[ci] === undefined) {
                               studentAreaCounts[ci] = 0;
                           }
 
                           if (studentAreaCounts[ci] < convocatoriaData.max_areas_por_estudiante) {
-                              // *** HERE IS THE KEY CHANGE ***
-                              // Call the in-memory lookup function. No 'await' needed!
                               const id_convocatoria_nivel_result = buscarIdConvocatoriaNivelEnMemoria(
                                   nombre_area,
                                   nombre_nivel,
@@ -270,6 +266,38 @@ const UploadAndScan: React.FC<UploadAndScanProps> = ({ selectedConvocatoriaId, o
                               console.log(`Fila ${rowNumber}: id_convocatoria_nivel_result`, id_convocatoria_nivel_result);
 
                               if (id_convocatoria_nivel_result !== null) {
+                                const ciExists = transformedData.some(item => item.ci === ci);
+
+                                if (ciExists) {
+                                  const estudiante = transformedData.find(est => est.ci === ci);
+
+                                  if(estudiante.id_grado !== id_grado){
+                                    errors.push(`Fila ${rowNumber}: Registraste un estudiate con el mismo ci cuyos grados no coinciden en los dos registros, el ci del estudiante es: ${ci}`);
+                                  }
+
+                                  const nuevaArea = { id_convocatoria_nivel: id_convocatoria_nivel_result };
+                                  const nuevoTutorAcademico = {
+                                    nombres: tutor_academico_nombres,
+                                    apellidos: tutor_academico_apellidos,
+                                    ci: tutor_academico_ci,
+                                    telefono: tutor_academico_telefono,
+                                    email: tutor_academico_email,
+                                  };
+
+                                  const areaYaExiste = estudiante.areas_seleccionadas.some(
+                                      (area: { id_convocatoria_nivel: number }) => area.id_convocatoria_nivel === id_convocatoria_nivel_result
+                                  );
+
+                                  if (areaYaExiste) {
+                                    errors.push(`Fila ${rowNumber}: Esta fila está duplicada (área ya registrada para el estudiante con CI: ${ci})`);
+                                  } else {
+                                    estudiante.areas_seleccionadas.push(nuevaArea);
+                                    if (hasTutorAcademicoData) {
+                                      estudiante.tutores_academicos.push(nuevoTutorAcademico);
+                                    }
+                                  }
+
+                                } else {
                                   transformedData.push({
                                       nombres: nombres,
                                       apellidos: apellidos,
@@ -297,7 +325,6 @@ const UploadAndScan: React.FC<UploadAndScanProps> = ({ selectedConvocatoriaId, o
                                       id_convocatoria: String(selectedConvocatoriaId),
                                       areas_seleccionadas: [{ id_convocatoria_nivel: id_convocatoria_nivel_result }],
                                       tutores_academicos: hasTutorAcademicoData ? [{
-                                          id_convocatoria_nivel: id_convocatoria_nivel_result, // Associate with this specific area
                                           nombres: tutor_academico_nombres,
                                           apellidos: tutor_academico_apellidos,
                                           ci: tutor_academico_ci,
@@ -305,7 +332,8 @@ const UploadAndScan: React.FC<UploadAndScanProps> = ({ selectedConvocatoriaId, o
                                           email: tutor_academico_email,
                                       }] : [],
                                   });
-                                  studentAreaCounts[ci]++; 
+                                  studentAreaCounts[ci]++;
+                                } 
                               } else {
                                   errors.push(`Fila ${rowNumber}: No se encontró configuración de Convocatoria-Nivel para Área="${nombre_area}", Nivel="${nombre_nivel}", Grado="${nombre_grado}".`);
                               }
