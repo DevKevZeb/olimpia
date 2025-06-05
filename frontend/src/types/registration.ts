@@ -56,7 +56,7 @@ export interface EstudianteFormData {
   ci: string;
   fecha_nacimiento: string;
   email: string;
-  telefono?: string;
+  telefono: string;
   id_grado: string;
   genero: string;
   id_convocatoria: string;

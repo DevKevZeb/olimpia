@@ -134,7 +134,7 @@ const UploadAndScan: React.FC<UploadAndScanProps> = ({ selectedConvocatoriaId, o
                       const nombre_nivel = String(row[1] || '').trim();
                       if (!nombre_nivel) { isValidRow = false; rowErrors.push('"Nombre Nivel" es obligatorio.'); }
 
-                      const nombre_grado = String(row[12] || '').trim();
+                      const nombre_grado = String(row[13] || '').trim();
                       if (!nombre_grado) { isValidRow = false; rowErrors.push('"Grado" es obligatorio.'); }
 
                       const nombres = String(row[3] || '').trim();
@@ -173,47 +173,50 @@ const UploadAndScan: React.FC<UploadAndScanProps> = ({ selectedConvocatoriaId, o
                           isValidRow = false;
                           rowErrors.push('"Email" tiene un formato inválido.');
                       }
+                      const telefono_raw = row[9];
+                      const telefono = typeof telefono_raw === 'number' ? String(telefono_raw) : String(telefono_raw || '').trim();
+                      if (telefono && !/^[0-9]+$/.test(telefono)) { isValidRow = false; rowErrors.push('"Teléfono del estudiante" debe contener solo números.'); }
 
-                      const unidad_educativa_nombre = String(row[9] || '').trim();
+                      const unidad_educativa_nombre = String(row[10] || '').trim();
                       if (!unidad_educativa_nombre) { isValidRow = false; rowErrors.push('"Unidad Educativa" es obligatorio.'); }
 
-                      const departamento = String(row[10] || '').trim();
+                      const departamento = String(row[11] || '').trim();
                       if (!departamento) { isValidRow = false; rowErrors.push('"Departamento" es obligatorio.'); }
 
-                      const provincia = String(row[11] || '').trim();
+                      const provincia = String(row[12] || '').trim();
                       if (!provincia) { isValidRow = false; rowErrors.push('"Provincia" es obligatorio.'); }
 
-                      const tutor_legal_nombres = String(row[14] || '').trim();
+                      const tutor_legal_nombres = String(row[15] || '').trim();
                       if (!tutor_legal_nombres) { isValidRow = false; rowErrors.push('"Nombres del Tutor Legal" es obligatorio.'); }
                       else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(tutor_legal_nombres)) { isValidRow = false; rowErrors.push('"Nombres del Tutor Legal" debe contener solo letras y espacios.'); }
 
-                      const tutor_legal_apellidos = String(row[15] || '').trim();
+                      const tutor_legal_apellidos = String(row[16] || '').trim();
                       if (!tutor_legal_apellidos) { isValidRow = false; rowErrors.push('"Apellidos del Tutor Legal" es obligatorio.'); }
                       else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(tutor_legal_apellidos)) { isValidRow = false; rowErrors.push('"Apellidos del Tutor Legal" debe contener solo letras y espacios.'); }
 
-                      const tutor_legal_ci_raw = row[16];
+                      const tutor_legal_ci_raw = row[17];
                       const tutor_legal_ci = typeof tutor_legal_ci_raw === 'number' ? String(tutor_legal_ci_raw) : String(tutor_legal_ci_raw || '').trim();
                       if (tutor_legal_ci && !/^[0-9]+$/.test(tutor_legal_ci)) { isValidRow = false; rowErrors.push('"CI Tutor Legal" debe contener solo números.'); }
 
-                      const tutor_legal_telefono_raw = row[17];
+                      const tutor_legal_telefono_raw = row[18];
                       const tutor_legal_telefono = typeof tutor_legal_telefono_raw === 'number' ? String(tutor_legal_telefono_raw) : String(tutor_legal_telefono_raw || '').trim();
                       if (tutor_legal_telefono && !/^[0-9]+$/.test(tutor_legal_telefono)) { isValidRow = false; rowErrors.push('"Teléfono Tutor Legal" debe contener solo números.'); }
 
-                      const tutor_legal_email = String(row[18] || '').trim();
+                      const tutor_legal_email = String(row[19] || '').trim();
                       if (tutor_legal_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(tutor_legal_email)) {
                           isValidRow = false;
                           rowErrors.push('"Email Tutor Legal" tiene un formato inválido.');
-                      }                      const tutor_legal_parentesco = String(row[19] || '').trim();
+                      }                      const tutor_legal_parentesco = String(row[20] || '').trim();
                       if (!tutor_legal_parentesco) { isValidRow = false; rowErrors.push('"Parentesco del Tutor Legal" es obligatorio.'); }
                       else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s/]+$/.test(tutor_legal_parentesco)) { isValidRow = false; rowErrors.push('"Parentesco del Tutor Legal" debe contener solo letras, espacios y el caracter /.'); }
 
-                      let tutor_academico_nombres = String(row[21] || '').trim();
-                      let tutor_academico_apellidos = String(row[22] || '').trim();
-                      const tutor_academico_ci_raw = row[23];
+                      let tutor_academico_nombres = String(row[22] || '').trim();
+                      let tutor_academico_apellidos = String(row[23] || '').trim();
+                      const tutor_academico_ci_raw = row[24];
                       let tutor_academico_ci = typeof tutor_academico_ci_raw === 'number' ? String(tutor_academico_ci_raw) : String(tutor_academico_ci_raw || '').trim();
-                      const tutor_academico_telefono_raw = row[24];
+                      const tutor_academico_telefono_raw = row[25];
                       let tutor_academico_telefono = typeof tutor_academico_telefono_raw === 'number' ? String(tutor_academico_telefono_raw) : String(tutor_academico_telefono_raw || '').trim();
-                      let tutor_academico_email = String(row[25] || '').trim();
+                      let tutor_academico_email = String(row[26] || '').trim();
 
                       const hasTutorAcademicoData = tutor_academico_nombres || tutor_academico_apellidos || tutor_academico_ci || tutor_academico_telefono || tutor_academico_email;
 
@@ -274,6 +277,7 @@ const UploadAndScan: React.FC<UploadAndScanProps> = ({ selectedConvocatoriaId, o
                                       genero: genero,
                                       fecha_nacimiento: fecha_nacimiento,
                                       email: email,
+                                      telefono: telefono,
                                       id_grado: id_grado,
                                       unidad_educativa: {
                                           id_unidad_educativa: null, // Not provided in Excel

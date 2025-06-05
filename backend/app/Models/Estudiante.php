@@ -18,6 +18,7 @@ class Estudiante extends Model
         'ci',
         'fecha_nacimiento',
         'genero',
+        'telefono',
         'email',
         'id_unidad_educativa',
         'id_grado',

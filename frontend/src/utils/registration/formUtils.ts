@@ -43,6 +43,9 @@ export const updateRequisitosValues = (
         case 'GENERO':
           fieldValue = formData.genero;
           break;
+        case 'TELEFONO':
+          fieldValue = formData.telefono;
+          break;
       }
     } else if (entidad === 'TUTOR_LEGAL') {
       switch (campo) {
@@ -298,6 +301,7 @@ export const handleTutorLoaded = async (
           nombres: user.nombres || '',
           apellidos: user.apellidos || '',
           email: user.email || '',
+          genero: user.genero || '',
           telefono: user.telefono || '',
         } 
       };
@@ -346,6 +350,7 @@ export const updateActiveStudent = (
       ci: newFormData.ci,
       fecha_nacimiento: newFormData.fecha_nacimiento,
       email: newFormData.email,
+      genero: newFormData.genero,
       telefono: newFormData.telefono,
       id_grado: newFormData.id_grado,
       id_convocatoria: newFormData.id_convocatoria, // ¡ESTA ERA LA LÍNEA FALTANTE!
@@ -414,6 +419,8 @@ export const isCurrentStudentValid = (estudiantes: EstudianteFormData[], activeS
     currentStudent.fecha_nacimiento &&
     currentStudent.email &&
     currentStudent.id_grado &&
+    currentStudent.telefono &&
+    currentStudent.genero &&
     currentStudent.unidad_educativa?.nombre
   );
   

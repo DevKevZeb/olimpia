@@ -113,7 +113,7 @@ class InscripcionCompletaController extends ApiController
             }
         
             // 1. Verificar el máximo de áreas permitidas por estudiante
-            if (count($inscripcionData['areas_seleccionadas']) > $convocatoria->max_areas_por_estudiante) {
+            if (count($inscripcionData['areas_seleccionadas']) >= $convocatoria->max_areas_por_estudiante) {
                 $erroresInscripcion[$inscripcionData['ci']] = "Se ha excedido el máximo de áreas permitidas ({$convocatoria->max_areas_por_estudiante}) para este estudiante.";
                 continue;
             }
@@ -177,6 +177,7 @@ class InscripcionCompletaController extends ApiController
                 'fecha_nacimiento' => 'nullable|required|date',
                 'email' => 'nullable|email|max:100',
                 'id_grado' => 'required|exists:grados,id_grado',
+                'telefono' => 'nullable|string|max:20',
     
                 // Datos de la unidad educativa
                 'unidad_educativa' => 'required|array',
@@ -190,9 +191,9 @@ class InscripcionCompletaController extends ApiController
                 'tutor_legal.nombres' => 'required|string|max:100',
                 'tutor_legal.apellidos' => 'required|string|max:100',
                 'tutor_legal.ci' => 'required|string|max:20',
-                'tutor_legal.telefono' => 'nullable|required|string|max:20',
+                'tutor_legal.telefono' => 'nullable|string|max:20',
                 'tutor_legal.email' => 'nullable|email|max:100',
-                'tutor_legal.parentesco' => 'nullable|required|string|max:50',
+                'tutor_legal.parentesco' => 'nullable|string|max:50',
                 'tutor_legal.es_el_mismo_estudiante' => 'required|boolean',
     
                 // Datos de la convocatoria y áreas seleccionadas
@@ -306,10 +307,6 @@ class InscripcionCompletaController extends ApiController
                 if ($estudianteEmail === "") {
                     $estudianteEmail = 'estudiante.no.tiene.correo@miinstitucion.edu.bo';
                 }
-                $estudianteTelefono = $inscripcionData['telefono'] ?? '';
-                if ($estudianteTelefono === "") {
-                    $estudianteTelefono = 'Sin Teléfono';
-                }
                 $estudianteDepartamento = $inscripcionData['departamento'] ?? '';
                 if ($estudianteDepartamento === "") {
                     $estudianteDepartamento = 'No Especificado';
@@ -321,6 +318,10 @@ class InscripcionCompletaController extends ApiController
                 $estudianteGenero = $inscripcionData['genero'] ?? '';
                 if ($estudianteGenero === "") {
                     $estudianteGenero = 'No Especificado';
+                }
+                $estudianteTelefono = $inscripcionData['telefono'] ?? '';
+                if ($estudianteTelefono === "") {
+                    $estudianteTelefono = 0;
                 }
                 $estudianteData = [
                     'nombres' => $inscripcionData['nombres'],
@@ -454,6 +455,7 @@ class InscripcionCompletaController extends ApiController
             'genero' => 'nullable|string|max:20',
             'fecha_nacimiento' => 'nullable|required|date',
             'email' => 'nullable|email|max:100',
+            'telefono' => 'nullable|required|string|max:20',
             'id_grado' => 'required|exists:grados,id_grado',
             
             // Datos de la unidad educativa

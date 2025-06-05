@@ -19,7 +19,7 @@ const RegistroRequisitos: React.FC<Props> = ({ initialConvocatoriaId }) => {
   const camposTutorLegalObligatorios = ['ci', 'nombres', 'apellidos', 'email'];
   const camposTutorLegalOpcionales = ['telefono', 'parentesco'];
   const camposPostulanteObligatorios = ['ci', 'nombres', 'apellidos', 'email', 'id_grado'];
-  const camposPostulanteOpcionales = ['fecha_nacimiento', 'genero', 'id_unidad_educativa', 'departamento', 'provincia'];
+  const camposPostulanteOpcionales = ['fecha_nacimiento', 'genero', 'telefono', 'id_unidad_educativa', 'departamento', 'provincia'];
   //profesor 
   const camposProfesorObligatorios = ['ci', 'nombres', 'apellidos', 'email'];
   const camposProfesorOpcionales = ['telefono'];
@@ -128,17 +128,6 @@ const RegistroRequisitos: React.FC<Props> = ({ initialConvocatoriaId }) => {
       });
       return newState;
     });
-  };
-
-  const isCampoObligatorio = (entidad: string, campo: string): boolean => {
-    if (entidad === 'postulante') {
-      return camposPostulanteObligatorios.includes(campo);
-    } else if (entidad === 'tutorLegal') {
-      return camposTutorLegalObligatorios.includes(campo);
-    } else if (entidad === 'profesor') {
-      return camposProfesorObligatorios.includes(campo);
-    }
-    return false;
   };
 
   const handleGuardarRequisitos = async () => {

@@ -332,6 +332,7 @@ export default function RegistrationPage() {
       email: '',
       id_grado: '',
       genero: '',
+      telefono: '',
       unidad_educativa: {
         id_unidad_educativa: null,
         nombre: '',
@@ -358,11 +359,8 @@ export default function RegistrationPage() {
   
   const handleNextStep = () => {
     if (step === 1) {
-      if (validateStep1Hook()) {
-        const validation = validateStep1(formData, requisitosGuardados);
-        
+      if (validateStep1Hook()) {        
   
-        
         // Ir al paso 2
         setStep(2);
         
@@ -405,7 +403,7 @@ export default function RegistrationPage() {
   const handleAddNewStudent = async () => {
     // PRIMERO: Verificar si el estudiante actual tiene datos completos antes de permitir añadir uno nuevo
     if (!isCurrentStudentValid()) {
-      setFormErrorMessage('Debe completar los datos del estudiante actual antes de agregar uno nuevo.');
+      alert('Debe completar los datos del estudiante actual antes de agregar uno nuevo');
       return;
     }
     
@@ -651,6 +649,10 @@ export default function RegistrationPage() {
                   <div>
                     <p className="text-sm text-gray-500">Genero</p>
                     <p className="font-medium">{selectedStudentDetails.genero}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Telefono</p>
+                    <p className="font-medium">{selectedStudentDetails.telefono}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Email</p>

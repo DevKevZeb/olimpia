@@ -40,6 +40,7 @@ class ExcelController extends Controller
         $sheet->setCellValue($columnIndex++ . $rowIndex, 'Genero');
         $sheet->setCellValue($columnIndex++ . $rowIndex, 'Fecha de Nacimiento (YYYY-MM-DD)');
         $sheet->setCellValue($columnIndex++ . $rowIndex, 'Email del Estudiante');
+        $sheet->setCellValue($columnIndex++ . $rowIndex, 'Telefono del Estudiante');
         $unidadEducativaColumn = $columnIndex;
         $sheet->setCellValue($columnIndex++ . $rowIndex, 'Unidad Educativa');
         $departamentoColumn = $columnIndex;

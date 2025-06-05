@@ -16,6 +16,7 @@ return new class extends Migration
             $table->date('fecha_nacimiento');
             $table->string('email', 100)->nullable();
             $table->string('genero', 20);
+            $table->integer('telefono');
             $table->foreignId('id_unidad_educativa')->constrained('unidades_educativas', 'id_unidad_educativa');
             $table->foreignId('id_grado')->constrained('grados', 'id_grado');
             $table->foreignId('id_tutor_legal')->constrained('tutores_legales', 'id_tutor_legal');
