@@ -35,10 +35,13 @@ export default function CrearNivelPage({ onNivelCreado }) {
     const value = e.target.value.toUpperCase();
     setNuevoNivel(value);
   };
-
   return (
-    <div className="bg-white rounded-lg shadow-lg p-8 mt-8">
-      <h2 className="text-2xl font-bold mb-6">Crear Nuevo Nivel de Categoría</h2>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <h1 className="text-3xl font-bold text-gray-900">Crear Nuevo Nivel de Categoría</h1>
+      </div>
+      <div className="bg-white rounded-lg shadow-lg p-8 mt-8">
+        <h2 className="text-2xl font-bold mb-6">Crear Nuevo Nivel de Categoría</h2>
       <form onSubmit={handleCrearNivel}>
         <FormInput
           label="Nombre del Nivel"
@@ -57,10 +60,10 @@ export default function CrearNivelPage({ onNivelCreado }) {
               isLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 text-white'
             }`}
           >
-            {isLoading ? 'Creando...' : 'Crear Nivel'}
-          </button>
+            {isLoading ? 'Creando...' : 'Crear Nivel'}          </button>
         </div>
       </form>
+      </div>
     </div>
   );
 }

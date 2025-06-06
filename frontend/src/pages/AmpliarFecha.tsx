@@ -62,11 +62,14 @@ export default function AmpliarFecha() {
     return `${dia}-${mes}-${año}`;
   };
 
-
   return (
-    <div className="max-w-xl mx-auto bg-white p-6 rounded-md shadow-md mt-6">
-      <h2 className="text-xl font-semibold mb-2">Ampliar Fecha de Inscripción</h2>
-      <p className="mb-4 text-sm text-gray-600">Seleccionar convocatoria</p>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <h1 className="text-3xl font-bold text-gray-900">Ampliar Fecha de Inscripción</h1>
+      </div>
+      <div className="bg-white rounded-lg shadow-lg p-8 mt-8">
+        <h2 className="text-xl font-semibold mb-2">Ampliar Fecha de Inscripción</h2>
+        <p className="mb-4 text-sm text-gray-600">Seleccionar convocatoria</p>
 
       {error && <p className="text-red-600 mb-4">{error}</p>}
 
@@ -125,9 +128,9 @@ export default function AmpliarFecha() {
             className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
           >
             Guardar Cambios
-          </button>
-        </form>
+          </button>        </form>
       )}
+      </div>
     </div>
   );
 }

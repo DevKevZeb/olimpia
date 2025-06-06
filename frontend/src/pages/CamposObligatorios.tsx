@@ -185,10 +185,13 @@ const RegistroRequisitos: React.FC<Props> = ({ initialConvocatoriaId }) => {
   if (error) {
     return <div>Error: {error}</div>;
   }
-
   return (
-    <div className="registro-requisitos">
-      <h2>Configuracion de Campos Obligatorios</h2>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <h1 className="text-3xl font-bold text-gray-900">Configuración de Campos Obligatorios</h1>
+      </div>
+      <div className="bg-white rounded-lg shadow-lg p-8 mt-8">
+        <h2 className="text-2xl font-bold mb-6">Configuración de Campos Obligatorios</h2>
 
       <div className="select-container">
         <label htmlFor="convocatoria">Seleccionar Convocatoria:</label>
@@ -312,10 +315,10 @@ const RegistroRequisitos: React.FC<Props> = ({ initialConvocatoriaId }) => {
               <button className="boton-guardar" onClick={handleGuardarRequisitos}>
                 Guardar Configuración de Campos
               </button>
-            </div>
-          )}
+            </div>        )}
         </div>
       )}
+      </div>
     </div>
   );
 };

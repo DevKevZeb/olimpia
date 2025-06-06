@@ -83,10 +83,13 @@ export default function AsignarCostoGeneralPage({ onCostoAsignado }) {
       setIsLoading(false);
     }
   };
-
   return (
-    <div className="bg-white rounded-lg shadow-lg p-8 mt-8">
-      <h2 className="text-2xl font-bold mb-6">Asignar Costo General a Áreas</h2>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <h1 className="text-3xl font-bold text-gray-900">Asignar Costo General a Áreas</h1>
+      </div>
+      <div className="bg-white rounded-lg shadow-lg p-8 mt-8">
+        <h2 className="text-2xl font-bold mb-6">Asignar Costo General a Áreas</h2>
       <form onSubmit={handleSubmit}>
         <FormSelect
           label="Seleccionar Convocatoria"
@@ -131,10 +134,10 @@ export default function AsignarCostoGeneralPage({ onCostoAsignado }) {
               isLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-pink-600 hover:bg-pink-700 text-white'
             }`}
           >
-            {isLoading ? 'Asignando...' : 'Asignar Costo General'}
-          </button>
+            {isLoading ? 'Asignando...' : 'Asignar Costo General'}          </button>
         </div>
       </form>
+      </div>
     </div>
   );
 }
