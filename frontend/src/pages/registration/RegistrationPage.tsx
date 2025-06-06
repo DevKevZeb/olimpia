@@ -49,18 +49,22 @@ import {
 } from '../../hooks/registration';
 
 // Importar funciones utilitarias
-import { validateStep1 } from '../../utils/registration/validationUtils';
 import { createNewEstudiante, updateRequisitosValues } from '../../utils/registration/formUtils';
 
 export default function RegistrationPage() {
   const navigate = useNavigate();
   
   // Estados esenciales para navegación y convocatoria
-  const [step, setStep] = useState(1);
-  const [encargadoApellido, setEncargadoApellido] = useState('');
+  const [step, setStep] = useState(1);  const [encargadoApellido, setEncargadoApellido] = useState('');
   const [encargadoNombre, setEncargadoNombre] = useState('');
   const [encargadoCI, setEncargadoCI] = useState('');
-  const [encargadoCorreo, setEncargadoCorreo] = useState('');  const codigo_unico = `O-SANSI-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
+  const [encargadoCorreo, setEncargadoCorreo] = useState('');
+  
+  // Estado para el código único que viene del backend
+  const [codigoUnicoBackend, setCodigoUnicoBackend] = useState('');
+  
+  // Generar código temporal para enviar al backend
+  const codigo_unico_temporal = `O-SANSI-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
   
   // Estados para la inscripción
   const [isLoading, setIsLoading] = useState(false);
@@ -269,19 +273,34 @@ export default function RegistrationPage() {
     if (!isEncargadoValido) {
       alert("Por favor completa correctamente todos los campos del encargado de pago antes de continuar.");
       return;
-    }
-    try {
+    }    try {
       const datos = {
         lista_inscripcion: estudiantes,
         id_convocatoria: convocatoria!.id.toString(),
-        codigo_unico: codigo_unico,
+        codigo_unico: codigo_unico_temporal,
         encargado_pago: {
           ci_encargado: encargadoCI,
           nombres_encargado: encargadoNombre,
           apellidos_encargado: encargadoApellido,
           email_encargado: encargadoCorreo
         },
-      };      await inscribirEstudiante(JSON.stringify(datos));
+      };      const response = await inscribirEstudiante(JSON.stringify(datos));
+      
+      console.log('Respuesta completa del backend:', response);
+      
+      // Actualizar el código único con el que viene del backend
+      if (response?.orden_pago?.codigo_unico) {
+        console.log('Código único del backend:', response.orden_pago.codigo_unico);
+        setCodigoUnicoBackend(response.orden_pago.codigo_unico);
+      } else if (response?.data?.orden_pago?.codigo_unico) {
+        console.log('Código único del backend (en data):', response.data.orden_pago.codigo_unico);
+        setCodigoUnicoBackend(response.data.orden_pago.codigo_unico);
+      } else {
+        // Fallback al código temporal si no viene del backend
+        console.log('Usando código temporal como fallback:', codigo_unico_temporal);
+        setCodigoUnicoBackend(codigo_unico_temporal);
+      }
+      
       setIsSuccessModalOpen(true);
     } catch (error) {
       console.error("Error al obtener el código:", error);
@@ -310,11 +329,14 @@ export default function RegistrationPage() {
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedStudentDetails(null);
-  };
-  // Función para cerrar el modal de la boleta de pago y resetear
+  };  // Función para cerrar el modal de la boleta de pago y resetear
   const closeBoletaModal = () => {
     setIsBoletaModalOpen(false);
-      // Resetear datos y redirigir al step 1
+    
+    // Resetear el código único del backend
+    setCodigoUnicoBackend('');
+    
+    // Resetear datos y redirigir al step 1
     const newEstudiante = createNewEstudiante(convocatoria || undefined);
     setEstudiantes([newEstudiante]);
     setActiveStudentIndex(0);
@@ -596,7 +618,7 @@ export default function RegistrationPage() {
               isBoletaModalOpen={isBoletaModalOpen}
               isComprobanteModalOpen={isComprobanteModalOpen}
               selectedStudentDetails={selectedStudentDetails}
-              codigo_unico={codigo_unico}
+              codigo_unico={codigoUnicoBackend || codigo_unico_temporal}
               comprobanteDetails={comprobanteDetails}
               ordenInfo={ordenInfo}
               onEncargadoNombreChange={setEncargadoNombre}
@@ -808,11 +830,10 @@ export default function RegistrationPage() {
               </button>
             </div>
             <div className="p-6">
-              <div className="mb-6">
-                <div className="flex justify-between items-center mb-4">
+              <div className="mb-6">                <div className="flex justify-between items-center mb-4">
                   <div>
                     <p className="text-sm text-gray-500">Código de Inscripción</p>
-                    <p className="font-medium">{codigo_unico}</p>
+                    <p className="font-medium">{codigoUnicoBackend || codigo_unico_temporal}</p>
                   </div>
                   <div className="text-right">
                     <p className="text-sm text-gray-500">Fecha</p>
@@ -967,9 +988,8 @@ export default function RegistrationPage() {
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
                 ¡Pre-inscripción completada con éxito!
               </h3>
-              
-              <p className="text-gray-600 mb-4">
-                Su código de inscripción es: <span className="font-bold text-blue-600">{codigo_unico}</span>
+                <p className="text-gray-600 mb-4">
+                Su código de inscripción es: <span className="font-bold text-blue-600">{codigoUnicoBackend || codigo_unico_temporal}</span>
               </p>
               
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6 text-left">
@@ -1001,7 +1021,7 @@ export default function RegistrationPage() {
                 </button>                <button
                   onClick={() => {
                     setIsSuccessModalOpen(false);
-                    navigate(`/download-boleta?codigo=${codigo_unico}`);
+                    navigate(`/download-boleta?codigo=${codigoUnicoBackend || codigo_unico_temporal}`);
                   }}
                   className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
                 >
