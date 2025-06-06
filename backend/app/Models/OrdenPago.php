@@ -11,8 +11,7 @@ class OrdenPago extends Model
 
     protected $table = 'ordenes_pago';
     protected $primaryKey = 'id_orden';
-    
-    protected $fillable = [
+      protected $fillable = [
         'codigo_unico',
         'tipo_origen',
         'id_lista',
@@ -20,9 +19,6 @@ class OrdenPago extends Model
         'fecha_emision',
         'fecha_vencimiento',
         'estado',
-        'encargado_email' ,
-        'encargado_nombre' ,
-        'encargado_ci' ,
     ];
 
     protected $casts = [

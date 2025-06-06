@@ -40,15 +40,20 @@ export default function CompletarInscripcionPage() {
   const [uploadComplete, setUploadComplete] = useState(false);
 
   // Hook para verificación de código
-  const { verifyCode, isLoading: isVerifying, error: verifyError } = useCodeVerification();
-
-  // Crear un wrapper para la función de upload que convierte File a FormData
+  const { verifyCode, isLoading: isVerifying, error: verifyError } = useCodeVerification();  // Crear un wrapper para la función de upload que convierte File a FormData
   const uploadWrapper = useCallback(async (file: File) => {
     const formData = new FormData();
     formData.append('pdf_comprobante', file);
-    formData.append('codigo_orden', codigoFromUrl || '');
+    // Usar el código de la orden verificada o el código de la URL
+    const codigo = ordenInfo?.orden.codigo_unico || codigoFromUrl || '';
+    
+    if (!codigo) {
+      throw new Error('No se encontró un código de orden válido');
+    }
+    
+    formData.append('codigo_orden', codigo);
     return subirComprobantePago(formData);
-  }, [codigoFromUrl]);
+  }, [codigoFromUrl, ordenInfo]);
 
   // Hook para subida de archivos
   const { uploadFile, isUploading, error: uploadError } = useFileUpload(uploadWrapper);
@@ -174,16 +179,29 @@ export default function CompletarInscripcionPage() {
                   <p className="text-lg font-semibold text-green-900">{ordenInfo.estudiantes_count}</p>
                 </div>
               )}
-            </div>
+            </div>          </div>
+
+          {/* Información específica sobre el formato del recibo */}
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 max-w-2xl mx-auto">
+            <h4 className="font-semibold text-yellow-900 mb-3">Formato requerido del recibo</h4>
+            <p className="text-yellow-800 text-sm mb-3">
+              Asegúrese de que su recibo de caja contenga los siguientes campos:
+            </p>
+            <ul className="text-yellow-800 text-sm space-y-1 list-disc list-inside">
+              <li><strong>Nro.:</strong> Número del recibo</li>
+              <li><strong>Fecha:</strong> Fecha del pago</li>
+              <li><strong>Recibí de:</strong> Su nombre completo</li>
+              <li><strong>Total:</strong> Monto pagado</li>
+              <li><strong>Aclaración:</strong> Debe contener el código de inscripción</li>
+            </ul>
           </div>
 
-          <div className="max-w-2xl mx-auto">
-            <FileUploadForm
+          <div className="max-w-2xl mx-auto">            <FileUploadForm
               onUpload={handleFileUpload}
               loading={isUploading}
               error={uploadError}
-              title="Subir Comprobante de Pago"
-              description="Seleccione el comprobante de pago en formato PDF"
+              title="Subir Recibo de Caja"
+              description="Seleccione el recibo de caja en formato PDF (máximo 10MB)"
             />
           </div>
 
