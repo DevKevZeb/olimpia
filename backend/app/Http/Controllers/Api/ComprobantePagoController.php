@@ -251,14 +251,18 @@ class ComprobantePagoController extends ApiController
                 Storage::disk('public')->delete($filePath);
                 return $this->errorResponse('No se encontró un código de inscripción válido en la aclaración. El código debe tener el formato O-SANSI-YYYY-XXXXX', 422);
             }
+              // --- VALIDACIONES DE SEGURIDAD ---
+            // Por seguridad, validamos múltiples criterios pero solo mostramos un mensaje genérico
+            // para evitar revelar información específica sobre los criterios de validación internos.
             
-            // Validar que el código de inscripción extraído coincida con el código de la orden
+            $validacionFallo = false;
+            
+            // 1. Validar que el código de inscripción extraído coincida con el código de la orden
             if (strtoupper($codigoInscripcion) !== strtoupper($orden->codigo_unico)) {
-                Storage::disk('public')->delete($filePath);
-                return $this->errorResponse('El código de inscripción en la aclaración del recibo no coincide con el código de la orden de pago.', 422);
-            }            // --- VALIDACIÓN DE NOMBRE Y MONTO DEL RESPONSABLE DE PAGO ---
+                $validacionFallo = true;
+            }
             
-            // Obtener nombre responsable de pago
+            // 2. Obtener y validar nombre responsable de pago
             $nombreResponsable = null;
             if ($orden->tipo_origen === 'lista' && $orden->id_lista) {
                 $encargado = \App\Models\EncargadoPago::where('id_lista', $orden->id_lista)->first();
@@ -270,21 +274,23 @@ class ComprobantePagoController extends ApiController
             }
             
             // Validar nombre del pagador (si hay responsable registrado)
-            if ($nombreResponsable) {
-                if ($this->normalizarNombre($nombre) !== $this->normalizarNombre($nombreResponsable)) {
-                    Storage::disk('public')->delete($filePath);
-                    return $this->errorResponse('El nombre del pagador en el recibo ("' . $nombre . '") no coincide con el responsable de pago registrado ("' . $nombreResponsable . '").', 422);
-                }
+            if ($nombreResponsable && $this->normalizarNombre($nombre) !== $this->normalizarNombre($nombreResponsable)) {
+                $validacionFallo = true;
             }
             
-            // Validar monto exacto con el monto de la orden
+            // 3. Validar monto exacto con el monto de la orden
             $montoOrden = (float)$orden->monto_total;
             $montoRecibo = (float)$monto;
             
             if (abs($montoOrden - $montoRecibo) > 0.01) { // Permitir diferencia de 1 centavo por redondeo
+                $validacionFallo = true;
+            }
+            
+            // Si cualquier validación falló, mostrar mensaje genérico de seguridad
+            if ($validacionFallo) {
                 Storage::disk('public')->delete($filePath);
-                return $this->errorResponse('El monto del recibo (Bs. ' . number_format($montoRecibo, 2) . ') no coincide con el monto de la orden de pago (Bs. ' . number_format($montoOrden, 2) . ').', 422);
-            }            // Guardar comprobante con los datos extraídos del nuevo formato
+                return $this->errorResponse('El recibo no pertenece al código de inscripción proporcionado.', 422);
+            }// Guardar comprobante con los datos extraídos del nuevo formato
             $comprobante = ComprobantePago::create([
                 'id_orden' => $orden->id_orden,
                 'numero_comprobante' => $numero,
