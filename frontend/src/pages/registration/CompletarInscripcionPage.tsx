@@ -4,7 +4,6 @@ import PageContainer from '../../components/layout/PageContainer';
 import PageHeader from '../../components/layout/PageHeader';
 import CodeVerificationForm from '../../components/forms/CodeVerificationForm';
 import FileUploadForm from '../../components/forms/FileUploadForm';
-import Alert from '../../components/ui/Alert';
 import Button from '../../components/ui/Button';
 import { useCodeVerification, useFileUpload } from '../../hooks/registration';
 import { subirComprobantePago } from '../../api/registration';
@@ -212,27 +211,15 @@ export default function CompletarInscripcionPage() {
             <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
-          </div>
-
-          <div className="space-y-4">
+          </div>          <div className="space-y-4">
             <h3 className="text-2xl font-bold text-gray-900">
-              ¡Comprobante subido exitosamente!
+              ¡Inscripción completada exitosamente!
             </h3>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Su comprobante de pago ha sido recibido y está siendo procesado. 
-              Recibirá una confirmación por correo electrónico una vez que sea verificado.
+              Su pago ha sido verificado y procesado correctamente. 
+              Su inscripción está ahora confirmada y activa.
             </p>
-          </div>
-
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 max-w-2xl mx-auto">
-            <Alert
-              type="info"
-              title="¿Qué sigue?"
-              message="El proceso de verificación puede tomar hasta 24 horas hábiles. Le notificaremos por correo cuando su pago haya sido confirmado."
-            />
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-lg mx-auto">
+          </div>          <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-lg mx-auto">
             <Button
               onClick={() => navigate('/gestionar-inscripciones')}
               className="flex-1 sm:flex-none"
