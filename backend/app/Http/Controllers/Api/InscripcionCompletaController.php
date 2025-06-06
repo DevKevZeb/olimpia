@@ -521,6 +521,7 @@ class InscripcionCompletaController extends ApiController
                 'id' => $convocatoria->id_convocatoria,
                 'nombre' => $convocatoria->nombre,
                 'fecha_inicio' => $convocatoria->fecha_inicio_inscripcion,
+                'updated_at' => $convocatoria->updated_at,
                 'fecha_fin' => $convocatoria->fecha_fin_inscripcion,
                 'max_areas' => $convocatoria->max_areas_por_estudiante,
             ],

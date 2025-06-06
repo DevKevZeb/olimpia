@@ -9,6 +9,7 @@ export interface Convocatoria {
   nombre: string;
   fecha_inicio: string;
   fecha_fin: string;
+  updated_at: string;
   max_areas: number;
 }
 
