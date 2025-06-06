@@ -1,6 +1,7 @@
-import React from 'react';
+
 import { Calendar, ChevronRight, AlertCircle } from 'lucide-react';
 import { EstudianteFormData, FormErrors, Grado } from '../../../types/registration';
+import { Autocomplete, TextField } from '@mui/material';
 import { getDatosEstudiante } from '../../../api/registration/inscripcionCompletaApi';
 
 interface StudentFormProps {
@@ -28,7 +29,7 @@ const StudentForm: React.FC<StudentFormProps> = ({
   onStudentInfoLoaded,
   onTutorLoaded,
 }) => {
-
+  
   return (
     <div>
       <h3 className="text-lg font-semibold mb-2">Datos Personales</h3>

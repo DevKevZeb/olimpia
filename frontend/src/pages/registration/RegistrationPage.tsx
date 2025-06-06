@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Check, X } from 'lucide-react';
-
 import { getDatosInscripcion, inscribirEstudiante, estudianteEstaInscrito } from '../../api/registration/inscripcionCompletaApi';
 import { 
   EstudianteFormData, 
@@ -258,13 +257,6 @@ export default function RegistrationPage() {
         alert(`Opsie! Algo salió mal: ${error instanceof Error ? error.message : 'Error desconocido'}`);
         return;
       }
-    }
-
-    setFormErrorMessage('');
-    const ciActual = estudiantes[activeStudentIndex]?.ci?.trim();
-    if (ciActual && estudiantes.some((e, i) => i !== activeStudentIndex && e.ci?.trim() === ciActual)) {
-      alert(`El estudiante con CI ${ciActual} ya fue agregado.\n No puede tener dos registros con el mismo CI`);
-      return;
     }
     
     const isEmailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(encargadoCorreo);
