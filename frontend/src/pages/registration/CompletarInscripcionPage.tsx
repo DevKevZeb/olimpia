@@ -35,47 +35,57 @@ export default function CompletarInscripcionPage() {
   // Obtener código de URL params si existe
   const searchParams = new URLSearchParams(window.location.search);
   const codigoFromUrl = searchParams.get('codigo') || '';
-    const [isVerified, setIsVerified] = useState(false);
+  const [isVerified, setIsVerified] = useState(false);
   const [ordenInfo, setOrdenInfo] = useState<OrdenInfo | null>(null);
   const [uploadComplete, setUploadComplete] = useState(false);
+  const [customError, setCustomError] = useState<string | null>(null);
 
   // Hook para verificación de código
-  const { verifyCode, isLoading: isVerifying, error: verifyError } = useCodeVerification();
-
-  // Crear un wrapper para la función de upload que convierte File a FormData
+  const { verifyCode, isLoading: isVerifying, error: verifyError } = useCodeVerification();// Crear un wrapper para la función de upload que convierte File a FormData
   const uploadWrapper = useCallback(async (file: File) => {
     const formData = new FormData();
     formData.append('pdf_comprobante', file);
-    formData.append('codigo_orden', codigoFromUrl || '');
+    // Usar el código de la orden verificada o el código de la URL
+    const codigo = ordenInfo?.orden.codigo_unico || codigoFromUrl || '';
+    
+    if (!codigo) {
+      throw new Error('No se encontró un código de orden válido');
+    }
+    
+    formData.append('codigo_orden', codigo);
     return subirComprobantePago(formData);
-  }, [codigoFromUrl]);
+  }, [codigoFromUrl, ordenInfo]);
 
   // Hook para subida de archivos
-  const { uploadFile, isUploading, error: uploadError } = useFileUpload(uploadWrapper);
-
-  // Función personalizada para verificar código con validaciones específicas
+  const { uploadFile, isUploading, error: uploadError } = useFileUpload(uploadWrapper);  // Función personalizada para verificar código con validaciones específicas
   const handleVerification = useCallback(async (code: string) => {
+    setCustomError(null); // Limpiar errores anteriores
+    
     try {
       const response = await verifyCode(code);
       
-      // Validaciones específicas
+      // Validaciones específicas con mensajes más claros
       const fechaVencimiento = new Date(response.orden.fecha_vencimiento);
       const fechaActual = new Date();
 
       if (fechaVencimiento < fechaActual) {
-        throw new Error('Esta orden de pago ha vencido. Por favor genere una nueva orden.');
+        setCustomError('Esta orden de pago ha vencido. Por favor genere una nueva orden.');
+        return;
       }
       
       if (response.orden.estado === 'pagada') {
-        throw new Error('Esta orden de pago ya ha sido pagada. No es necesario subir un comprobante.');
+        setCustomError('✓ Esta inscripción ya ha sido completada exitosamente. Su pago ha sido verificado y procesado. No es necesario realizar ninguna acción adicional.');
+        return;
       }
       
       if (response.orden.estado === 'vencida') {
-        throw new Error('Esta orden de pago está vencida. Por favor genere una nueva orden.');
+        setCustomError('Esta orden de pago está vencida. Por favor genere una nueva orden.');
+        return;
       }
       
       if (response.tiene_comprobante) {
-        throw new Error('Esta orden ya tiene un comprobante de pago en proceso de verificación.');
+        setCustomError('Esta orden ya tiene un comprobante de pago en proceso de verificación. Por favor espere mientras verificamos su pago o contacte con soporte si han pasado más de 24 horas.');
+        return;
       }
       
       setOrdenInfo(response);
@@ -85,7 +95,7 @@ export default function CompletarInscripcionPage() {
       if (error instanceof Error) {
         errorMessage = error.message;
       }
-      throw new Error(errorMessage);
+      setCustomError(errorMessage);
     }
   }, [verifyCode]);
 
@@ -103,11 +113,11 @@ export default function CompletarInscripcionPage() {
     await uploadFile(file);
     setUploadComplete(true);
   };
-
   const handleStartOver = () => {
     setIsVerified(false);
     setOrdenInfo(null);
     setUploadComplete(false);
+    setCustomError(null); // Limpiar error personalizado
   };
 
   const breadcrumbs = [
@@ -137,12 +147,10 @@ export default function CompletarInscripcionPage() {
               <li>Una vez verificado, podrá subir su comprobante de pago</li>
               <li>Solo se aceptan archivos PDF de máximo 10MB</li>
             </ol>
-          </div>
-
-          <CodeVerificationForm
+          </div>          <CodeVerificationForm
             onVerify={handleVerification}
             loading={isVerifying}
-            error={verifyError}
+            error={customError || verifyError}
             placeholder="Código de inscripción (ej: O-SANSI-2024-12345)"
             buttonText="Verificar Código"
             helperText="Ingrese el código que recibió al completar su pre-inscripción"
@@ -174,16 +182,17 @@ export default function CompletarInscripcionPage() {
                   <p className="text-lg font-semibold text-green-900">{ordenInfo.estudiantes_count}</p>
                 </div>
               )}
-            </div>
+            </div>          
           </div>
 
-          <div className="max-w-2xl mx-auto">
-            <FileUploadForm
+          
+
+          <div className="max-w-2xl mx-auto">            <FileUploadForm
               onUpload={handleFileUpload}
               loading={isUploading}
               error={uploadError}
-              title="Subir Comprobante de Pago"
-              description="Seleccione el comprobante de pago en formato PDF"
+              title="Subir Recibo de Caja"
+              description="Seleccione el recibo de caja en formato PDF (máximo 10MB)"
             />
           </div>
 

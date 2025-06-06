@@ -151,66 +151,118 @@ class ComprobantePagoController extends ApiController
             }
             if ($orden->comprobantes()->where('estado_verificacion', 'pendiente')->exists()) {
                 return $this->errorResponse('Esta orden ya tiene un comprobante pendiente de verificación', 422);
-            }
-            // Guardar el archivo
+            }            // Guardar el archivo
             $file = $request->file('pdf_comprobante');
             $filePath = $file->store('comprobantes', 'public');
-            // Extraer texto del PDF
-            $pdfPath = storage_path('app/public/' . $filePath);
+            
+            // Extraer texto del PDF - normalize path separators for Windows compatibility
+            $normalizedFilePath = str_replace('/', DIRECTORY_SEPARATOR, $filePath);
+            $pdfPath = storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . $normalizedFilePath);
             $parser = new Parser();
             $pdf = $parser->parseFile($pdfPath);
             $ocrText = $pdf->getText();
-            // Buscar datos por patrones
-            $nombre = null;
+            
+            // Buscar datos específicos del nuevo formato de recibo
             $numero = null;
             $fecha = null;
-            if (preg_match('/Cliente:?[ \t]*([A-Za-zÁÉÍÓÚáéíóúñÑ ]+)/i', $ocrText, $m)) {
-                $nombre = trim($m[1]);
+            $nombre = null;
+            $monto = null;
+            $aclaracion = null;
+            $codigoInscripcion = null;
+            
+            // Extraer Nro. del recibo
+            if (preg_match('/Nro\.?\s*:?\s*([0-9]+)/i', $ocrText, $m)) {
+                $numero = trim($m[1]);
             }
-            // Extraer número de comprobante de forma robusta y flexible
-            $numero = null;
-            $lines = preg_split('/\r\n|\r|\n/', $ocrText);
-            foreach ($lines as $i => $line) {
-                // Busca variantes de "Comprobante n°: 04499856" (permite espacios, mayúsculas, minúsculas, n°/N°/Nº/No)
-                if (preg_match('/Comprobante\s*n[°ºoO]?[\s:]*([0-9]{4,12})/iu', $line, $m)) {
-                    $numero = trim($m[1]);
-                    break;
+              // Extraer fecha (formato DD-MM-YY HH:MM)
+            if (preg_match('/Fecha:\s*([0-9]{1,2}[\/\-][0-9]{1,2}[\/\-][0-9]{2,4}(?:\s+[0-9]{1,2}:[0-9]{2})?)/i', $ocrText, $m)) {
+                $fecha = trim($m[1]);
+            }
+              // Extraer nombre del pagador "Recibí de:" - patrón exacto
+            if (preg_match('/Recibí de:\s*([^\n\r]+)/i', $ocrText, $m)) {
+                $nombre = trim($m[1]);
+            }            // Extraer monto "Total:" - patrón mejorado más robusto
+            if (preg_match('/Total[:\s]*.*?(\d+(?:[.,]\d{1,2})?)/i', $ocrText, $m)) {
+                $monto = str_replace(',', '.', trim($m[1]));
+            }
+              // Extraer aclaración completa - patrón exacto
+            if (preg_match('/Aclaración:\s*([^\n\r]+)/i', $ocrText, $m)) {
+                $aclaracion = trim($m[1]);
+                
+                // Buscar código de inscripción en la aclaración (formato: O-SANSI-2025-XXXXX)
+                if (preg_match('/(O-SANSI-\d{4}-\d+)/i', $aclaracion, $cm)) {
+                    $codigoInscripcion = trim($cm[1]);
                 }
-                // Si la línea contiene "Comprobante" y "n°" pero no el número, busca en la siguiente línea
-                if (preg_match('/Comprobante\s*n[°ºoO]?[\s:]*$/iu', $line) && isset($lines[$i+1])) {
-                    if (preg_match('/([0-9]{4,12})/', $lines[$i+1], $m)) {
-                        $numero = trim($m[1]);
-                        break;
+            }
+            
+            // Validaciones básicas del documento
+            if (!$numero) {
+                Storage::disk('public')->delete($filePath);
+                return $this->errorResponse('No se pudo extraer el número del recibo. Asegúrese de que el documento contenga el campo "Nro."', 422);
+            }
+            
+            if (!$fecha) {
+                Storage::disk('public')->delete($filePath);
+                return $this->errorResponse('No se pudo extraer la fecha del recibo. Asegúrese de que el documento contenga el campo "Fecha:"', 422);
+            }
+            
+            if (!$nombre) {
+                Storage::disk('public')->delete($filePath);
+                return $this->errorResponse('No se pudo extraer el nombre del pagador. Asegúrese de que el documento contenga el campo "Recibí de:"', 422);
+            }
+              if (!$monto) {
+                Storage::disk('public')->delete($filePath);
+                
+                // Debug: buscar líneas que contengan "total" para ayudar con el diagnóstico
+                $lineasConTotal = [];
+                $lines = explode("\n", $ocrText);
+                foreach ($lines as $lineNum => $line) {
+                    if (preg_match('/total/i', trim($line))) {
+                        $lineasConTotal[] = "Línea " . ($lineNum + 1) . ": \"" . trim($line) . "\"";
                     }
                 }
+                
+                $debugInfo = empty($lineasConTotal) 
+                    ? "No se encontraron líneas que contengan 'Total' en el documento."
+                    : "Líneas encontradas con 'Total': " . implode("; ", $lineasConTotal);
+                
+                return $this->errorResponse('No se pudo extraer el monto total. Asegúrese de que el documento contenga el campo "Total:". ' . $debugInfo, 422);
             }
-            // Validar que el número sea obligatorio y solo dígitos (4 a 12 dígitos)
-            if (!$numero || !preg_match('/^[0-9]{4,12}$/', $numero)) {
+              if (!$aclaracion) {
                 Storage::disk('public')->delete($filePath);
-                return $this->errorResponse('No se pudo extraer un número de comprobante válido. Asegúrese de subir un comprobante/factura válido.', 422);
+                
+                // Debug: buscar líneas que contengan "aclaración"
+                $lineasConAclaracion = [];
+                $lines = explode("\n", $ocrText);
+                foreach ($lines as $lineNum => $line) {
+                    if (preg_match('/aclaraci[óo]n/i', trim($line))) {
+                        $lineasConAclaracion[] = "Línea " . ($lineNum + 1) . ": \"" . trim($line) . "\"";
+                    }
+                }
+                
+                $debugInfo = empty($lineasConAclaracion) 
+                    ? "No se encontraron líneas que contengan 'Aclaración' en el documento."
+                    : "Líneas encontradas con 'Aclaración': " . implode("; ", $lineasConAclaracion);
+                
+                return $this->errorResponse('No se pudo extraer la aclaración del recibo. Asegúrese de que el documento contenga el campo "Aclaración:". ' . $debugInfo, 422);
             }
-            if (preg_match('/Fecha:?\s*([0-9]{2}\/[0-9]{2}\/[0-9]{4})/i', $ocrText, $m)) {
-                $fecha = $m[1];
-            }
-            // Validar que sea comprobante
-            if (!$nombre || !$fecha || stripos($ocrText, 'comprobante') === false) {
+            
+            if (!$codigoInscripcion) {
                 Storage::disk('public')->delete($filePath);
-                return $this->errorResponse('El archivo no parece ser un comprobante de pago válido. Asegúrese de subir el documento correcto.', 422);
+                return $this->errorResponse('No se encontró un código de inscripción válido en la aclaración. El código debe tener el formato O-SANSI-YYYY-XXXXX', 422);
             }
-            // --- VALIDACIÓN DE NOMBRE Y MONTO DEL RESPONSABLE DE PAGO ---
-            // Función para normalizar nombres (mayúsculas, sin tildes, sin caracteres especiales)
-            function normalizar_nombre($str) {
-                $str = mb_strtoupper($str, 'UTF-8');
-                $str = preg_replace('/[áàäâ]/iu', 'A', $str);
-                $str = preg_replace('/[éèëê]/iu', 'E', $str);
-                $str = preg_replace('/[íìïî]/iu', 'I', $str);
-                $str = preg_replace('/[óòöô]/iu', 'O', $str);
-                $str = preg_replace('/[úùüû]/iu', 'U', $str);
-                $str = preg_replace('/[^A-Z ]/', '', $str);
-                $str = preg_replace('/\s+/', ' ', $str);
-                return trim($str);
+              // --- VALIDACIONES DE SEGURIDAD ---
+            // Por seguridad, validamos múltiples criterios pero solo mostramos un mensaje genérico
+            // para evitar revelar información específica sobre los criterios de validación internos.
+            
+            $validacionFallo = false;
+            
+            // 1. Validar que el código de inscripción extraído coincida con el código de la orden
+            if (strtoupper($codigoInscripcion) !== strtoupper($orden->codigo_unico)) {
+                $validacionFallo = true;
             }
-            // Obtener nombre responsable de pago
+            
+            // 2. Obtener y validar nombre responsable de pago
             $nombreResponsable = null;
             if ($orden->tipo_origen === 'lista' && $orden->id_lista) {
                 $encargado = \App\Models\EncargadoPago::where('id_lista', $orden->id_lista)->first();
@@ -220,37 +272,42 @@ class ComprobantePagoController extends ApiController
             } elseif ($orden->tipo_origen === 'individual') {
                 $nombreResponsable = $orden->encargado_nombre ?? null;
             }
-            if ($nombreResponsable) {
-                if (normalizar_nombre($nombre) !== normalizar_nombre($nombreResponsable)) {
-                    Storage::disk('public')->delete($filePath);
-                    return $this->errorResponse('El nombre del pagador en el comprobante no coincide con el responsable de pago registrado.', 422);
-                }
+            
+            // Validar nombre del pagador (si hay responsable registrado)
+            if ($nombreResponsable && $this->normalizarNombre($nombre) !== $this->normalizarNombre($nombreResponsable)) {
+                $validacionFallo = true;
             }
-            // Validar monto exacto
-            if (isset($orden->monto_total) && isset($orden->monto_total)) {
-                // Si el comprobante tiene monto extraído por OCR, usarlo (aquí asumimos que el monto es el de la orden)
-                // Si en el futuro se extrae el monto del comprobante, comparar aquí
-                if ((float)$orden->monto_total != (float)$orden->monto_total) {
-                    Storage::disk('public')->delete($filePath);
-                    return $this->errorResponse('El monto del comprobante no coincide con el monto de la orden de pago.', 422);
-                }
+            
+            // 3. Validar monto exacto con el monto de la orden
+            $montoOrden = (float)$orden->monto_total;
+            $montoRecibo = (float)$monto;
+            
+            if (abs($montoOrden - $montoRecibo) > 0.01) { // Permitir diferencia de 1 centavo por redondeo
+                $validacionFallo = true;
             }
-            // Guardar comprobante
+            
+            // Si cualquier validación falló, mostrar mensaje genérico de seguridad
+            if ($validacionFallo) {
+                Storage::disk('public')->delete($filePath);
+                return $this->errorResponse('El recibo no pertenece al código de inscripción proporcionado.', 422);
+            }// Guardar comprobante con los datos extraídos del nuevo formato
             $comprobante = ComprobantePago::create([
                 'id_orden' => $orden->id_orden,
-                'numero_comprobante' => $numero ?? 'N/A',
+                'numero_comprobante' => $numero,
                 'nombre_pagador' => $nombre,
                 'fecha_pago' => $fecha ? date('Y-m-d', strtotime(str_replace('/', '-', $fecha))) : now(),
-                'monto_pagado' => $orden->monto_total,
-                'pdf_comprobante' => $filePath,
-                // Guardar datos_ocr como array asociativo, no como string JSON
+                'monto_pagado' => $montoRecibo,
+                'pdf_comprobante' => $filePath,                // Guardar todos los datos extraídos del OCR
                 'datos_ocr' => [
                     'ocr_text' => $ocrText,
-                    'nombre' => $nombre,
-                    'numero_comprobante' => $numero,
+                    'numero_recibo' => $numero,
                     'fecha' => $fecha,
-                    'monto' => $orden->monto_total
-                ],                'estado_verificacion' => 'pendiente',
+                    'nombre_pagador' => $nombre,
+                    'monto_total' => $monto,
+                    'aclaracion' => $aclaracion,
+                    'codigo_inscripcion_extraido' => $codigoInscripcion,
+                    'codigo_orden_validado' => $orden->codigo_unico
+                ],'estado_verificacion' => 'pendiente',
             ]);
             $orden->update(['estado' => 'pagada']);
             
@@ -509,5 +566,24 @@ class ComprobantePagoController extends ApiController
             ['url' => $url],
             'URL del PDF generada correctamente'
         );
+    }
+    
+    /**
+     * Normalizar nombres para comparación (mayúsculas, sin tildes, sin caracteres especiales)
+     * 
+     * @param string $str
+     * @return string
+     */
+    private function normalizarNombre($str)
+    {
+        $str = mb_strtoupper($str, 'UTF-8');
+        $str = preg_replace('/[áàäâ]/iu', 'A', $str);
+        $str = preg_replace('/[éèëê]/iu', 'E', $str);
+        $str = preg_replace('/[íìïî]/iu', 'I', $str);
+        $str = preg_replace('/[óòöô]/iu', 'O', $str);
+        $str = preg_replace('/[úùüû]/iu', 'U', $str);
+        $str = preg_replace('/[^A-Z ]/', '', $str);
+        $str = preg_replace('/\s+/', ' ', $str);
+        return trim($str);
     }
 }
