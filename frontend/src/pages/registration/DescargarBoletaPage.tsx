@@ -18,6 +18,16 @@ interface EncargadoData {
   email?: string;
 }
 
+interface ApiError {
+  response?: {
+    status: number;
+    data?: {
+      message?: string;
+    };
+  };
+  message?: string;
+}
+
 export default function DescargarBoletaPage() {
   const navigate = useNavigate();
   const componentRef = useRef<HTMLDivElement>(null);
@@ -32,31 +42,37 @@ export default function DescargarBoletaPage() {
     nombre: '',
     ci: '',
     email: ''
-  });
-  const [codigoBoleta, setCodigoBoleta] = useState(codigoFromUrl);
+  });  const [codigoBoleta, setCodigoBoleta] = useState(codigoFromUrl);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
-  // Hook personalizado para verificación
-  const { isLoading: isVerifying, error: verifyError } = useCodeVerification();
-
+  const [localError, setLocalError] = useState<string | null>(null);
+    // Hook personalizado para verificación
+  const { isLoading: isVerifying } = useCodeVerification();
   const handleVerification = useCallback(async (code: string) => {
     setCodigoBoleta(code);
+    setLocalError(null); // Limpiar errores anteriores
     
-    try {
-      const data = await descargarBoleta(code);
+    try {      const data = await descargarBoleta(code);
       setEstudiantes(data.estudiantes);
       setCostoTotalGeneral(data.costoTotalGeneral);
       setEncargado(data.encargado);
-      setIsVerified(true);
-      
-      // Auto-generar PDF después de un pequeño delay para que se renderice
-      setTimeout(() => {
-        generatePDF();
-      }, 500);
-    } catch (error: unknown) {
+      setIsVerified(true);} catch (error: unknown) {
       let errorMessage = 'Error al verificar el código';
-      if (error instanceof Error) {
-        errorMessage = error.message;
+      
+      // Manejo específico de errores de axios
+      const apiError = error as ApiError;
+      if (apiError.response) {
+        if (apiError.response.status === 404) {
+          errorMessage = 'El código que ha ingresado no existe o no es válido';
+        } else if (apiError.response.status === 422) {
+          errorMessage = apiError.response.data?.message || 'Código inválido';
+        } else if (apiError.response.data?.message) {
+          errorMessage = apiError.response.data.message;
+        }
+      } else if (apiError.message) {
+        errorMessage = apiError.message;
       }
+      
+      setLocalError(errorMessage);
       throw new Error(errorMessage);
     }
   }, []);
@@ -97,13 +113,13 @@ export default function DescargarBoletaPage() {
       setIsGeneratingPDF(false);
     }
   };
-
   const handleStartOver = () => {
     setIsVerified(false);
     setEstudiantes([]);
     setCostoTotalGeneral(0);
     setEncargado({ nombre: '', ci: '', email: '' });
     setCodigoBoleta('');
+    setLocalError(null);
   };
 
   const breadcrumbs = [
@@ -134,12 +150,10 @@ export default function DescargarBoletaPage() {
               <li>Presente esta boleta en las cajas para realizar el pago</li>
               <li>Conserve el comprobante de pago que le entreguen</li>
             </ol>
-          </div>
-
-          <CodeVerificationForm
+          </div>          <CodeVerificationForm
             onVerify={handleVerification}
             loading={isVerifying}
-            error={verifyError}
+            error={localError}
             placeholder="Código de inscripción (ej: O-SANSI-2024-12345)"
             buttonText="Descargar Boleta"
             helperText="Ingrese el código que recibió al completar su pre-inscripción"
@@ -147,12 +161,11 @@ export default function DescargarBoletaPage() {
         </div>
       ) : (
         // Visualización de boleta y opciones
-        <div className="space-y-6">
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <h3 className="font-medium text-green-900 mb-2">✓ Boleta generada exitosamente</h3>
+        <div className="space-y-6">          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <h3 className="font-medium text-green-900 mb-2">✓ Código verificado exitosamente</h3>
             <p className="text-sm text-green-800">
-              Su boleta ha sido descargada. Si no se descargó automáticamente, 
-              puede hacer clic en el botón "Descargar PDF" para obtenerla nuevamente.
+              Su boleta está lista para descargar. 
+              Haga clic en el botón "Descargar PDF" para obtener la boleta de pago.
             </p>
           </div>
 
