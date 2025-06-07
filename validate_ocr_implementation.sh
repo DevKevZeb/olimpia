@@ -184,7 +184,7 @@ if [[ "$response" =~ ^[Yy]$ ]]; then
     # Intentar acceder al endpoint de health check o similar
     if command -v curl >/dev/null 2>&1; then
         # Asumiendo que el backend corre en puerto 8000
-        curl -s "http://localhost:8000/api/health" >/dev/null 2>&1
+        curl -s "https://corvus.tis.cs.umss.edu.bo/api/health" >/dev/null 2>&1
         if [ $? -eq 0 ]; then
             echo -e "${GREEN}✅ Backend accesible en localhost:8000${NC}"
         else

@@ -18,7 +18,7 @@ export default function CrearArea() {
 
   const obtenerAreas = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/api/areas');
+      const response = await axios.get('https://corvus.tis.cs.umss.edu.bo/api/areas');
       setAreasExistentes(response.data); // Solo array de strings
     } catch (err) {
       console.error('Error al obtener las áreas existentes.');
@@ -46,7 +46,7 @@ export default function CrearArea() {
     setExito('');
 
     try {
-      await axios.post('http://localhost:8000/api/areas', {
+      await axios.post('https://corvus.tis.cs.umss.edu.bo/api/areas', {
         nombre_area: nombre,
         descripcion: descripcion
       });

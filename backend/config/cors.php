@@ -20,7 +20,7 @@ return [
     'allowed_methods' => ['*'],
 
     // Allow requests from the frontend development server
-    'allowed_origins' => ['http://localhost:5173', 'http://localhost:5174', 'http://localhost'],
+    'allowed_origins' => ['http://localhost:5173', 'https://corvus.tis.cs.umss.edu.bo/', 'http://localhost'],
 
     'allowed_origins_patterns' => [],
 

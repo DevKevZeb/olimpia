@@ -27,7 +27,7 @@ export default function Home() {
   useEffect(() => {
     const fetchAreas = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/api/areas-de-convocatoria');
+        const response = await axios.get('https://corvus.tis.cs.umss.edu.bo/api/areas-de-convocatoria');
         setAreas(response.data.data.areas);
       } catch (error) {
         console.error('Error al cargar las áreas:', error);
@@ -54,7 +54,7 @@ export default function Home() {
   const downloadPDF = async (id_area: number, area_nombre: string) => {
     try {
    
-      const response = await axios.get(`http://localhost:8000/api/documentos/descargar/${id_area}` ,  {
+      const response = await axios.get(`https://corvus.tis.cs.umss.edu.bo/api/documentos/descargar/${id_area}` ,  {
       responseType: 'blob', // Ensure binary data is handled correctly
       });
   

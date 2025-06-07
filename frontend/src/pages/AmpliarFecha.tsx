@@ -15,7 +15,7 @@ export default function AmpliarFecha() {
 
   const obtenerConvocatorias = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/api/v1/convocatorias');
+      const response = await axios.get('https://corvus.tis.cs.umss.edu.bo/api/v1/convocatorias');
       setConvocatorias(response.data.data);
     } catch (err) {
       setError('No se pudo obtener la lista de convocatorias.');
@@ -40,7 +40,7 @@ export default function AmpliarFecha() {
     setError('');
     try {
       await axios.put(
-        `http://localhost:8000/api/convocatorias/${seleccionada.id}/ampliar-fecha`,
+        `https://corvus.tis.cs.umss.edu.bo/api/convocatorias/${seleccionada.id}/ampliar-fecha`,
         { nueva_fecha: nuevaFecha }
       );
 

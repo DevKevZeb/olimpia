@@ -21,7 +21,7 @@ export default function EstadoInscripcionPage() {
     setFecha('');
 
     try {
-      const response = await fetch(`http://localhost:8000/api/estado-inscripcion/${ci}`);
+      const response = await fetch(`https://corvus.tis.cs.umss.edu.bo/api/estado-inscripcion/${ci}`);
       const data = await response.json();
       console.log(data);
       if (response.ok) {
