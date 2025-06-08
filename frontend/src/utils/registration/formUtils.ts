@@ -37,14 +37,12 @@ export const updateRequisitosValues = (
           break;
         case 'APELLIDOS':
           fieldValue = formData.apellidos;
-          break;        case 'TELEFONO':
+          break;        
+        case 'TELEFONO':
           fieldValue = formData.telefono;
           break;
         case 'GENERO':
           fieldValue = formData.genero;
-          break;
-        case 'TELEFONO':
-          fieldValue = formData.telefono;
           break;
       }
     } else if (entidad === 'TUTOR_LEGAL') {

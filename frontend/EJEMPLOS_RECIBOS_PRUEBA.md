@@ -239,7 +239,7 @@ cat recibo_prueba.txt
 
 ```bash
 # Usar curl para probar el endpoint
-curl -X POST https://corvus.tis.cs.umss.edu.bo/api/v1/comprobantes-pago/por-codigo \
+curl -X POST http://localhost:8000/api/v1/comprobantes-pago/por-codigo \
   -F "pdf_comprobante=@recibo_prueba.pdf" \
   -F "codigo_orden=O-SANSI-2024-12345"
 ```

@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-  baseURL: 'https://corvus.tis.cs.umss.edu.bo/api', // Asegúrate de que esta URL sea correcta
+  baseURL: 'http:////127.0.0.1:8000/api', // Asegúrate de que esta URL sea correcta
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',

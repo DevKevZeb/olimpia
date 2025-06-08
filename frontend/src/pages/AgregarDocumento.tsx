@@ -27,7 +27,7 @@ const AgregarDocumento: React.FC = () => {
   useEffect(() => {
     const obtenerConvocatorias = async () => {
       try {
-        const res = await axios.get('https://corvus.tis.cs.umss.edu.bo/api/convocatorias');
+        const res = await axios.get('http://localhost:8000/api/convocatorias');
         setConvocatorias(res.data.data); // asumiendo que tu backend responde con { data: [] }
       } catch (err) {
         console.error('Error al obtener convocatorias', err);
@@ -40,7 +40,7 @@ const AgregarDocumento: React.FC = () => {
     const obtenerAreas = async () => {
       if (!convocatoriaSeleccionada) return;
       try {
-        const res = await axios.get(`https://corvus.tis.cs.umss.edu.bo/api/convocatorias/${convocatoriaSeleccionada}/areas`);
+        const res = await axios.get(`http://localhost:8000/api/convocatorias/${convocatoriaSeleccionada}/areas`);
         setAreas(res.data.data); // igual, suponiendo formato { data: [] }
       } catch (err) {
         console.error('Error al obtener áreas', err);
@@ -63,7 +63,7 @@ const AgregarDocumento: React.FC = () => {
     formData.append('id_convocatoria', convocatoriaSeleccionada.toString());
     
     try {
-      const response = await axios.post('https://corvus.tis.cs.umss.edu.bo/api/documentos/subir', formData, {
+      const response = await axios.post('http://localhost:8000/api/documentos/subir', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
