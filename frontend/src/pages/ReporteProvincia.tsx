@@ -212,7 +212,7 @@ const ReporteProvincia = () => {
         <Box className="reporte-convocatoria" sx={{ flexGrow: 1, p: 3, minWidth: 0 }}>
           <Box sx={{ width: '100%', overflowX: 'auto' }}>
             <Typography variant="h6" gutterBottom>
-              Reporte de Inscripciones por Convocatoria
+              Reporte de Inscripciones por Provincia
             </Typography>
       
             <FormControl fullWidth margin="normal">
