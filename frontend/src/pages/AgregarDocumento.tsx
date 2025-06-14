@@ -85,7 +85,6 @@ const AgregarDocumento: React.FC = () => {
         <h1 className="text-3xl font-bold text-gray-900">Agregar Documentos por Área</h1>
       </div>
       <div className="bg-white rounded-lg shadow-lg p-8 mt-8">
-        <Typography variant="h5" gutterBottom>Agregar Documentos por Área</Typography>
 
       <FormControl fullWidth margin="normal">
         <InputLabel>Seleccionar Convocatoria</InputLabel>

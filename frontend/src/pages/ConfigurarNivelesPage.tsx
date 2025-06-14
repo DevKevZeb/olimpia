@@ -217,7 +217,6 @@ export default function ConfigurarNivelesPage() {
         <h1 className="text-3xl font-bold text-gray-900">Configurar Niveles y Grados</h1>
       </div>
       <div className="bg-white rounded-lg shadow-lg p-8 mt-8">
-        <h2 className="text-2xl font-bold mb-6">Configurar Niveles y Grados</h2>
       {/* Panel SIEMPRE visible para niveles ya asignados */}
       <div className="mb-6">
         <div className="bg-gray-50 rounded p-3 border">

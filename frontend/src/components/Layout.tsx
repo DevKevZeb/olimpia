@@ -35,7 +35,7 @@ export default function Layout({ children }: LayoutProps) {
                 to="/gestionar-inscripciones" 
                 className="text-gray-700 hover:text-blue-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-200 hover:bg-blue-50"
               >
-                Gestionar Inscripciones
+                Tramitar Inscripciones
               </Link>
               <Link 
                 to="/registroexcel" 

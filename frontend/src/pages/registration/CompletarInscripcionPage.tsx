@@ -133,7 +133,7 @@ export default function CompletarInscripcionPage() {
             variant="secondary" 
             onClick={() => navigate('/gestionar-inscripciones')}
           >
-            Volver a Gestión
+            Volver
           </Button>
         }
       />      {!isVerified ? (
@@ -224,7 +224,7 @@ export default function CompletarInscripcionPage() {
               onClick={() => navigate('/gestionar-inscripciones')}
               className="flex-1 sm:flex-none"
             >
-              Volver a Gestión
+              Volver
             </Button>
             <Button
               onClick={() => navigate('/registration')}

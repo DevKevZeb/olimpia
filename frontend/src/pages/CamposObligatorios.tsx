@@ -191,7 +191,6 @@ const RegistroRequisitos: React.FC<Props> = ({ initialConvocatoriaId }) => {
         <h1 className="text-3xl font-bold text-gray-900">Configuración de Campos Obligatorios</h1>
       </div>
       <div className="bg-white rounded-lg shadow-lg p-8 mt-8">
-        <h2 className="text-2xl font-bold mb-6">Configuración de Campos Obligatorios</h2>
 
       <div className="select-container">
         <label htmlFor="convocatoria">Seleccionar Convocatoria:</label>

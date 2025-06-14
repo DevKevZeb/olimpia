@@ -136,7 +136,7 @@ export default function DescargarBoletaPage() {
             variant="secondary" 
             onClick={() => navigate('/gestionar-inscripciones')}
           >
-            Volver a Gestión
+            Volver
           </Button>
         }
       />      {!isVerified ? (
@@ -210,7 +210,7 @@ export default function DescargarBoletaPage() {
               onClick={() => navigate('/gestionar-inscripciones')}
               className="flex-1 sm:flex-none"
             >
-              Volver a Gestión
+              Volver
             </Button>
           </div>          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 max-w-4xl mx-auto">
             <h3 className="font-semibold text-yellow-800 mb-3 text-lg">Instrucciones de Pago</h3>

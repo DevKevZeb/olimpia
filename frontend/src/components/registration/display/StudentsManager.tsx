@@ -31,7 +31,7 @@ const StudentsManager: React.FC<StudentsManagerProps> = ({
     <div className="border rounded-lg p-6 mb-8">
       <h2 className="text-xl font-semibold mb-2">Estudiantes para Inscripción</h2>
       <p className="text-sm text-gray-600 mb-4">
-        Gestiona los estudiantes que deseas inscribir en esta convocatoria
+        Los estudiantes que se inscribirán en esta convocatoria
       </p>
       
       <div className="bg-gray-50 border rounded-lg p-3 mb-4">

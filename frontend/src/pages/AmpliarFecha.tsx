@@ -68,7 +68,6 @@ export default function AmpliarFecha() {
         <h1 className="text-3xl font-bold text-gray-900">Ampliar Fecha de Inscripción</h1>
       </div>
       <div className="bg-white rounded-lg shadow-lg p-8 mt-8">
-        <h2 className="text-xl font-semibold mb-2">Ampliar Fecha de Inscripción</h2>
         <p className="mb-4 text-sm text-gray-600">Seleccionar convocatoria</p>
 
       {error && <p className="text-red-600 mb-4">{error}</p>}

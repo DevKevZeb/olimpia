@@ -41,7 +41,6 @@ export default function CrearNivelPage({ onNivelCreado }) {
         <h1 className="text-3xl font-bold text-gray-900">Crear Nuevo Nivel de Categoría</h1>
       </div>
       <div className="bg-white rounded-lg shadow-lg p-8 mt-8">
-        <h2 className="text-2xl font-bold mb-6">Crear Nuevo Nivel de Categoría</h2>
       <form onSubmit={handleCrearNivel}>
         <FormInput
           label="Nombre del Nivel"

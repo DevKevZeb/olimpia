@@ -89,7 +89,6 @@ export default function AsignarCostoGeneralPage({ onCostoAsignado }) {
         <h1 className="text-3xl font-bold text-gray-900">Asignar Costo General a Áreas</h1>
       </div>
       <div className="bg-white rounded-lg shadow-lg p-8 mt-8">
-        <h2 className="text-2xl font-bold mb-6">Asignar Costo General a Áreas</h2>
       <form onSubmit={handleSubmit}>
         <FormSelect
           label="Seleccionar Convocatoria"

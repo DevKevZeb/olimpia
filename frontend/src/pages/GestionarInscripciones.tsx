@@ -101,7 +101,7 @@ export default function GestionarInscripciones() {
       <div className="bg-white rounded-lg shadow-lg p-8">        {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            Gestionar Inscripciones
+            Tramitar Inscripciones
           </h1>
           <p className="text-gray-600 max-w-3xl mx-auto">
             Consulte el estado de su inscripción, descargue boletas y complete su proceso de pago. 

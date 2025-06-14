@@ -102,7 +102,7 @@ export default function Home() {
             className="bg-green-600 text-white px-6 py-3 rounded-md font-medium hover:bg-green-700 transition ml-4"
             onClick={() => navigate('/gestionar-inscripciones')}
           >
-            Gestionar Inscripciones
+            Tramitar Inscripciones
           </button>
         </div>
       </div>
@@ -138,7 +138,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4">¿Ya te inscribiste?</h2>
-            <p className="text-gray-600">Gestiona tu proceso de inscripción y pago de manera fácil</p>
+            <p className="text-gray-600">Continúa con tu proceso de inscripción y pago de manera fácil</p>
           </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <div className="bg-white p-8 rounded-lg shadow-lg text-center hover:shadow-xl transition">
@@ -184,13 +184,13 @@ export default function Home() {
               </div>
               <h3 className="text-xl font-semibold mb-3">Consultar Estado</h3>
               <p className="text-gray-600 mb-6 min-h-[3rem]">
-                Consulta el estado actual de tu inscripción y realiza todas las gestiones
+                Consulta el estado actual de tu inscripción
               </p>
               <button
                 onClick={() => navigate('/gestionar-inscripciones')}
                 className="w-full bg-purple-600 text-white px-6 py-3 rounded-md hover:bg-purple-700 transition font-medium"
               >
-                Gestionar Todo
+                Consultar Estado
               </button>
             </div>
           </div>
