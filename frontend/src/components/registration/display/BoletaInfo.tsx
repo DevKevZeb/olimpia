@@ -23,14 +23,24 @@ const BoletaInfo: React.FC<Props> = ({ componentRef, estudiantes, costoTotalGene
   
   // Convertir costo total a número de manera segura
   const total = Number(costoTotalGeneral || 0);
-
   // Función para contar áreas cuando hay muchos estudiantes
   const contarAreas = () => {
-    const areaCounter: Record<string, number> = {};
+    const areaCounter: Record<string, { cantidad: number; costoUnitario: number; costoTotal: number }> = {};
     estudiantes.forEach(est => {
       est.areas_seleccionadas?.forEach(area => {
         const nombreArea = area.area_nombre;
-        areaCounter[nombreArea] = (areaCounter[nombreArea] || 0) + 1;
+        const costoArea = Number(area.costo) || 0;
+        
+        if (!areaCounter[nombreArea]) {
+          areaCounter[nombreArea] = {
+            cantidad: 0,
+            costoUnitario: costoArea,
+            costoTotal: 0
+          };
+        }
+        
+        areaCounter[nombreArea].cantidad += 1;
+        areaCounter[nombreArea].costoTotal += costoArea;
       });
     });
     return areaCounter;
@@ -62,8 +72,7 @@ const BoletaInfo: React.FC<Props> = ({ componentRef, estudiantes, costoTotalGene
       </div>      {/* Mostrar lista detallada o resumen según cantidad de estudiantes */}
       {estudiantes.length <= 5 ? (
         <>
-          <h4 className="font-medium text-gray-800 mb-2">Detalle de Estudiantes</h4>
-          <div className="border-t border-b py-2">
+          <h4 className="font-medium text-gray-800 mb-2">Detalle de Estudiantes</h4>          <div className="border-t border-b py-2">
             <div className="grid grid-cols-12 gap-2 mb-2 text-sm font-medium">
               <div className="col-span-1">#</div>
               <div className="col-span-4">Estudiante</div>
@@ -71,40 +80,50 @@ const BoletaInfo: React.FC<Props> = ({ componentRef, estudiantes, costoTotalGene
               <div className="col-span-3">Áreas</div>
               <div className="col-span-2 text-right">Costo</div>
             </div>            {estudiantes.map((estudiante, index) => {
-              const costoPorEstudiante = estudiante.areas_seleccionadas
-                ? estudiante.areas_seleccionadas.reduce((total, area) => total + (Number(area.costo) || 0), 0)
-                : 0;
-
               return (
-                <div key={estudiante.id} className="grid grid-cols-12 gap-2 mb-1 text-sm py-1 border-b border-gray-100">
+                <div key={estudiante.id} className="grid grid-cols-12 gap-2 mb-2 text-sm py-2 border-b border-gray-100">
                   <div className="col-span-1">{index + 1}</div>
                   <div className="col-span-4">{estudiante.nombres} {estudiante.apellidos}</div>
                   <div className="col-span-2">{estudiante.ci}</div>
                   <div className="col-span-3">
                     {estudiante.areas_seleccionadas?.length ? (
-                      <div className="flex flex-col">
+                      <div className="space-y-1">
                         {estudiante.areas_seleccionadas.map((area, i) => (
-                          <span key={i} className="text-xs">{area.area_nombre} - {area.nivel_nombre}</span>
+                          <div key={i} className="text-xs">
+                            {area.area_nombre} - {area.nivel_nombre}
+                          </div>
                         ))}
                       </div>
                     ) : 'Sin áreas'}
                   </div>
-                  <div className="col-span-2 text-right">{costoPorEstudiante.toFixed(2)} Bs.</div>
+                  <div className="col-span-2 text-right">
+                    {estudiante.areas_seleccionadas?.length ? (
+                      <div className="space-y-1">
+                        {estudiante.areas_seleccionadas.map((area, i) => (
+                          <div key={i} className="text-xs font-medium">
+                            {Number(area.costo).toFixed(2)} Bs.
+                          </div>
+                        ))}
+                      </div>
+                    ) : '0.00 Bs.'}
+                  </div>
                 </div>
               );
             })}
           </div>
         </>
-      ) : (
-        <>
+      ) : (        <>
           <div className="my-4">
             <p className="mb-1">Total de estudiantes inscritos: <strong>{estudiantes.length}</strong></p>
             <p className="mb-2 font-medium">Resumen de áreas inscritas:</p>
-            <ul className="list-disc list-inside text-sm">
-              {Object.entries(contarAreas()).map(([area, cantidad], index) => (
-                <li key={index}>{cantidad} {area}</li>
+            <div className="space-y-1 text-sm">
+              {Object.entries(contarAreas()).map(([area, datos], index) => (
+                <div key={index} className="flex justify-between border-b border-gray-200 pb-1">
+                  <span>{datos.cantidad} estudiante(s) en {area} ({datos.costoUnitario.toFixed(2)} Bs. c/u)</span>
+                  <span className="font-medium">{datos.costoTotal.toFixed(2)} Bs.</span>
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
         </>
       )}      {/* Totales */}

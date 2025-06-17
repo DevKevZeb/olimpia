@@ -19,7 +19,7 @@ use App\Http\Controllers\Api\PublicConvocatoriaController;
 use App\Http\Controllers\Api\InscripcionCompletaController;
 use App\Http\Controllers\Api\AdminDashboardController;
 //use App\Http\Controllers\Api\ConvocatoriaCompletaController;
-use App\Http\Controllers\Api\AdminConvocatoriaController;
+use App\Http\Controllers\Api\AdminConvocatoriaControllerRefactored;
 use App\Http\Controllers\Api\RequisitoConvocatoriaController;
 use App\Http\Controllers\Api\ExcelController;
 use App\Http\Controllers\Api\ConvocatoriaConfigController;
@@ -142,23 +142,23 @@ Route::prefix('v1')->group(function () {
     // Endpoints para página de Administración
     Route::get('/admin/dashboard-data', [AdminDashboardController::class, 'getDashboardData']);
     //Route::post('/admin/convocatorias/completa', [ConvocatoriaCompletaController::class, 'crearConvocatoriaCompleta']);
-    //Route::get('/admin/convocatorias/{id}/completa', [ConvocatoriaCompletaController::class, 'getConvocatoriaCompleta']);    // Endpoints para el panel de administración de convocatorias
-    Route::get('/admin/convocatorias', [AdminConvocatoriaController::class, 'getAllConvocatorias']);
-    Route::get('/admin/convocatorias-activas', [AdminConvocatoriaController::class, 'getConvocatoriasActivas']);
-    Route::get('/admin/convocatorias-planificadas', [AdminConvocatoriaController::class, 'getConvocatoriasPlanificadas']);
-    Route::get('/admin/areas-competencia', [AdminConvocatoriaController::class, 'getAreasCompetencia']);
-    Route::get('/admin/niveles-categoria', [AdminConvocatoriaController::class, 'getNivelesCategoria']);
-    Route::get('/admin/grados', [AdminConvocatoriaController::class, 'getGrados']); // Ruta añadida para obtener grados
-    Route::post('/admin/convocatorias', [AdminConvocatoriaController::class, 'crearConvocatoria']);
-    Route::post('/admin/convocatorias/asociar-areas', [AdminConvocatoriaController::class, 'asociarAreas']);
-    Route::post('/admin/convocatorias/asociar-niveles-grados', [AdminConvocatoriaController::class, 'asociarNivelesGrados']);    Route::get('/admin/convocatorias/{id}/areas', [AdminConvocatoriaController::class, 'getAreasPorConvocatoria']);
-    Route::get('/admin/convocatorias/{id}/niveles', [AdminConvocatoriaController::class, 'getNivelesPorConvocatoria']);
+    //Route::get('/admin/convocatorias/{id}/completa', [ConvocatoriaCompletaController::class, 'getConvocatoriaCompleta']);    // Endpoints para el panel de administración de convocatorias (REFACTORIZADO - SOA)
+    Route::get('/admin/convocatorias', [AdminConvocatoriaControllerRefactored::class, 'getAllConvocatorias']);
+    Route::get('/admin/convocatorias-activas', [AdminConvocatoriaControllerRefactored::class, 'getConvocatoriasActivas']);
+    Route::get('/admin/convocatorias-planificadas', [AdminConvocatoriaControllerRefactored::class, 'getConvocatoriasPlanificadas']);
+    Route::get('/admin/areas-competencia', [AdminConvocatoriaControllerRefactored::class, 'getAreasCompetencia']);
+    Route::get('/admin/niveles-categoria', [AdminConvocatoriaControllerRefactored::class, 'getNivelesCategoria']);
+    Route::get('/admin/grados', [AdminConvocatoriaControllerRefactored::class, 'getGrados']); // Ruta añadida para obtener grados
+    Route::post('/admin/convocatorias', [AdminConvocatoriaControllerRefactored::class, 'crearConvocatoria']);
+    Route::post('/admin/convocatorias/asociar-areas', [AdminConvocatoriaControllerRefactored::class, 'asociarAreas']);
+    Route::post('/admin/convocatorias/asociar-niveles-grados', [AdminConvocatoriaControllerRefactored::class, 'asociarNivelesGrados']);    Route::get('/admin/convocatorias/{id}/areas', [AdminConvocatoriaControllerRefactored::class, 'getAreasPorConvocatoria']);
+    Route::get('/admin/convocatorias/{id}/niveles', [AdminConvocatoriaControllerRefactored::class, 'getNivelesPorConvocatoria']);
     
     // Rutas para gestión de estados de convocatorias
-    Route::get('/admin/convocatorias/{id}/estado', [AdminConvocatoriaController::class, 'getEstadoConvocatoria']);
-    Route::put('/admin/convocatorias/{id}/estado', [AdminConvocatoriaController::class, 'transicionarEstado']);
-    Route::post('/admin/convocatorias/cerrar-expiradas', [AdminConvocatoriaController::class, 'cerrarConvocatoriasExpiradas']);
-    Route::get('/admin/convocatorias/{id}/niveles/{area}', [AdminConvocatoriaController::class, 'getNivelesPorConvocatoria']);
+    Route::get('/admin/convocatorias/{id}/estado', [AdminConvocatoriaControllerRefactored::class, 'getEstadoConvocatoria']);
+    Route::put('/admin/convocatorias/{id}/estado', [AdminConvocatoriaControllerRefactored::class, 'transicionarEstado']);
+    Route::post('/admin/convocatorias/cerrar-expiradas', [AdminConvocatoriaControllerRefactored::class, 'cerrarConvocatoriasExpiradas']);
+    Route::get('/admin/convocatorias/{id}/niveles/{area}', [AdminConvocatoriaControllerRefactored::class, 'getNivelesPorConvocatoria']);
 
     // Rutas para el controlador de RequisitoConvocatoria
     Route::get('convocatorias/{convocatoria}/requisitos', [RequisitoConvocatoriaController::class, 'index'])->name('convocatorias.requisitos.index');
