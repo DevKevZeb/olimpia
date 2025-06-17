@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
+use Carbon\Carbon;
 
 class Convocatoria extends Model
 {
@@ -183,5 +185,39 @@ class Convocatoria extends Model
     {
         return $query->where('estado', 'abierta')
                     ->where('fecha_fin_inscripcion', '<', now());
+    }
+    public function scopeActiva(Builder $query): Builder
+    {
+        return $query->where('estado', 'abierta')
+                     ->where('fecha_inicio_inscripcion', '<=', now())
+                     ->where('fecha_fin_inscripcion', '>=', now());
+    }
+    public function scopeCurrentOrPlanned(Builder $query): Builder
+    {
+        return $query->where('estado', 'abierta')
+                     ->orWhere('estado', 'planificada')
+                     ->latest(); // Obtiene la más reciente si hay varias
+    }
+    public function getTotalInscritosAttribute(): int
+    {
+        // Lógica actualizada para usar DetalleListaInscripcion, si 'Inscripcion' fue eliminado.
+        return DetalleListaInscripcion::whereHas('convocatoriaNivel.convocatoriaArea', function($query) {
+            $query->where('id_convocatoria', $this->id_convocatoria);
+        })->count();
+        // Si 'Inscripcion' aún existe y se usa así:
+        // return \App\Models\Inscripcion::whereHas('convocatoriaArea', function($query) {
+        //     $query->where('id_convocatoria', $this->id_convocatoria);
+        // })->count();
+    }
+    public function getDiasRestantesAttribute(): int
+    {
+        $hoy = Carbon::now();
+        $fechaFin = Carbon::parse($this->fecha_fin_inscripcion);
+
+        if ($fechaFin->isPast()) {
+            return 0;
+        }
+
+        return $hoy->diffInDays($fechaFin);
     }
 }

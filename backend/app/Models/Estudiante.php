@@ -44,6 +44,32 @@ class Estudiante extends Model
 
     public function detallesLista()
     {
-        return $this->hasMany(DetalleListaInscripcion::class, 'id_estudiante');
+        return $this->hasMany(DetalleListaInscripcion::class, 'id_estudiante', 'id_estudiante');
+    }
+    /**
+     * Intenta eliminar el estudiante después de verificar dependencias.
+     *
+     * @return bool
+     * @throws \Exception Si el estudiante tiene registros asociados.
+     */
+    public function deleteIfNoDependencies(): bool
+    {
+        if ($this->detallesLista()->exists()) {
+            throw new \Exception('No se puede eliminar el estudiante porque tiene registros asociados', 409);
+        }
+        return $this->delete();
+    }
+
+    /**
+     * Scope para buscar estudiantes por nombre, apellido o CI.
+     */
+    public function scopeSearch(Builder $query, ?string $search): Builder
+    {
+        if (!$search) {
+            return $query; // No aplicar filtro si no hay término de búsqueda
+        }
+        return $query->where('nombres', 'like', "%{$search}%")
+                     ->orWhere('apellidos', 'like', "%{$search}%")
+                     ->orWhere('ci', 'like', "%{$search}%");
     }
 }

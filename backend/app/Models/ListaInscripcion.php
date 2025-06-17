@@ -19,7 +19,8 @@ class ListaInscripcion extends Model
 
     protected $casts = [
         'fecha_creacion' => 'datetime',
-    ];    public function detalles()
+    ];    
+    public function detalles()
     {
         return $this->hasMany(DetalleListaInscripcion::class, 'id_lista');
     }    // Obtener la unidad educativa del primer estudiante de la lista

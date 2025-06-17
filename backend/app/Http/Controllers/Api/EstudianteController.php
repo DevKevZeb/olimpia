@@ -5,9 +5,9 @@ namespace App\Http\Controllers\Api;
 use App\Models\Estudiante;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
 use App\Http\Resources\EstudianteResource;
+use App\Http\Requests\UpdateEstudianteRequest;
+use App\Http\Requests\StoreEstudianteRequest;
 
 class EstudianteController extends ApiController
 {
@@ -36,24 +36,9 @@ class EstudianteController extends ApiController
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request): JsonResponse
+    public function store(StoreEstudianteRequest $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'nombres' => 'required|string|max:100',
-            'apellidos' => 'required|string|max:100',
-            'ci' => 'required|string|max:20|unique:estudiantes',
-            'fecha_nacimiento' => 'required|date',
-            'email' => 'nullable|email|max:100',
-            'id_unidad_educativa' => 'required|exists:unidades_educativas,id_unidad_educativa',
-            'id_grado' => 'required|exists:grados,id_grado',
-            'id_tutor_legal' => 'required|exists:tutores_legales,id_tutor_legal',
-        ]);
-
-        if ($validator->fails()) {
-            return $this->errorResponse($validator->errors()->first(), 422);
-        }
-
-        $estudiante = Estudiante::create($request->all());
+        $estudiante = Estudiante::create($request->validated());
         
         return $this->successResponse(
             new EstudianteResource($estudiante->load(['unidadEducativa', 'grado', 'tutorLegal'])),
@@ -83,58 +68,41 @@ class EstudianteController extends ApiController
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, int $id): JsonResponse
+    public function update(UpdateEstudianteRequest $request, int $id): JsonResponse
     {
         $estudiante = Estudiante::find($id);
-        
         if (!$estudiante) {
             return $this->errorResponse('Estudiante no encontrado', 404);
         }
-        
-        $validator = Validator::make($request->all(), [
-            'nombres' => 'sometimes|required|string|max:100',
-            'apellidos' => 'sometimes|required|string|max:100',
-            'ci' => 'sometimes|required|string|max:20|unique:estudiantes,ci,' . $id . ',id_estudiante',
-            'fecha_nacimiento' => 'sometimes|required|date',
-            'email' => 'nullable|email|max:100',
-            'id_unidad_educativa' => 'sometimes|required|exists:unidades_educativas,id_unidad_educativa',
-            'id_grado' => 'sometimes|required|exists:grados,id_grado',
-            'id_tutor_legal' => 'sometimes|required|exists:tutores_legales,id_tutor_legal',
-        ]);
 
-        if ($validator->fails()) {
-            return $this->errorResponse($validator->errors()->first(), 422);
-        }
+        $estudiante->update($request->validated());
 
-        $estudiante->update($request->all());
-        
         return $this->successResponse(
             new EstudianteResource($estudiante->fresh(['unidadEducativa', 'grado', 'tutorLegal'])),
             'Estudiante actualizado correctamente'
         );
     }
-
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(int $id): JsonResponse
     {
         $estudiante = Estudiante::find($id);
-        
         if (!$estudiante) {
-            return $this->errorResponse('Estudiante no encontrado', 404);        }
-        
-        // Check for related records in detalles_lista_inscripcion only (inscripciones removed)
-        if ($estudiante->detallesLista()->exists()) {
-            return $this->errorResponse('No se puede eliminar el estudiante porque tiene registros asociados', 409);
+            return $this->errorResponse('Estudiante no encontrado', 404);
         }
-        
-        $estudiante->delete();
-        
-        return $this->successResponse(
-            null,
-            'Estudiante eliminado correctamente'
-        );
+
+        try {
+            $estudiante->deleteIfNoDependencies(); // Delega la lógica al modelo
+
+            return $this->successResponse(
+                null,
+                'Estudiante eliminado correctamente'
+            );
+        } catch (\Exception $e) {
+            $statusCode = ($e->getCode() === 409) ? 409 : 500;
+            return $this->errorResponse($e->getMessage(), $statusCode);
+        }
     }
     
     /**
@@ -147,9 +115,7 @@ class EstudianteController extends ApiController
             return $this->errorResponse('Debe proporcionar un término de búsqueda', 422);
         }
         
-        $estudiantes = Estudiante::where('nombres', 'like', "%{$search}%")
-            ->orWhere('apellidos', 'like', "%{$search}%")
-            ->orWhere('ci', 'like', "%{$search}%")
+        $estudiantes = Estudiante::search($search)
             ->with(['unidadEducativa', 'grado', 'tutorLegal'])
             ->paginate(15);
             
@@ -167,36 +133,7 @@ class EstudianteController extends ApiController
         );
     }
 
-       /**
-     * Search students by name, surname or CI
-     */
-    public function searchByCI(Request $request): JsonResponse
-    {
-        $ci = $request->query('ci');
-        $userType = $request->query('type');
-        if (!$ci || !$userType) {
-            return $this->errorResponse('Debe proporcionar un término de búsqueda', 422);
-        }
-        
-        $telefono = $userType == 'estudiantes'  ? '' : ',telefono';
-
-        $user = DB::select('
-        SELECT nombres, apellidos, ci, email, created_at '. $telefono .' 
-        FROM ' . $userType . ' 
-        WHERE ci = ?
-        ORDER BY created_at DESC
-        LIMIT 1
-        ', [$ci]);
-        
-        return $this->successResponse(
-            [
-               'usuario' =>  reset($user)
-            ],
-            'Resultados de búsqueda obtenidos correctamente'
-           );
-    }
-
-    public function showWithJoins(int $id): JsonResponse
+    public function showWithJoins(string $ci): JsonResponse
     {
         // 1. Selecciona campos específicos para evitar conflictos de nombres de columnas (si los hubiera)
         // y para aplanar los datos de las relaciones.
@@ -217,7 +154,7 @@ class EstudianteController extends ApiController
         ->leftJoin('grados', 'estudiantes.id_grado', '=', 'grados.id_grado') // Incluye la tabla de grados
         ->leftJoin('tutores_legales', 'estudiantes.id_tutor_legal', '=', 'tutores_legales.id_tutor_legal')
         // 3. ¡Importante! Estás buscando por 'ci', no por 'id'.
-        ->where('estudiantes.ci', $id) 
+        ->where('estudiantes.ci', $ci) 
         ->first(); // Usamos first() porque esperamos un único estudiante por CI
 
         if (!$estudianteData) { // Ahora verificamos si el resultado es null

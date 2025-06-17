@@ -28,7 +28,7 @@ use App\Http\Controllers\Api\AmpliarFechaController;
 use App\Http\Controllers\Api\AreaController;
 use App\Http\Controllers\Api\EstadoInscripcionController;
 use App\Http\Controllers\Api\DocumentoController;
-
+use App\Http\Controllers\Api\SearchController;
 use App\Http\Controllers\Api\HomeController;
 use App\Http\Controllers\Auth\AdminAuthController;
 
@@ -92,7 +92,7 @@ Route::prefix('v1')->group(function () {
     // Estudiantes
     Route::apiResource('estudiantes', EstudianteController::class);
     Route::get('estudiantes/search', [EstudianteController::class, 'search']);
-    Route::get('search-by-ci', [EstudianteController::class, 'searchByCI']);
+    Route::get('search-by-ci', [SearchController::class, 'searchByCI']);
     Route::get('show/{ci}', [EstudianteController::class, 'showWithJoins']);
     
     // Unidades Educativas

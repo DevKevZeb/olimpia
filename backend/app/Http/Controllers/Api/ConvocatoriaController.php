@@ -7,7 +7,8 @@ use Illuminate\Http\Request;
 use App\Http\Resources\ConvocatoriaResource;
 use App\Http\Resources\ConvocatoriaCollection;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Validator;
+use App\Http\Requests\StoreConvocatoriaRequest;
+use App\Http\Requests\UpdateConvocatoriaRequest;
 
 class ConvocatoriaController extends ApiController
 {
@@ -26,20 +27,8 @@ class ConvocatoriaController extends ApiController
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request): JsonResponse
+    public function store(StoreConvocatoriaRequest $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'nombre' => 'required|string|max:100',
-            'fecha_inicio_inscripcion' => 'required|date',
-            'fecha_fin_inscripcion' => 'required|date|after_or_equal:fecha_inicio_inscripcion',
-            'max_areas_por_estudiante' => 'required|integer|min:1',
-            'estado' => 'required|in:planificada,abierta,cerrada,finalizada',
-        ]);
-
-        if ($validator->fails()) {
-            return $this->errorResponse($validator->errors()->first(), 422);
-        }
-
         $convocatoria = Convocatoria::create($request->all());
         
         return $this->successResponse(
@@ -69,24 +58,12 @@ class ConvocatoriaController extends ApiController
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, int $id): JsonResponse
+    public function update(UpdateConvocatoriaRequest $request, int $id): JsonResponse
     {
         $convocatoria = Convocatoria::find($id);
         
         if (!$convocatoria) {
             return $this->errorResponse('Convocatoria no encontrada', 404);
-        }
-        
-        $validator = Validator::make($request->all(), [
-            'nombre' => 'sometimes|required|string|max:100',
-            'fecha_inicio_inscripcion' => 'sometimes|required|date',
-            'fecha_fin_inscripcion' => 'sometimes|required|date|after_or_equal:fecha_inicio_inscripcion',
-            'max_areas_por_estudiante' => 'sometimes|required|integer|min:1',
-            'estado' => 'sometimes|required|in:planificada,abierta,cerrada,finalizada',
-        ]);
-
-        if ($validator->fails()) {
-            return $this->errorResponse($validator->errors()->first(), 422);
         }
 
         $convocatoria->update($request->all());

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 
 use App\Models\Grado;
 use App\Models\ConvocatoriaArea;
@@ -50,5 +51,14 @@ class ConvocatoriaNivel extends Model
     public function detallesLista()
     {
         return $this->hasMany(DetalleListaInscripcion::class, 'id_convocatoria_nivel');
+    }
+
+    public function scopeForGradoAndConvocatoria(Builder $query, int $idGrado, int $idConvocatoria): Builder
+    {
+        return $query->whereHas('convocatoriaArea', function ($subQuery) use ($idConvocatoria) {
+                $subQuery->where('id_convocatoria', $idConvocatoria);
+            })
+            ->where('id_grado_min', '<=', $idGrado)
+            ->where('id_grado_max', '>=', $idGrado);
     }
 }

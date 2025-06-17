@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 
 class UnidadEducativa extends Model
 {
@@ -26,5 +27,10 @@ class UnidadEducativa extends Model
     public function listasInscripcion()
     {
         return $this->hasMany(ListaInscripcion::class, 'id_unidad_educativa');
+    }
+
+    public function scopeSearch(Builder $query, string $searchQuery): Builder
+    {
+        return $query->where('nombre', 'like', "%{$searchQuery}%");
     }
 }

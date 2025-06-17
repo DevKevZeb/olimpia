@@ -21,8 +21,13 @@ export const fetchRequisitosConvocatoria = async (
   ): Promise<RequisitoConvocatoria[]> => {
     try {
       const response = await axiosInstance.get(`/v1/convocatorias/${idConvocatoria}/requisitos`);
-      // La respuesta ya es el array, así que retornamos response.data directamente
-      return response.data;
+      if (response.data && Array.isArray(response.data.data)) {
+        return response.data.data;
+      } else {
+        // Handle cases where the 'data' property might be missing or not an array
+        console.warn('API response did not contain an array at response.data.data:', response.data);
+        return []; // Return an empty array to prevent further errors
+      }
     } catch (error: any) {
       console.error(`Error al obtener los requisitos para la convocatoria ${idConvocatoria}:`, error);
       throw error;
