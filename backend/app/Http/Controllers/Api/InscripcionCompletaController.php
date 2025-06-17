@@ -101,7 +101,7 @@ class InscripcionCompletaController extends ApiController
     
     public function inscribirEstudiante(StoreInscripcionCompletaRequest $request): JsonResponse
     {
-        Log::info(__FUNCTION__); // Solo para depuración, considerar eliminar
+        Log::info(__FUNCTION__);
 
         $convocatoria = Convocatoria::find($request->id_convocatoria);
         if (!$convocatoria || $convocatoria->estado !== 'abierta') {

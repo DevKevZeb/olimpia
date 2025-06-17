@@ -51,34 +51,44 @@ class OrdenPago extends Model
 
     public function getVerificationDetails(): array
     {
-        $response = [
-            'id' => $this->id_orden,
+        $baseOrdenData = [
+            'id' => $this->id,
             'codigo_unico' => $this->codigo_unico,
             'monto_total' => $this->monto_total,
-            'fecha_emision' => $this->fecha_emision,
-            'fecha_vencimiento' => $this->fecha_vencimiento,
+            'fecha_emision' => $this->fecha_emision ? $this->fecha_emision->toISOString() : null, // Asegura formato ISO
+            'fecha_vencimiento' => $this->fecha_vencimiento ? $this->fecha_vencimiento->toISOString() : null, // Asegura formato ISO
             'estado' => $this->estado,
             'tipo_origen' => $this->tipo_origen,
+            'tiene_comprobante' => $this->comprobantes->isNotEmpty(), // Esto ya lo haces
         ];
 
-        // Comprobación de si tiene comprobantes (asumiendo que 'comprobantes' es una relación hasMany)
-        $response['tiene_comprobante'] = $this->comprobantes()->exists();
+        // Inicializa el array de respuesta completo
+        $responseData = [
+            'orden' => $baseOrdenData, // Anidamos la orden bajo la clave 'orden'
+        ];
 
-        if ($this->tipo_origen === 'individual' && $this->lista) {
-            $primerDetalle = $this->lista->detalles()->with('estudiante')->first();
-            if ($primerDetalle && $primerDetalle->estudiante) {
-                $response['estudiante'] = [
-                    'nombre_completo' => $primerDetalle->estudiante->nombres . ' ' . $primerDetalle->estudiante->apellidos,
-                    'ci' => $primerDetalle->estudiante->ci,
+        // Lógica condicional para agregar 'estudiante' o 'estudiantes_count'
+        if ($this->tipo_origen === 'individual' && $this->lista && $this->lista->detalles->isNotEmpty()) {
+            // Asumiendo que para una orden individual, hay un único detalle y estudiante
+            $estudiante = $this->lista->detalles->first()->estudiante;
+            if ($estudiante) {
+                $responseData['estudiante'] = [
+                    'nombre_completo' => $estudiante->nombre_completo, // Ajusta según tu modelo Estudiante
+                    'ci' => $estudiante->ci, // Ajusta según tu modelo Estudiante
                 ];
             }
         } elseif ($this->tipo_origen === 'lista' && $this->lista) {
-            if ($this->lista->unidadEducativa) { // Asegúrate de tener esta relación cargada o definida
-                $response['unidad_educativa'] = $this->lista->unidadEducativa->nombre;
-            }
-            $response['estudiantes_count'] = $this->lista->detalles->count(); // Ya cargado si usas 'lista.detalles'
+            // Para una orden de lista, agrega el count
+            $responseData['estudiantes_count'] = $this->lista->detalles->count();
         }
-        return $response;
+
+        // Agregar la unidad_educativa, que ahora viene del primer estudiante de la lista
+        // (ya la tienes cargada gracias a 'lista.detalles.estudiante.unidadEducativa')
+        if ($this->lista && $this->lista->getUnidadEducativaAttribute()) { // Usa el accessor
+            $responseData['unidad_educativa'] = $this->lista->getUnidadEducativaAttribute()->nombre; // Asume que la UnidadEducativa tiene un 'nombre'
+        }
+
+        return $responseData;
     }
 
 }

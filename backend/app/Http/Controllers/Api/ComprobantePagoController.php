@@ -126,7 +126,7 @@ class ComprobantePagoController extends ApiController
     {
         try {
             $orden = OrdenPago::where('codigo_unico', $request->codigo_orden)
-                ->with(['lista.detalles.estudiante', 'lista.unidadEducativa', 'comprobantes']) 
+                ->with(['lista.detalles.estudiante.unidadEducativa','comprobantes']) 
                 ->firstOrFail(); 
 
             $responseData = $orden->getVerificationDetails();
