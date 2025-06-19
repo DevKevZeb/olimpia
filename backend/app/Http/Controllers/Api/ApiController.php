@@ -38,7 +38,7 @@ class ApiController extends Controller
         if ($code === 422 && $errors) {
             $response['errors'] = $errors;
         } elseif ($errors) {
-            $response['data'] = $errors; // Para otros tipos de errores, podrías incluir detalles en 'data' si lo deseas
+            $response['data'] = $errors;
         }
 
         return response()->json($response, $code);
