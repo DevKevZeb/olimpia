@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Api;
-
+ 
 use App\Http\Controllers\Api\ApiController;
 use App\Models\ConvocatoriaNivel;
 use App\Models\NivelCategoria;

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Requests\UnidadEducativaRequest;
+use App\Http\Requests\UpdateUnidadEducativaRequest;
 use App\Models\UnidadEducativa;
 use Illuminate\Http\Request;
 use App\Http\Resources\UnidadEducativaResource;
@@ -25,17 +27,9 @@ class UnidadEducativaController extends ApiController
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request): JsonResponse
+    public function store(UnidadEducativaRequest $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'nombre' => 'required|string|max:200',
-            'departamento' => 'required|string|max:100',
-            'provincia' => 'required|string|max:100',
-        ]);
-
-        if ($validator->fails()) {
-            return $this->errorResponse($validator->errors()->first(), 422);
-        }
+        $request->validated();
 
         $unidad = UnidadEducativa::create($request->all());
         
@@ -66,22 +60,12 @@ class UnidadEducativaController extends ApiController
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, int $id): JsonResponse
+    public function update(UpdateUnidadEducativaRequest $request, int $id): JsonResponse
     {
         $unidad = UnidadEducativa::find($id);
         
         if (!$unidad) {
             return $this->errorResponse('Unidad educativa no encontrada', 404);
-        }
-        
-        $validator = Validator::make($request->all(), [
-            'nombre' => 'sometimes|required|string|max:200',
-            'departamento' => 'sometimes|required|string|max:100',
-            'provincia' => 'sometimes|required|string|max:100',
-        ]);
-
-        if ($validator->fails()) {
-            return $this->errorResponse($validator->errors()->first(), 422);
         }
 
         $unidad->update($request->all());

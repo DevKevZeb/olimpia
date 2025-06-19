@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Api;
-
+ 
 use App\Models\OrdenPago;
 use App\Models\ListaInscripcion;
 use Illuminate\Http\Request;

@@ -140,7 +140,7 @@ Route::prefix('v1')->group(function () {
     Route::post('/public/estudiante-esta-inscrito', [InscripcionCompletaController::class, 'estudianteEstaInscrito']);
 
     // Endpoints para página de Administración
-    Route::get('/admin/dashboard-data', [AdminDashboardController::class, 'getDashboardData']);
+    Route::get('/admin/dashboard-data', [AdminDashboardController::class, 'index']);
     //Route::post('/admin/convocatorias/completa', [ConvocatoriaCompletaController::class, 'crearConvocatoriaCompleta']);
     //Route::get('/admin/convocatorias/{id}/completa', [ConvocatoriaCompletaController::class, 'getConvocatoriaCompleta']);    // Endpoints para el panel de administración de convocatorias (REFACTORIZADO - SOA)
     Route::get('/admin/convocatorias', [AdminConvocatoriaControllerRefactored::class, 'getAllConvocatorias']);

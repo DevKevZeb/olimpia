@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Api;
-
+ 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use App\Models\Estudiante;
