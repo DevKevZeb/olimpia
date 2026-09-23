@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import axiosInstance from '../api/axiosInstance';
 
 interface Convocatoria {
   id: number;
@@ -15,7 +15,7 @@ export default function AmpliarFecha() {
 
   const obtenerConvocatorias = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/api/v1/convocatorias');
+      const response = await axiosInstance.get('/v1/convocatorias');
       setConvocatorias(response.data.data);
     } catch (err) {
       setError('No se pudo obtener la lista de convocatorias.');
@@ -39,8 +39,8 @@ export default function AmpliarFecha() {
 
     setError('');
     try {
-      await axios.put(
-        `http://localhost:8000/api/convocatorias/${seleccionada.id}/ampliar-fecha`,
+      await axiosInstance.put(
+        `/convocatorias/${seleccionada.id}/ampliar-fecha`,
         { nueva_fecha: nuevaFecha }
       );
 

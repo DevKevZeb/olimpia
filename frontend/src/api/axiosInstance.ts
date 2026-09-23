@@ -4,8 +4,8 @@ export const TOKEN_KEY = 'admin_token';
 
 const axiosInstance = axios.create({
   baseURL: 'http://127.0.0.1:8000/api',
+  // Sin Content-Type fijo: axios usa JSON para objetos y multipart para FormData
   headers: {
-    'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
 });
