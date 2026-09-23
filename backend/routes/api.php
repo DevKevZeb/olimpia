@@ -65,7 +65,6 @@ Route::prefix('admin')->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::get('/areas-de-convocatoria', [HomeController::class, 'areasDeConvocatoriaActiva']);
-Route::get('/area/{idArea}/documento', [HomeController::class, 'documentoDeArea']);
 Route::get('/estado-inscripcion/{ci}', [EstadoInscripcionController::class, 'show']);
 Route::get('/documentos/descargar/{id_area}', [DocumentoController::class, 'descargarDocumento']);
 

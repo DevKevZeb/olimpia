@@ -50,15 +50,4 @@ class HomeController extends Controller
             ]
         ]);
     }
-
-    /**
-     * Placeholder: Retorna el documento asociado a una área específica.
-     * (Por ahora solo una respuesta de que no está disponible)
-     */
-    public function documentoDeArea($idArea): JsonResponse
-    {
-        return response()->json([
-            'message' => 'Esta función estará disponible próximamente.',
-        ], 501); // 501 Not Implemented
-    }
 }
