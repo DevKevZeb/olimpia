@@ -67,7 +67,7 @@ class ConvocatoriaNivelController extends ApiController
             return $this->errorResponse('El grado mínimo no puede ser mayor que el grado máximo', 422);
         }
 
-        $nivel = ConvocatoriaNivel::create($request->all());
+        $nivel = ConvocatoriaNivel::create($validator->validated());
 
         return $this->successResponse(
             new ConvocatoriaNivelResource($nivel->load(['convocatoriaArea.convocatoria', 'convocatoriaArea.area', 'nivel', 'gradoMin', 'gradoMax'])),
@@ -104,7 +104,18 @@ class ConvocatoriaNivelController extends ApiController
             return $this->errorResponse('Nivel de convocatoria no encontrado', 404);
         }
 
-        $nivel->update($request->all());
+        $validator = Validator::make($request->all(), [
+            'id_convocatoria_area' => 'sometimes|exists:convocatoria_areas,id_convocatoria_area',
+            'id_nivel' => 'sometimes|exists:niveles_categoria,id_nivel',
+            'id_grado_min' => 'sometimes|exists:grados,id_grado',
+            'id_grado_max' => 'sometimes|exists:grados,id_grado',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->errorResponse($validator->errors()->first(), 422);
+        }
+
+        $nivel->update($validator->validated());
 
         return $this->successResponse(
             new ConvocatoriaNivelResource($nivel->fresh(['convocatoriaArea.convocatoria', 'convocatoriaArea.area', 'nivel', 'gradoMin', 'gradoMax'])),

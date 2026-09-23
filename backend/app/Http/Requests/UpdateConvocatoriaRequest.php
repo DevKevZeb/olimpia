@@ -19,6 +19,7 @@ class UpdateConvocatoriaRequest extends FormRequest
             'fecha_fin_inscripcion' => 'sometimes|required|date|after_or_equal:fecha_inicio_inscripcion',
             'max_areas_por_estudiante' => 'sometimes|required|integer|min:1',
             'estado' => 'sometimes|required|in:planificada,abierta,cerrada,finalizada',
+            'fecha_apertura' => 'nullable|date',
         ];
     }
 }

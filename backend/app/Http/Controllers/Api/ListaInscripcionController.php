@@ -145,7 +145,7 @@ class ListaInscripcionController extends ApiController
             return $this->errorResponse($validator->errors()->first(), 422);
         }
 
-        $lista->update($request->all());        return $this->successResponse(
+        $lista->update($validator->validated());        return $this->successResponse(
             new ListaInscripcionResource($lista->fresh(['detalles.estudiante'])),
             'Lista de inscripción actualizada correctamente'
         );

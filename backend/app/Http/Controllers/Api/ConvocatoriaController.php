@@ -29,7 +29,7 @@ class ConvocatoriaController extends ApiController
      */
     public function store(StoreConvocatoriaRequest $request): JsonResponse
     {
-        $convocatoria = Convocatoria::create($request->all());
+        $convocatoria = Convocatoria::create($request->validated());
         
         return $this->successResponse(
             new ConvocatoriaResource($convocatoria),
@@ -66,7 +66,7 @@ class ConvocatoriaController extends ApiController
             return $this->errorResponse('Convocatoria no encontrada', 404);
         }
 
-        $convocatoria->update($request->all());
+        $convocatoria->update($request->validated());
         
         return $this->successResponse(
             new ConvocatoriaResource($convocatoria),

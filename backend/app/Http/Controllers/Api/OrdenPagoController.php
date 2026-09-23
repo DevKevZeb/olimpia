@@ -152,7 +152,7 @@ class OrdenPagoController extends ApiController
             return $this->errorResponse($validator->errors()->first(), 422);
         }
 
-        $orden->update($request->all());
+        $orden->update($validator->validated());
         
         return $this->successResponse(
             new OrdenPagoResource($orden->fresh(['inscripcion.estudiante', 'lista.unidadEducativa'])),

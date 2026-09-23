@@ -36,7 +36,7 @@ class GradoController extends ApiController
             return $this->errorResponse($validator->errors()->first(), 422);
         }
 
-        $grado = Grado::create($request->all());
+        $grado = Grado::create($validator->validated());
         
         return $this->successResponse(
             new GradoResource($grado),
@@ -82,7 +82,7 @@ class GradoController extends ApiController
             return $this->errorResponse($validator->errors()->first(), 422);
         }
 
-        $grado->update($request->all());
+        $grado->update($validator->validated());
         
         return $this->successResponse(
             new GradoResource($grado),

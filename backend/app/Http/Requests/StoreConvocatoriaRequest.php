@@ -20,6 +20,7 @@ class StoreConvocatoriaRequest extends FormRequest
             'fecha_fin_inscripcion' => 'required|date|after_or_equal:fecha_inicio_inscripcion',
             'max_areas_por_estudiante' => 'required|integer|min:1',
             'estado' => 'required|in:planificada,abierta,cerrada,finalizada',
+            'fecha_apertura' => 'nullable|date',
         ];
     }
 

@@ -41,7 +41,7 @@ class TutorLegalController extends ApiController
             return $this->errorResponse($validator->errors()->first(), 422);
         }
 
-        $tutor = TutorLegal::create($request->all());
+        $tutor = TutorLegal::create($validator->validated());
         
         return $this->successResponse(
             new TutorLegalResource($tutor),
@@ -92,7 +92,7 @@ class TutorLegalController extends ApiController
             return $this->errorResponse($validator->errors()->first(), 422);
         }
 
-        $tutor->update($request->all());
+        $tutor->update($validator->validated());
         
         return $this->successResponse(
             new TutorLegalResource($tutor),
