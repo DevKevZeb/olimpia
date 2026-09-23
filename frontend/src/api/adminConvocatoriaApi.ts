@@ -247,3 +247,19 @@ export const getAllConvocatorias = async () => {
     throw error;
   }
 };
+
+export interface DashboardEstadisticas {
+  total_convocatorias: number;
+  total_areas: number;
+  total_niveles: number;
+  total_estudiantes: number;
+  total_inscripciones: number;
+}
+
+/**
+ * Obtiene los totales para el inicio del panel de administración
+ */
+export const getDashboardEstadisticas = async (): Promise<DashboardEstadisticas> => {
+  const response = await axiosInstance.get('/v1/admin/dashboard-data');
+  return response.data.data.estadisticas;
+};

@@ -1,4 +1,6 @@
+import { useEffect, useState } from 'react';
 import { Routes, Route, NavLink, Navigate } from 'react-router-dom';
+import { getDashboardEstadisticas, DashboardEstadisticas } from '../api/adminConvocatoriaApi';
 import { useAuth } from '../contexts/AuthContext';
 import ConvocatoriasPage from './ConvocatoriasPage';
 import AsignarAreasPage from './AsignarAreasPage';
@@ -12,26 +14,30 @@ import AmpliarFecha from './AmpliarFecha';
 import AgregarDocumento from './AgregarDocumento';
 import SecurityDashboard from './SecurityDashboard';
 
+const dashboardCards = [
+  { key: 'total_convocatorias', label: 'Convocatorias', icon: '📋', bg: 'bg-blue-100', text: 'text-blue-700' },
+  { key: 'total_areas', label: 'Áreas', icon: '🗂️', bg: 'bg-green-100', text: 'text-green-700' },
+  { key: 'total_niveles', label: 'Niveles', icon: '🏷️', bg: 'bg-purple-100', text: 'text-purple-700' },
+] as const;
+
 function DashboardHome() {
-  // Aquí podrías traer métricas/resúmenes del backend
+  const [estadisticas, setEstadisticas] = useState<DashboardEstadisticas | null>(null);
+
+  useEffect(() => {
+    getDashboardEstadisticas()
+      .then(setEstadisticas)
+      .catch(() => setEstadisticas(null));
+  }, []);
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <div className="bg-blue-100 rounded-lg p-6 shadow flex flex-col items-center">
-        <span className="text-3xl font-bold text-blue-700">📋</span>
-        <span className="text-lg font-semibold mt-2">Convocatorias</span>
-        {/* Aquí podrías mostrar el total dinámico */}
-        <span className="text-2xl mt-1">-</span>
-      </div>
-      <div className="bg-green-100 rounded-lg p-6 shadow flex flex-col items-center">
-        <span className="text-3xl font-bold text-green-700">🗂️</span>
-        <span className="text-lg font-semibold mt-2">Áreas</span>
-        <span className="text-2xl mt-1">-</span>
-      </div>
-      <div className="bg-purple-100 rounded-lg p-6 shadow flex flex-col items-center">
-        <span className="text-3xl font-bold text-purple-700">🏷️</span>
-        <span className="text-lg font-semibold mt-2">Niveles</span>
-        <span className="text-2xl mt-1">-</span>
-      </div>
+      {dashboardCards.map((card) => (
+        <div key={card.key} className={`${card.bg} rounded-lg p-6 shadow flex flex-col items-center`}>
+          <span className={`text-3xl font-bold ${card.text}`}>{card.icon}</span>
+          <span className="text-lg font-semibold mt-2">{card.label}</span>
+          <span className="text-2xl mt-1">{estadisticas ? estadisticas[card.key] : '-'}</span>
+        </div>
+      ))}
     </div>
   );
 }
