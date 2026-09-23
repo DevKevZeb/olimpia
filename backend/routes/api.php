@@ -79,6 +79,12 @@ Route::prefix('v1')->group(function () {
     Route::apiResource('grados', GradoController::class)->only(['index', 'show']);
     Route::apiResource('niveles', NivelCategoriaController::class)->only(['index', 'show']);
     Route::get('convocatorias/{convocatoria}/requisitos', [RequisitoConvocatoriaController::class, 'index'])->name('convocatorias.requisitos.index');
+    // Catálogos del panel que también usa la inscripción pública por Excel
+    Route::get('/admin/convocatorias-activas', [AdminConvocatoriaControllerRefactored::class, 'getConvocatoriasActivas']);
+    Route::get('/admin/grados', [AdminConvocatoriaControllerRefactored::class, 'getGrados']);
+    Route::get('/admin/convocatorias/{id}/areas', [AdminConvocatoriaControllerRefactored::class, 'getAreasPorConvocatoria']);
+    Route::get('/admin/convocatorias/{id}/niveles', [AdminConvocatoriaControllerRefactored::class, 'getNivelesPorConvocatoria']);
+    Route::get('/admin/convocatorias/{id}/niveles/{area}', [AdminConvocatoriaControllerRefactored::class, 'getNivelesPorConvocatoria']);
 
     // Página Home
     Route::get('/public/convocatoria-actual', [PublicConvocatoriaController::class, 'getConvocatoriaActual']);
@@ -147,19 +153,14 @@ Route::middleware('auth:sanctum')->group(function () {
         // Panel de administración
         Route::get('/admin/dashboard-data', [AdminDashboardController::class, 'index']);
         Route::get('/admin/convocatorias', [AdminConvocatoriaControllerRefactored::class, 'getAllConvocatorias']);
-        Route::get('/admin/convocatorias-activas', [AdminConvocatoriaControllerRefactored::class, 'getConvocatoriasActivas']);
         Route::get('/admin/convocatorias-planificadas', [AdminConvocatoriaControllerRefactored::class, 'getConvocatoriasPlanificadas']);
         Route::get('/admin/areas-competencia', [AdminConvocatoriaControllerRefactored::class, 'getAreasCompetencia']);
         Route::get('/admin/niveles-categoria', [AdminConvocatoriaControllerRefactored::class, 'getNivelesCategoria']);
-        Route::get('/admin/grados', [AdminConvocatoriaControllerRefactored::class, 'getGrados']);
         Route::post('/admin/convocatorias', [AdminConvocatoriaControllerRefactored::class, 'crearConvocatoria']);
         Route::post('/admin/convocatorias/asociar-areas', [AdminConvocatoriaControllerRefactored::class, 'asociarAreas']);
         Route::post('/admin/convocatorias/asociar-niveles-grados', [AdminConvocatoriaControllerRefactored::class, 'asociarNivelesGrados']);
         Route::post('/admin/convocatorias/cerrar-expiradas', [AdminConvocatoriaControllerRefactored::class, 'cerrarConvocatoriasExpiradas']);
         Route::post('/admin/convocatorias/{idConvocatoria}/set-costo-general', [ConvocatoriaAreaController::class, 'setCostoGeneral']);
-        Route::get('/admin/convocatorias/{id}/areas', [AdminConvocatoriaControllerRefactored::class, 'getAreasPorConvocatoria']);
-        Route::get('/admin/convocatorias/{id}/niveles', [AdminConvocatoriaControllerRefactored::class, 'getNivelesPorConvocatoria']);
-        Route::get('/admin/convocatorias/{id}/niveles/{area}', [AdminConvocatoriaControllerRefactored::class, 'getNivelesPorConvocatoria']);
         Route::get('/admin/convocatorias/{id}/estado', [AdminConvocatoriaControllerRefactored::class, 'getEstadoConvocatoria']);
         Route::put('/admin/convocatorias/{id}/estado', [AdminConvocatoriaControllerRefactored::class, 'transicionarEstado']);
 
