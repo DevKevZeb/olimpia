@@ -200,14 +200,9 @@ class Convocatoria extends Model
     }
     public function getTotalInscritosAttribute(): int
     {
-        // Lógica actualizada para usar DetalleListaInscripcion, si 'Inscripcion' fue eliminado.
         return DetalleListaInscripcion::whereHas('convocatoriaNivel.convocatoriaArea', function($query) {
             $query->where('id_convocatoria', $this->id_convocatoria);
         })->count();
-        // Si 'Inscripcion' aún existe y se usa así:
-        // return \App\Models\Inscripcion::whereHas('convocatoriaArea', function($query) {
-        //     $query->where('id_convocatoria', $this->id_convocatoria);
-        // })->count();
     }
     public function getDiasRestantesAttribute(): int
     {

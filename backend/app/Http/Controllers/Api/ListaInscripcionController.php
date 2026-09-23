@@ -269,10 +269,10 @@ class ListaInscripcionController extends ApiController
             return $this->errorResponse('Detalle no encontrado en la lista especificada', 404);
         }
 
-        // Check if this student has already been registered via this list
+        // If the list already has a paid order, the student is considered registered
         // In that case, we shouldn't allow deletion
-        $exists = \App\Models\Inscripcion::where('id_estudiante', $detalle->id_estudiante)
-            ->where('id_convocatoria_nivel', $detalle->id_convocatoria_nivel)
+        $exists = $detalle->lista->ordenesPago()
+            ->where('estado', 'pagada')
             ->exists();
 
         if ($exists) {
