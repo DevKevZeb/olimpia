@@ -25,7 +25,6 @@ class StoreOrdenPagoRequest extends FormRequest
             if ($this->tipo_origen === 'lista' && !$this->id_lista) {
                 $validator->errors()->add('id_lista', 'Se requiere una lista para órdenes de pago');
             }
-            }
         });
     }
 }
