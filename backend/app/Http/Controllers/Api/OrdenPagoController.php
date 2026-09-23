@@ -97,7 +97,7 @@ class OrdenPagoController extends ApiController
             DB::commit();
             
             return $this->successResponse(
-                new OrdenPagoResource($orden->load(['lista.unidadEducativa'])),
+                new OrdenPagoResource($orden->load(['lista.detalles.estudiante.unidadEducativa'])),
                 'Orden de pago creada correctamente',
                 201
             );
@@ -113,11 +113,8 @@ class OrdenPagoController extends ApiController
     public function show(int $id): JsonResponse
     {
         $orden = OrdenPago::with([
-                'inscripcion.estudiante', 
-                'inscripcion.convocatoriaArea.area', 
-                'lista.unidadEducativa',
-                'lista.detalles.estudiante',
-                'lista.detalles.convocatoriaArea.area',
+                'lista.detalles.estudiante.unidadEducativa',
+                'lista.detalles.convocatoriaNivel.convocatoriaArea.area',
                 'comprobantes'
             ])
             ->find($id);
@@ -155,7 +152,7 @@ class OrdenPagoController extends ApiController
         $orden->update($validator->validated());
         
         return $this->successResponse(
-            new OrdenPagoResource($orden->fresh(['inscripcion.estudiante', 'lista.unidadEducativa'])),
+            new OrdenPagoResource($orden->fresh(['lista.detalles.estudiante.unidadEducativa'])),
             'Orden de pago actualizada correctamente'
         );
     }
