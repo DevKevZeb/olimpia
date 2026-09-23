@@ -43,7 +43,7 @@ class PublicConvocatoriaController extends ApiController
      */
     private function getTotalInscritos(int $convocatoriaId): int
     {
-        return \App\Models\DetallesListaInscripcion::whereHas('convocatoriaArea', function($query) use ($convocatoriaId) {
+        return \App\Models\DetalleListaInscripcion::whereHas('convocatoriaNivel.convocatoriaArea', function($query) use ($convocatoriaId) {
             $query->where('id_convocatoria', $convocatoriaId);
         })->count();
     }

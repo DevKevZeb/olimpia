@@ -9,24 +9,14 @@ class NivelesCategoriaSeeder extends Seeder
 {
     public function run()
     {
+        // El rango de grados y el área se asignan por convocatoria (convocatoria_niveles)
         $niveles = [
-            [
-                'nombre_nivel' => 'Básico Primaria',
-                'id_area' => 1, // Matemáticas
-                'id_grado_min' => 1, // 1ro Primaria
-                'id_grado_max' => 6, // 6to Primaria
-            ],
-            [
-                'nombre_nivel' => 'Avanzado Secundaria',
-                'id_area' => 1, // Matemáticas
-                'id_grado_min' => 7, // 1ro Secundaria
-                'id_grado_max' => 12, // 6to Secundaria
-            ],
-            // ... otros niveles
+            'Básico Primaria',
+            'Avanzado Secundaria',
         ];
 
-        foreach ($niveles as $nivel) {
-            NivelCategoria::create($nivel);
+        foreach ($niveles as $nombre) {
+            NivelCategoria::firstOrCreate(['nombre_nivel' => $nombre]);
         }
     }
 }

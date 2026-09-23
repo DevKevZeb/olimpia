@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Validator;
 
 use App\Services\UserService;
 
-class SearchController extends ApiCotroller
+class SearchController extends ApiController
 {
     public function searchByCI(SearchUserByCiRequest $request, UserService $userService): JsonResponse
     {

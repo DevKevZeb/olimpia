@@ -1,6 +1,0 @@
-{
-    "require": {
-        "thiagoalessio/tesseract_ocr": "^2.13",
-        "smalot/pdfparser": "^2.12"
-    }
-}
