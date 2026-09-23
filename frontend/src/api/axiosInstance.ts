@@ -1,51 +1,36 @@
 import axios from 'axios';
 
+export const TOKEN_KEY = 'admin_token';
+
 const axiosInstance = axios.create({
-  baseURL: 'http:////127.0.0.1:8000/api', // Asegúrate de que esta URL sea correcta
+  baseURL: 'http://127.0.0.1:8000/api',
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
 });
 
-// Interceptor para depuración
-axiosInstance.interceptors.request.use(
-  (config) => {
-    console.log('Request:', config.method, config.url);
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
+// Adjunta el token del administrador, si existe, a todas las peticiones
+axiosInstance.interceptors.request.use((config) => {
+  const token = localStorage.getItem(TOKEN_KEY);
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
-);
+  return config;
+});
 
+// Si la sesión del administrador expira, se limpia el token y se vuelve al login
 axiosInstance.interceptors.response.use(
-  (response) => {
-    console.log('Response:', response.status, response.data);
-    return response;
-  },
+  (response) => response,
   (error) => {
-    if (error.response) {
-      // La solicitud se hizo y el servidor respondió con un código de estado
-      // que cae fuera del rango 2xx
-      console.error('Response error:', {
-        status: error.response.status,
-        statusText: error.response.statusText,
-        data: error.response.data,
-        headers: error.response.headers,
-        url: error.config?.url
-      });
-    } else if (error.request) {
-      // La solicitud se hizo pero no se recibió respuesta
-      console.error('Request error (no response):', {
-        request: error.request,
-        url: error.config?.url,
-        method: error.config?.method
-      });
-    } else {
-      // Ocurrió un error al configurar la solicitud
-      console.error('Error setting up request:', error.message);
+    const sentToken = Boolean(error.config?.headers?.Authorization);
+    const isLogin = error.config?.url?.includes('/admin/login');
+
+    if (error.response?.status === 401 && sentToken && !isLogin) {
+      localStorage.removeItem(TOKEN_KEY);
+      window.location.href = '/admin/login';
     }
+
     return Promise.reject(error);
   }
 );

@@ -51,9 +51,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setToken(newToken);
         localStorage.setItem('admin_token', newToken);
         
-        // Configurar token en apiService para futuras peticiones
-        apiService.setAuthToken(newToken);
-        
         return { success: true, message: response.message };
       } else {
         return { success: false, message: response.message };
@@ -119,7 +116,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setAdmin(null);
       setToken(null);
       localStorage.removeItem('admin_token');
-      apiService.setAuthToken(null);
     }
   };
 
@@ -131,9 +127,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
 
     try {
-      // Configurar token en apiService
-      apiService.setAuthToken(token);
-      
       const response = await apiService.get('/admin/check-auth');
       
       if (response.success) {
