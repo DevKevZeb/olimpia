@@ -111,11 +111,18 @@ class InscripcionCompletaController extends ApiController
             // Llama al servicio para procesar toda la lógica de inscripción
             $result = $this->inscripcionService->processInscripcion($request->validated(), $convocatoria);
 
-            // Enviar correo electrónico
-            Mail::to($result['encargado_pago']->email)->send(new CodigoUnicoPago(
-                $result['orden_pago']->codigo_unico,
-                $result['encargado_pago']->nombres
-            ));
+            // La inscripción ya quedó registrada: si el correo falla no se reporta como error
+            try {
+                Mail::to($result['encargado_pago']->email)->send(new CodigoUnicoPago(
+                    $result['orden_pago']->codigo_unico,
+                    $result['encargado_pago']->nombres
+                ));
+            } catch (\Throwable $mailError) {
+                Log::warning('No se pudo enviar el correo con el código de pago', [
+                    'codigo_unico' => $result['orden_pago']->codigo_unico,
+                    'exception' => $mailError,
+                ]);
+            }
 
             return $this->successResponse([
                 'inscripciones' => $result['lista_inscripcion'],
