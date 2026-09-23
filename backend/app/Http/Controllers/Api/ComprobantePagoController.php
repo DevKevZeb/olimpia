@@ -87,7 +87,7 @@ class ComprobantePagoController extends ApiController
             );
         } catch (\Exception $e) {
             DB::rollBack();
-            return $this->errorResponse('Error al registrar el comprobante de pago: ' . $e->getMessage(), 500);
+            return $this->serverErrorResponse('Error al registrar el comprobante de pago', $e);
         }
     }
 
@@ -136,7 +136,7 @@ class ComprobantePagoController extends ApiController
                 'Orden de pago encontrada'
             );
         } catch (\Exception $e) {
-            return $this->errorResponse('Error al verificar el código: ' . $e->getMessage(), 500);
+            return $this->serverErrorResponse('Error al verificar el código', $e);
         }
     }
 
@@ -181,7 +181,7 @@ class ComprobantePagoController extends ApiController
                 'Comprobante de pago actualizado correctamente'
             );
         } catch (\Exception $e) {
-            return $this->errorResponse('Error al actualizar el comprobante de pago: ' . $e->getMessage(), 500);
+            return $this->serverErrorResponse('Error al actualizar el comprobante de pago', $e);
         }
     }
 
@@ -205,8 +205,10 @@ class ComprobantePagoController extends ApiController
             );
         } catch (\Exception $e) {
             // Captura el código de error 409 si lo lanzaste desde el servicio
-            $statusCode = ($e->getCode() === 409) ? 409 : 500;
-            return $this->errorResponse('Error al eliminar el comprobante de pago: ' . $e->getMessage(), $statusCode);
+            if ($e->getCode() === 409) {
+                return $this->errorResponse($e->getMessage(), 409);
+            }
+            return $this->serverErrorResponse('Error al eliminar el comprobante de pago', $e);
         }
     }
     

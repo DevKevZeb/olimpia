@@ -44,7 +44,7 @@ class RequisitoConvocatoriaController extends ApiController
                 201
             );
         } catch (\Exception $e) {
-            return $this->errorResponse('Error al configurar los requisitos: ' . $e->getMessage(), 500);
+            return $this->serverErrorResponse('Error al configurar los requisitos', $e);
         }
     }
 
@@ -91,7 +91,7 @@ class RequisitoConvocatoriaController extends ApiController
             $requisitoConvocatoria->delete();
             return $this->successResponse(null, 'Requisito eliminado exitosamente');
         } catch (\Exception $e) {
-            return $this->errorResponse('Error al eliminar el requisito: ' . $e->getMessage(), 500);
+            return $this->serverErrorResponse('Error al eliminar el requisito', $e);
         }
     }
 }

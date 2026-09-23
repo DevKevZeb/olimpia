@@ -58,7 +58,7 @@ class ConvocatoriaConfigController extends ApiController
 
         } catch (\Exception $e) {
             // It's good that you have this error handling for debugging
-            return $this->errorResponse('Error al cargar configuraciones de convocatoria: ' . $e->getMessage(), 500);
+            return $this->serverErrorResponse('Error al cargar configuraciones de convocatoria', $e);
         }
     }
 }

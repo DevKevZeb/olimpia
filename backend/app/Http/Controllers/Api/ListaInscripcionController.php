@@ -105,7 +105,7 @@ class ListaInscripcionController extends ApiController
             );
         } catch (\Exception $e) {
             DB::rollBack();
-            return $this->errorResponse('Error al crear la lista de inscripción: ' . $e->getMessage(), 500);
+            return $this->serverErrorResponse('Error al crear la lista de inscripción', $e);
         }
     }
 
@@ -182,7 +182,7 @@ class ListaInscripcionController extends ApiController
             );
         } catch (\Exception $e) {
             DB::rollBack();
-            return $this->errorResponse('Error al eliminar la lista de inscripción: ' . $e->getMessage(), 500);
+            return $this->serverErrorResponse('Error al eliminar la lista de inscripción', $e);
         }
     }
 
@@ -252,7 +252,7 @@ class ListaInscripcionController extends ApiController
                 201
             );
         } catch (\Exception $e) {
-            return $this->errorResponse('Error al agregar el detalle: ' . $e->getMessage(), 500);
+            return $this->serverErrorResponse('Error al agregar el detalle', $e);
         }
     }
 

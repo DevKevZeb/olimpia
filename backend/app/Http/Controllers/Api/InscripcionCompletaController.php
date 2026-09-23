@@ -101,7 +101,6 @@ class InscripcionCompletaController extends ApiController
     
     public function inscribirEstudiante(StoreInscripcionCompletaRequest $request): JsonResponse
     {
-        Log::info(__FUNCTION__);
 
         $convocatoria = Convocatoria::find($request->id_convocatoria);
         if (!$convocatoria || $convocatoria->estado !== 'abierta') {
@@ -124,8 +123,7 @@ class InscripcionCompletaController extends ApiController
             ], 'Inscripción completada correctamente', 201);
 
         } catch (\Exception $e) {
-            Log::error('Error al procesar la inscripción: ' . $e->getMessage() . ' en ' . $e->getFile() . ' línea ' . $e->getLine());
-            return $this->errorResponse('Error al procesar la inscripción: ' . $e->getMessage(), 500);
+            return $this->serverErrorResponse('Error al procesar la inscripción', $e);
         }
     }
 

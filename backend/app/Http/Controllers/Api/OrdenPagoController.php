@@ -103,7 +103,7 @@ class OrdenPagoController extends ApiController
             );
         } catch (\Exception $e) {
             DB::rollBack();
-            return $this->errorResponse('Error al crear la orden de pago: ' . $e->getMessage(), 500);
+            return $this->serverErrorResponse('Error al crear la orden de pago', $e);
         }
     }
 

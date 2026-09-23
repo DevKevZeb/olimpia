@@ -30,7 +30,7 @@ class SearchController extends ApiController
             return $this->errorResponse($e->getMessage(), 422);
         } catch (\Exception $e) {
             // Captura cualquier otra excepción inesperada
-            return $this->errorResponse('Error en la búsqueda: ' . $e->getMessage(), 500);
+            return $this->serverErrorResponse('Error en la búsqueda', $e);
         }
     }
 }
