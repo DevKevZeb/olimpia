@@ -70,8 +70,8 @@ class AdminAuthController extends Controller
         // Eliminar tokens anteriores
         $admin->tokens()->delete();
 
-        // Crear nuevo token con expiración
-        $token = $admin->createToken('admin-token', ['*'], Carbon::now()->addHours(8))->plainTextToken;
+        // La expiración la aplica Sanctum (config/sanctum.php)
+        $token = $admin->createToken('admin-token')->plainTextToken;
 
         // Registrar intento exitoso
         LoginAttempt::recordAttempt($ipAddress, $request->email, true, $userAgent);
@@ -86,7 +86,7 @@ class AdminAuthController extends Controller
                     'email' => $admin->email,
                 ],
                 'token' => $token,
-                'expires_at' => Carbon::now()->addHours(8)->toISOString(),
+                'expires_at' => Carbon::now()->addMinutes(config('sanctum.expiration'))->toISOString(),
             ],
         ]);
     }

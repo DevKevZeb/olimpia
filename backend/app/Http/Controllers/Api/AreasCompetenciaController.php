@@ -36,7 +36,7 @@ class AreasCompetenciaController extends ApiController
             return $this->errorResponse($validator->errors()->first(), 422);
         }
 
-        $area = AreaCompetencia::create($request->all());
+        $area = AreaCompetencia::create($validator->validated());
         
         return $this->successResponse(
             new AreaCompetenciaResource($area),
@@ -81,7 +81,7 @@ class AreasCompetenciaController extends ApiController
             return $this->errorResponse($validator->errors()->first(), 422);
         }
 
-        $area->update($request->all());
+        $area->update($validator->validated());
         
         return $this->successResponse(
             new AreaCompetenciaResource($area),

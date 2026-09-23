@@ -97,13 +97,13 @@ class OrdenPagoController extends ApiController
             DB::commit();
             
             return $this->successResponse(
-                new OrdenPagoResource($orden->load(['lista.unidadEducativa'])),
+                new OrdenPagoResource($orden->load(['lista.detalles.estudiante.unidadEducativa'])),
                 'Orden de pago creada correctamente',
                 201
             );
         } catch (\Exception $e) {
             DB::rollBack();
-            return $this->errorResponse('Error al crear la orden de pago: ' . $e->getMessage(), 500);
+            return $this->serverErrorResponse('Error al crear la orden de pago', $e);
         }
     }
 
@@ -113,11 +113,8 @@ class OrdenPagoController extends ApiController
     public function show(int $id): JsonResponse
     {
         $orden = OrdenPago::with([
-                'inscripcion.estudiante', 
-                'inscripcion.convocatoriaArea.area', 
-                'lista.unidadEducativa',
-                'lista.detalles.estudiante',
-                'lista.detalles.convocatoriaArea.area',
+                'lista.detalles.estudiante.unidadEducativa',
+                'lista.detalles.convocatoriaNivel.convocatoriaArea.area',
                 'comprobantes'
             ])
             ->find($id);
@@ -152,10 +149,10 @@ class OrdenPagoController extends ApiController
             return $this->errorResponse($validator->errors()->first(), 422);
         }
 
-        $orden->update($request->all());
+        $orden->update($validator->validated());
         
         return $this->successResponse(
-            new OrdenPagoResource($orden->fresh(['inscripcion.estudiante', 'lista.unidadEducativa'])),
+            new OrdenPagoResource($orden->fresh(['lista.detalles.estudiante.unidadEducativa'])),
             'Orden de pago actualizada correctamente'
         );
     }

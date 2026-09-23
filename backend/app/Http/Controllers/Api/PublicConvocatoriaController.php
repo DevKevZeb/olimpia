@@ -20,8 +20,9 @@ class PublicConvocatoriaController extends ApiController
         $convocatoria = Convocatoria::currentOrPlanned()
             ->with([
                 'areas.area',
-                'niveles.nivel.gradoMin',
-                'niveles.nivel.gradoMax',
+                'niveles.nivel',
+                'niveles.gradoMin',
+                'niveles.gradoMax',
             ])
             ->first();
         

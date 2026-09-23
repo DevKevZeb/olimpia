@@ -31,7 +31,7 @@ class UnidadEducativaController extends ApiController
     {
         $request->validated();
 
-        $unidad = UnidadEducativa::create($request->all());
+        $unidad = UnidadEducativa::create($request->validated());
         
         return $this->successResponse(
             new UnidadEducativaResource($unidad),
@@ -68,7 +68,7 @@ class UnidadEducativaController extends ApiController
             return $this->errorResponse('Unidad educativa no encontrada', 404);
         }
 
-        $unidad->update($request->all());
+        $unidad->update($request->validated());
         
         return $this->successResponse(
             new UnidadEducativaResource($unidad),

@@ -102,7 +102,7 @@ class ConvocatoriaConfiguracionService
 
         // Obtener los niveles asignados a esas áreas
         $nivelesAsignados = ConvocatoriaNivel::whereIn('id_convocatoria_area', $idAreasConvocatoria)
-            ->with(['nivel', 'convocatoriaArea.area', 'gradoMinimo', 'gradoMaximo'])
+            ->with(['nivel', 'convocatoriaArea.area', 'gradoMin', 'gradoMax'])
             ->get()
             ->map(function($convocatoriaNivel) {
                 return [
@@ -113,9 +113,9 @@ class ConvocatoriaConfiguracionService
                     'id_nivel' => $convocatoriaNivel->id_nivel,
                     'nombre_nivel' => $convocatoriaNivel->nivel->nombre_nivel,
                     'id_grado_min' => $convocatoriaNivel->id_grado_min,
-                    'nombre_grado_min' => $convocatoriaNivel->gradoMinimo->nombre_grado,
+                    'nombre_grado_min' => $convocatoriaNivel->gradoMin->nombre_grado,
                     'id_grado_max' => $convocatoriaNivel->id_grado_max,
-                    'nombre_grado_max' => $convocatoriaNivel->gradoMaximo->nombre_grado,
+                    'nombre_grado_max' => $convocatoriaNivel->gradoMax->nombre_grado,
                 ];
             });
 

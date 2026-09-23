@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Models\Convocatoria;
 use App\Repositories\ConvocatoriaRepository;
 use Illuminate\Support\Facades\DB;
@@ -88,7 +89,7 @@ class ConvocatoriaService
         $convocatoria = $this->encontrarPorId($id);
         
         if (!$convocatoria) {
-            throw new \Exception('Convocatoria no encontrada');
+            throw new ModelNotFoundException('Convocatoria no encontrada');
         }
         
         return $convocatoria;

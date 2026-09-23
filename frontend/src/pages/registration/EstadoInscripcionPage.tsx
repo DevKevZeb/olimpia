@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import axios from 'axios';
+import axiosInstance from '../../api/axiosInstance';
 
 export default function EstadoInscripcionPage() {
   const [ci, setCi] = useState('');
@@ -21,17 +23,15 @@ export default function EstadoInscripcionPage() {
     setFecha('');
 
     try {
-      const response = await fetch(`http://localhost:8000/api/estado-inscripcion/${ci}`);
-      const data = await response.json();
-      console.log(data);
-      if (response.ok) {
-        setEstado(data.estado || '');
-        setFecha(data.fecha_inscripcion || '');
-      } else {
-        setError(data.message || 'No se pudo obtener el estado');
-      }
+      const { data } = await axiosInstance.get(`/estado-inscripcion/${ci}`);
+      setEstado(data.estado || '');
+      setFecha(data.fecha_inscripcion || '');
     } catch (err) {
-      setError('Error de conexión con el servidor');
+      if (axios.isAxiosError(err) && err.response) {
+        setError(err.response.data?.message || 'No se pudo obtener el estado');
+      } else {
+        setError('Error de conexión con el servidor');
+      }
     } finally {
       setCargando(false);
     }

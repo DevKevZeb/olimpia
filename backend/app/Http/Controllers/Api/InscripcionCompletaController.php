@@ -101,7 +101,6 @@ class InscripcionCompletaController extends ApiController
     
     public function inscribirEstudiante(StoreInscripcionCompletaRequest $request): JsonResponse
     {
-        Log::info(__FUNCTION__);
 
         $convocatoria = Convocatoria::find($request->id_convocatoria);
         if (!$convocatoria || $convocatoria->estado !== 'abierta') {
@@ -112,11 +111,18 @@ class InscripcionCompletaController extends ApiController
             // Llama al servicio para procesar toda la lógica de inscripción
             $result = $this->inscripcionService->processInscripcion($request->validated(), $convocatoria);
 
-            // Enviar correo electrónico
-            Mail::to($result['encargado_pago']->email)->send(new CodigoUnicoPago(
-                $result['orden_pago']->codigo_unico,
-                $result['encargado_pago']->nombres
-            ));
+            // La inscripción ya quedó registrada: si el correo falla no se reporta como error
+            try {
+                Mail::to($result['encargado_pago']->email)->send(new CodigoUnicoPago(
+                    $result['orden_pago']->codigo_unico,
+                    $result['encargado_pago']->nombres
+                ));
+            } catch (\Throwable $mailError) {
+                Log::warning('No se pudo enviar el correo con el código de pago', [
+                    'codigo_unico' => $result['orden_pago']->codigo_unico,
+                    'exception' => $mailError,
+                ]);
+            }
 
             return $this->successResponse([
                 'inscripciones' => $result['lista_inscripcion'],
@@ -124,8 +130,7 @@ class InscripcionCompletaController extends ApiController
             ], 'Inscripción completada correctamente', 201);
 
         } catch (\Exception $e) {
-            Log::error('Error al procesar la inscripción: ' . $e->getMessage() . ' en ' . $e->getFile() . ' línea ' . $e->getLine());
-            return $this->errorResponse('Error al procesar la inscripción: ' . $e->getMessage(), 500);
+            return $this->serverErrorResponse('Error al procesar la inscripción', $e);
         }
     }
 

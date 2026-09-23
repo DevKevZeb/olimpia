@@ -237,14 +237,12 @@ class ReportesInscripcion extends ApiController
                     if ($ordenPago) {
                         $estadoInscripcion = $ordenPago->estado;
                     }
-                    Log::info($inscripcion->estudiante->genero . " -- " . $genero );
                     if(
                         $genero == 'Otro' &&
                         ($inscripcion->estudiante->genero == 'Femenino' || 
                         $inscripcion->estudiante->genero == 'Masculino')  
                         )
                         {
-                        Log::info("SKIIP" );
                         continue; 
                     }else if($genero != 'Otro' && $inscripcion->estudiante->genero !== $genero)
                     {
@@ -356,7 +354,6 @@ class ReportesInscripcion extends ApiController
             ->where('convocatoria_areas.id_area', $area_id) // id area
             ->join('areas_competencia', 'convocatoria_areas.id_area', '=', 'areas_competencia.id_area')
             ->get(['convocatoria_areas.id_convocatoria_area', 'areas_competencia.nombre_area']);
-        Log::info(json_encode($convocatoriaAreas));
         if ($convocatoriaAreas->isEmpty()) {
             return $this->successResponse([], 'No se encontraron áreas de convocatoria para el ID proporcionado.');
         }
@@ -427,7 +424,6 @@ class ReportesInscripcion extends ApiController
             ->where('convocatoria_areas.id_area', $area_id) // id area
             ->join('areas_competencia', 'convocatoria_areas.id_area', '=', 'areas_competencia.id_area')
             ->get(['convocatoria_areas.id_convocatoria_area', 'areas_competencia.nombre_area']);
-        Log::info(json_encode($convocatoriaAreas));
         if ($convocatoriaAreas->isEmpty()) {
             return $this->successResponse([], 'No se encontraron áreas de convocatoria para el ID proporcionado.');
         }

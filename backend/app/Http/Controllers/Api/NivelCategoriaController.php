@@ -43,7 +43,7 @@ class NivelCategoriaController extends ApiController
             return $this->errorResponse('Ya existe un nivel con ese nombre', 422);
         }
 
-        $nivel = NivelCategoria::create($request->all());
+        $nivel = NivelCategoria::create($validator->validated());
 
         return $this->successResponse(
             new NivelCategoriaResource($nivel),
@@ -101,7 +101,7 @@ class NivelCategoriaController extends ApiController
             }
         }
 
-        $nivel->update($request->all());
+        $nivel->update($validator->validated());
 
         return $this->successResponse(
             new NivelCategoriaResource($nivel->fresh()),

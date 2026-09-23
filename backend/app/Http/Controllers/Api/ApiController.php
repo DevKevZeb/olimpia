@@ -3,7 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class ApiController extends Controller
 {
@@ -42,5 +45,22 @@ class ApiController extends Controller
         }
 
         return response()->json($response, $code);
+    }
+
+    /**
+     * Registra la excepción y responde con un mensaje genérico (404 si el recurso no existe).
+     * El detalle técnico solo se expone con APP_DEBUG activo.
+     */
+    protected function serverErrorResponse(string $message, Throwable $e, int $code = 500): JsonResponse
+    {
+        if ($e instanceof ModelNotFoundException) {
+            return $this->errorResponse($e->getMessage() ?: 'Recurso no encontrado', 404);
+        }
+
+        Log::error($message, ['exception' => $e]);
+
+        $detail = config('app.debug') ? ['exception' => $e->getMessage()] : null;
+
+        return $this->errorResponse($message, $code, $detail);
     }
 }

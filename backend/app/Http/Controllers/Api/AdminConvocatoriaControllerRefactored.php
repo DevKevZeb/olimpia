@@ -129,7 +129,7 @@ class AdminConvocatoriaControllerRefactored extends ApiController
                 201
             );
         } catch (\Exception $e) {
-            return $this->errorResponse('Error al crear la convocatoria: ' . $e->getMessage(), 500);
+            return $this->serverErrorResponse('Error al crear la convocatoria', $e);
         }
     }
 
@@ -153,7 +153,7 @@ class AdminConvocatoriaControllerRefactored extends ApiController
                 200
             );
         } catch (\Exception $e) {
-            return $this->errorResponse('Error al asociar áreas: ' . $e->getMessage(), 500);
+            return $this->serverErrorResponse('Error al asociar áreas', $e);
         }
     }
 
@@ -177,7 +177,7 @@ class AdminConvocatoriaControllerRefactored extends ApiController
                 200
             );
         } catch (\Exception $e) {
-            return $this->errorResponse('Error al configurar niveles y grados: ' . $e->getMessage(), 500);
+            return $this->serverErrorResponse('Error al configurar niveles y grados', $e);
         }
     }
 
@@ -200,7 +200,7 @@ class AdminConvocatoriaControllerRefactored extends ApiController
                 'Áreas de la convocatoria obtenidas correctamente'
             );
         } catch (\Exception $e) {
-            return $this->errorResponse('Error al obtener áreas de la convocatoria: ' . $e->getMessage(), 500);
+            return $this->serverErrorResponse('Error al obtener áreas de la convocatoria', $e);
         }
     }
 
@@ -224,7 +224,7 @@ class AdminConvocatoriaControllerRefactored extends ApiController
                 'Niveles asignados a la convocatoria obtenidos correctamente'
             );
         } catch (\Exception $e) {
-            return $this->errorResponse('Error al obtener niveles de la convocatoria: ' . $e->getMessage(), 500);
+            return $this->serverErrorResponse('Error al obtener niveles de la convocatoria', $e);
         }
     }
 
@@ -246,7 +246,7 @@ class AdminConvocatoriaControllerRefactored extends ApiController
                 'Estado de convocatoria obtenido correctamente'
             );
         } catch (\Exception $e) {
-            return $this->errorResponse('Error al obtener estado de convocatoria: ' . $e->getMessage(), 500);
+            return $this->serverErrorResponse('Error al obtener estado de convocatoria', $e);
         }
     }
 
@@ -280,7 +280,7 @@ class AdminConvocatoriaControllerRefactored extends ApiController
                 );
             }
         } catch (\Exception $e) {
-            return $this->errorResponse('Error en transición de estado: ' . $e->getMessage(), 500);
+            return $this->serverErrorResponse('Error en transición de estado', $e);
         }
     }
 
@@ -299,7 +299,7 @@ class AdminConvocatoriaControllerRefactored extends ApiController
                 "Se cerraron {$resultado['convocatorias_cerradas']} convocatorias expiradas"
             );
         } catch (\Exception $e) {
-            return $this->errorResponse('Error al cerrar convocatorias expiradas: ' . $e->getMessage(), 500);
+            return $this->serverErrorResponse('Error al cerrar convocatorias expiradas', $e);
         }
     }
 

@@ -1,10 +1,7 @@
 <?php
 namespace App\Http\Controllers\Api;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
-
+use App\Http\Requests\SearchUserByCiRequest;
 use App\Services\UserService;
 
 class SearchController extends ApiController
@@ -12,8 +9,9 @@ class SearchController extends ApiController
     public function searchByCI(SearchUserByCiRequest $request, UserService $userService): JsonResponse
     {
         // La validación ya fue manejada por el Form Request
-        $ci = $request->validated('ci');
-        $userType = $request->validated('type');
+        $validated = $request->validated();
+        $ci = $validated['ci'];
+        $userType = $validated['type'];
 
         try {
             $user = $userService->searchUserByCi($ci, $userType);
@@ -32,7 +30,7 @@ class SearchController extends ApiController
             return $this->errorResponse($e->getMessage(), 422);
         } catch (\Exception $e) {
             // Captura cualquier otra excepción inesperada
-            return $this->errorResponse('Error en la búsqueda: ' . $e->getMessage(), 500);
+            return $this->serverErrorResponse('Error en la búsqueda', $e);
         }
     }
 }

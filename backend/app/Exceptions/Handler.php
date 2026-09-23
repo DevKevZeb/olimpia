@@ -97,10 +97,10 @@ class Handler extends ExceptionHandler
             ], 405);
         }
 
-        // Default error response
+        // Default error response: sin detalles internos fuera de modo debug
         return response()->json([
             'status' => 'Error',
-            'message' => $exception->getMessage(),
+            'message' => config('app.debug') ? $exception->getMessage() : 'Error interno del servidor',
             'data' => null
         ], 500);
     }

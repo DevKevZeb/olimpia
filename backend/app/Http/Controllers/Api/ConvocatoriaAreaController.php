@@ -93,7 +93,7 @@ class ConvocatoriaAreaController extends ApiController
             return $this->errorResponse($validator->errors()->first(), 422);
         }
 
-        $area->update($request->all());
+        $area->update($validator->validated());
         
         return $this->successResponse(
             new ConvocatoriaAreaResource($area->fresh(['convocatoria', 'area'])),

@@ -8,9 +8,9 @@ use Illuminate\Http\Request;
 use App\Models\AreaCompetencia;
 use App\Models\ConvocatoriaArea;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 
 class DocumentoController extends ApiController
 {
@@ -33,80 +33,50 @@ class DocumentoController extends ApiController
     }
 
     /**
-     * Recibirá un documento PDF más adelante.
+     * Sube el anexo (PDF) de un área de competencia.
      */
-    public function subirDocumento(Request $request)
+    public function subirDocumento(Request $request): JsonResponse
     {
-        $data = $request->all();
+        $validator = Validator::make($request->all(), [
+            'id_convocatoria' => 'required|integer|exists:convocatorias,id_convocatoria',
+            'id_area' => 'required|integer|exists:areas_competencia,id_area',
+            'file' => 'required|file|mimes:pdf|max:10240',
+        ]);
 
-        if(!$data){
-            return $this->errorResponse('Convocatoria no encontrada', 404);
+        if ($validator->fails()) {
+            return $this->errorResponse($validator->errors()->first(), 422, $validator->errors());
         }
 
-        $id_area  = $data['id_area'];
-        $id_convocatoria = $data['id_convocatoria']; 
-        $file = $data['file']; 
+        $area = AreaCompetencia::find($request->id_area);
+        $anexoAnterior = $area->anexo;
+        $ruta = $request->file('file')->store("public/anexo/{$request->id_convocatoria}/{$area->id_area}");
 
-        Log::info("area" . json_decode($id_area));
-        Log::info("fiel" . json_decode($file));
-
-        DB::beginTransaction();
         try {
-            if ($request->hasFile('file')) {
-                $ruta = $request->file('file')->store("public/anexo/$id_convocatoria/$id_area");
-                Log::info("archivo guardado en ". $ruta);
-                $fileurl = Storage::put("public/anexo/$id_convocatoria/$id_area", $file);
-               $url = $fileurl;
-            }
-
-            Log::info('find ' . json_encode($id_area));
-            $area = AreaCompetencia::find($id_area);
-
-            Log::info('area' . json_encode($area));
-            $area->update([
-                'anexo' => $url
-            ]);
-            Log::info('area despues' . json_encode($area));
-            Log::info(json_encode($url));
-            
-            
-            // Log::info(json_encode(
-            //  "despues" .     
-            //     json_encode(file_get_contents($url))
-            // ));
-
-
-            
-            DB::commit();
-        } catch (\Exception $e) {
-            return $this->errorResponse('Error al subir documento: ' . $e->getMessage(), 500);
+            $area->update(['anexo' => $ruta]);
+        } catch (Exception $e) {
+            Storage::delete($ruta);
+            Log::error('Error al registrar el anexo del área', ['id_area' => $area->id_area, 'error' => $e->getMessage()]);
+            return $this->errorResponse('No se pudo registrar el documento', 500);
         }
-        
-        // Lógica pendiente para subir archivo y registrar datos.
-        return $this->successResponse(json_encode($url), 'Espacio reservado para subir documentos');
-    
+
+        if ($anexoAnterior && $anexoAnterior !== $ruta) {
+            Storage::delete($anexoAnterior);
+        }
+
+        return $this->successResponse(['anexo' => $ruta], 'Documento subido correctamente');
     }
 
-
-    public function descargarDocumento(Request $request , $id_area)
+    /**
+     * Descarga el anexo de un área de competencia.
+     */
+    public function descargarDocumento(int $id_area)
     {
-        
-        try {
-            
-            
-            $area = AreaCompetencia::find($id_area);
-            Log::alert("???" . $area);
-            $fileurl = $area->anexo;
-            Log::alert("dasdas".$fileurl);
-            if (!Storage::exists($fileurl)) {
-                abort(404, 'File not found.');
-            }
-    
-            
-        } catch (\Exception $e) {
-            return $this->errorResponse('Error al subir documento: ' . $e->getMessage(), 500);
+        $area = AreaCompetencia::find($id_area);
+
+        if (!$area || !$area->anexo || !Storage::exists($area->anexo)) {
+            return $this->errorResponse('Documento no encontrado', 404);
         }
-        
-        return Storage::download($fileurl);
+
+        return Storage::download($area->anexo);
     }
 }

@@ -39,7 +39,7 @@ class TutorAcademicoController extends ApiController
             return $this->errorResponse($validator->errors()->first(), 422);
         }
 
-        $tutor = TutorAcademico::create($request->all());
+        $tutor = TutorAcademico::create($validator->validated());
         
         return $this->successResponse(
             new TutorAcademicoResource($tutor),
@@ -88,7 +88,7 @@ class TutorAcademicoController extends ApiController
             return $this->errorResponse($validator->errors()->first(), 422);
         }
 
-        $tutor->update($request->all());
+        $tutor->update($validator->validated());
         
         return $this->successResponse(
             new TutorAcademicoResource($tutor),

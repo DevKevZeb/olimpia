@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import axiosInstance from '../api/axiosInstance';
 import {
   Button, Dialog, DialogTitle, DialogContent, DialogActions,
   FormControl, InputLabel, MenuItem, Select, Typography
@@ -27,7 +27,7 @@ const AgregarDocumento: React.FC = () => {
   useEffect(() => {
     const obtenerConvocatorias = async () => {
       try {
-        const res = await axios.get('http://localhost:8000/api/convocatorias');
+        const res = await axiosInstance.get('/convocatorias');
         setConvocatorias(res.data.data); // asumiendo que tu backend responde con { data: [] }
       } catch (err) {
         console.error('Error al obtener convocatorias', err);
@@ -40,7 +40,7 @@ const AgregarDocumento: React.FC = () => {
     const obtenerAreas = async () => {
       if (!convocatoriaSeleccionada) return;
       try {
-        const res = await axios.get(`http://localhost:8000/api/convocatorias/${convocatoriaSeleccionada}/areas`);
+        const res = await axiosInstance.get(`/convocatorias/${convocatoriaSeleccionada}/areas`);
         setAreas(res.data.data); // igual, suponiendo formato { data: [] }
       } catch (err) {
         console.error('Error al obtener áreas', err);
@@ -63,7 +63,7 @@ const AgregarDocumento: React.FC = () => {
     formData.append('id_convocatoria', convocatoriaSeleccionada.toString());
     
     try {
-      const response = await axios.post('http://localhost:8000/api/documentos/subir', formData, {
+      const response = await axiosInstance.post('/documentos/subir', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

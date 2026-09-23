@@ -100,8 +100,10 @@ class EstudianteController extends ApiController
                 'Estudiante eliminado correctamente'
             );
         } catch (\Exception $e) {
-            $statusCode = ($e->getCode() === 409) ? 409 : 500;
-            return $this->errorResponse($e->getMessage(), $statusCode);
+            if ($e->getCode() === 409) {
+                return $this->errorResponse($e->getMessage(), 409);
+            }
+            return $this->serverErrorResponse('Error al eliminar el estudiante', $e);
         }
     }
     
