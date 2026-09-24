@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import axios from 'axios';
 import { verificarCodigoOrden } from '../../api/registration/boletaPagoApi';
 
@@ -15,7 +15,8 @@ export function useCodeVerification<T = unknown>(): UseCodeVerificationReturn<T>
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<T | null>(null);
 
-  const verifyCode = async (code: string): Promise<T | undefined> => {
+  // Memorizada: la página la usa como dependencia de un efecto de auto-verificación
+  const verifyCode = useCallback(async (code: string): Promise<T | undefined> => {
     if (!code.trim()) {
       setError('Por favor ingrese un código de verificación');
       return;
@@ -45,11 +46,11 @@ export function useCodeVerification<T = unknown>(): UseCodeVerificationReturn<T>
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const clearError = () => {
+  const clearError = useCallback(() => {
     setError(null);
-  };
+  }, []);
 
   return {
     verifyCode,
