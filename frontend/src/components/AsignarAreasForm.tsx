@@ -1,12 +1,22 @@
 import React from 'react';
 
+interface ConvocatoriaOpcion {
+  id_convocatoria: number;
+  nombre: string;
+}
+
+interface AreaOpcion {
+  id_area: number;
+  nombre_area: string;
+}
+
 interface AsignarAreasFormProps {
-  convocatorias: any[];
-  areas: any[];
-  areasAsignadas: any[];
-  areasDisponibles: any[];
+  convocatorias: ConvocatoriaOpcion[];
+  areas: AreaOpcion[];
+  areasAsignadas: AreaOpcion[];
+  areasDisponibles: AreaOpcion[];
   selectedConvocatoria: string;
-  selectedAreas: any[];
+  selectedAreas: { id_area: number }[];
   isLoading: boolean;
   onConvocatoriaChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   onAreaSelect: (areaId: number) => void;

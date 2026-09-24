@@ -4,7 +4,7 @@ import Input from '../ui/Input';
 import Alert from '../ui/Alert';
 
 interface CodeVerificationFormProps {
-  onVerify: (code: string) => Promise<any>;
+  onVerify: (code: string) => Promise<unknown>;
   loading?: boolean;
   error?: string | null;
   placeholder?: string;

@@ -4,6 +4,7 @@ import '../styles/RegistroExcel.css';
 import '../styles/UploadAndScan.css';
 import '../styles/DataSummary.css';
 import * as XLSX from 'xlsx';
+import axios from 'axios';
 import { fetchConvocatorias } from '../api/requisitoConvocatoria'; // Import para obtener la configuración de la convocatoria
 import { loadAllConvocatoriaNivelConfigs, loadAllGrades, buscarIdConvocatoriaNivelEnMemoria, getGradoIdByName} from '../api/datosExcel';
 import { inscribirEstudiante, estudianteEstaInscrito } from '../api/registration/inscripcionCompletaApi';
@@ -19,9 +20,59 @@ interface Convocatoria {
   max_areas_por_estudiante: number;
 }
 
+interface TutorAcademicoExcel {
+  nombres: string;
+  apellidos: string;
+  ci: string;
+  telefono: string;
+  email: string;
+}
+
+// Estudiante armado a partir de las filas del Excel (payload de lista_inscripcion)
+interface EstudianteExcel {
+  nombres: string;
+  apellidos: string;
+  ci: string;
+  genero: string;
+  fecha_nacimiento: string;
+  email: string;
+  telefono: string;
+  id_grado: number | null;
+  unidad_educativa: {
+    id_unidad_educativa: number | null;
+    nombre: string;
+    departamento: string;
+    provincia: string;
+  };
+  tutor_legal: {
+    nombres: string;
+    apellidos: string;
+    ci: string;
+    telefono: string;
+    email: string;
+    parentesco: string;
+    es_el_mismo_estudiante: boolean;
+  };
+  id_convocatoria: string;
+  areas_seleccionadas: { id_convocatoria_nivel: number }[];
+  tutores_academicos: TutorAcademicoExcel[];
+}
+
+// Campos de EstudianteExcel que se muestran tal cual en la vista previa
+type CampoSimpleExcel = Exclude<keyof EstudianteExcel, 'unidad_educativa' | 'tutor_legal' | 'areas_seleccionadas' | 'tutores_academicos'>;
+
+interface InscripcionExcelPayload {
+  lista_inscripcion: EstudianteExcel[];
+  id_convocatoria: string | undefined;
+  codigo_unico: string;
+  encargado_pago: Record<string, string>;
+}
+
+type ErrorRespuestaApi = { message?: string; errors?: Record<string, string[]> };
+
 interface UploadAndScanProps {
   selectedConvocatoriaId: number | null;
-  onDataScanned: (data: any[]) => void;
+  onDataScanned: (data: EstudianteExcel[]) => void;
   convocatoriaData: Convocatoria | null; // Pasar la información de la convocatoria
 }
 
@@ -104,7 +155,7 @@ const UploadAndScan: React.FC<UploadAndScanProps> = ({ selectedConvocatoriaId, o
                   const workbook = XLSX.read(binaryString, { type: 'binary' });
                   const sheetName = workbook.SheetNames[0];
                   const worksheet = workbook.Sheets[sheetName];
-                  const rawData: any[] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                  const rawData: unknown[][] = XLSX.utils.sheet_to_json<unknown[]>(worksheet, { header: 1 });
 
                   console.log('rawData (datos crudos del Excel):', rawData);
 
@@ -113,10 +164,10 @@ const UploadAndScan: React.FC<UploadAndScanProps> = ({ selectedConvocatoriaId, o
                       return;
                   }
 
-                  const headers = rawData[0]?.map((header: any) => String(header).trim().toLowerCase()) || [];
+                  const headers = rawData[0]?.map((header) => String(header).trim().toLowerCase()) || [];
                   console.log('Headers extraídos:', headers);
                   const dataRows = rawData.slice(1);
-                  const transformedData: any[] = [];
+                  const transformedData: EstudianteExcel[] = [];
                   const studentAreaCounts: { [ci: string]: number } = {};
                   const errors: string[] = []; // Array para almacenar los errores de validación de filas
 
@@ -269,7 +320,7 @@ const UploadAndScan: React.FC<UploadAndScanProps> = ({ selectedConvocatoriaId, o
                                 const ciExists = transformedData.some(item => item.ci === ci);
 
                                 if (ciExists) {
-                                  const estudiante = transformedData.find(est => est.ci === ci);
+                                  const estudiante = transformedData.find(est => est.ci === ci)!; // existe: ciExists
 
                                   if(estudiante.id_grado !== id_grado){
                                     errors.push(`Fila ${rowNumber}: Registraste un estudiate con el mismo ci cuyos grados no coinciden en los dos registros, el ci del estudiante es: ${ci}`);
@@ -356,15 +407,16 @@ const UploadAndScan: React.FC<UploadAndScanProps> = ({ selectedConvocatoriaId, o
                       // Si la respuesta es exitosa (código 2xx), no hay errores de backend
                       console.log('Respuesta de verificación exitosa:', response);
 
-                  } catch (error: any) {
-                    if (error.response?.status === 422 && error.response?.data?.errors) {
-                      const messages = Object.values(error.response.data.errors).flat() as string[];
+                  } catch (error: unknown) {
+                    const axiosError = axios.isAxiosError<ErrorRespuestaApi>(error) ? error : undefined;
+                    if (axiosError?.response?.status === 422 && axiosError.response?.data?.errors) {
+                      const messages = Object.values(axiosError.response.data.errors).flat() as string[];
                       errors.push(`\nErrores de validación:\n${messages.join('\n')}`);
                       
-                    } else if (error.response?.status === 409) {
+                    } else if (axiosError?.response?.status === 409) {
                       errors.push("Opsie! El estudiante ya está inscrito en esta materia y nivel.");
                     } else {
-                      errors.push(`Opsie! Algo salió mal: ${error.response?.data?.message || error.message || 'Error desconocido'}`);
+                      errors.push(`Opsie! Algo salió mal: ${axiosError?.response?.data?.message || (error instanceof Error ? error.message : undefined) || 'Error desconocido'}`);
                     }
                   }
 
@@ -377,14 +429,14 @@ const UploadAndScan: React.FC<UploadAndScanProps> = ({ selectedConvocatoriaId, o
                   onDataScanned(transformedData);
                   setScanError(null);
 
-              } catch (error: any) {
+              } catch (error) {
                   setScanError('Error al leer el archivo Excel. Asegúrate de que el formato sea correcto.');
                   console.error('Error al leer Excel:', error);
               }
           }
       };
       reader.readAsBinaryString(selectedFile);
-  }, [selectedFile, onDataScanned, selectedConvocatoriaId, convocatoriaData, excelDateToJSDate]); 
+  }, [selectedFile, onDataScanned, selectedConvocatoriaId, convocatoriaData, excelDateToJSDate, isLoadingData]); 
 
   return (
       <div className='upload-scan-container'>
@@ -408,11 +460,11 @@ const UploadAndScan: React.FC<UploadAndScanProps> = ({ selectedConvocatoriaId, o
   );
 };
 
-const DataSummary = ({ scannedData, onCancel, onSave }: { scannedData: any[]; onCancel: () => void; onSave: (data: any) => void }) => {
+const DataSummary = ({ scannedData, onCancel, onSave }: { scannedData: EstudianteExcel[]; onCancel: () => void; onSave: (data: InscripcionExcelPayload) => void }) => {
   console.log("DataSummary recibió scannedData transformado:", scannedData);
   const headers = scannedData[0] ? Object.keys(scannedData[0]) : [];
   const [showPagoForm, setShowPagoForm] = useState(false);
-  const [pagoFormData, setPagoFormData] = useState<Record<string, any>>({
+  const [pagoFormData, setPagoFormData] = useState<Record<string, string>>({
     ci_encargado: '',
     nombres_encargado: '',
     apellidos_encargado: '',
@@ -440,7 +492,7 @@ const DataSummary = ({ scannedData, onCancel, onSave }: { scannedData: any[]; on
   const handleGuardarInscripcion = () => {
     if (scannedData.length > 0 && isPagoFormValid) {
       const codigo_unico = `OLP-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
-      const dataConPago = {
+      const dataConPago: InscripcionExcelPayload = {
         lista_inscripcion: scannedData,
         id_convocatoria: scannedData[0]?.id_convocatoria,
         codigo_unico: codigo_unico,
@@ -510,10 +562,10 @@ const DataSummary = ({ scannedData, onCancel, onSave }: { scannedData: any[]; on
                                                         Parentesco: {row.tutor_legal?.parentesco}
                                                     </>
                                                 ) : header === 'areas_seleccionadas' ? (
-                                                    row.areas_seleccionadas?.map((area: { id_convocatoria_nivel: any }) => area.id_convocatoria_nivel).join(', ')
+                                                    row.areas_seleccionadas?.map((area) => area.id_convocatoria_nivel).join(', ')
                                                 ) : header === 'tutores_academicos' ? (
                                                     row.tutores_academicos?.length > 0 ? (
-                                                        row.tutores_academicos.map((tutor: { nombres: any; apellidos: any; ci: any; telefono: any; email: any }, index: number) => (
+                                                        row.tutores_academicos.map((tutor, index: number) => (
                                                             <React.Fragment key={index}>
                                                                 Nombre: {tutor.nombres} {tutor.apellidos}<br />
                                                                 CI: {tutor.ci}<br />
@@ -526,7 +578,7 @@ const DataSummary = ({ scannedData, onCancel, onSave }: { scannedData: any[]; on
                                                         'No asignado'
                                                     )
                                                 ) : (
-                                                    row[header]
+                                                    row[header as CampoSimpleExcel]
                                                 )}
                                             </td>
                                         ))}
@@ -566,7 +618,7 @@ const ExcelWorkflow = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedConvocatoriaId, setSelectedConvocatoriaId] = useState<number | null>(null);
   const [showExcelUpload, setShowExcelUpload] = useState(false);
-  const [scannedData, setScannedData] = useState<any[]>([]);
+  const [scannedData, setScannedData] = useState<EstudianteExcel[]>([]);
   const [showScanner, setShowScanner] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
   const [convocatoriaData, setConvocatoriaData] = useState<Convocatoria | null>(null);
@@ -579,8 +631,8 @@ const ExcelWorkflow = () => {
         const openConvocatorias = data.filter(c => c.estado === 'abierta');
         setConvocatorias(openConvocatorias);
         setLoadingConvocatorias(false);
-      } catch (error: any) {
-        setError('Error al cargar las convocatorias: ' + error.message);
+      } catch (error) {
+        setError('Error al cargar las convocatorias: ' + (error instanceof Error ? error.message : undefined));
         setLoadingConvocatorias(false);
       }
     };
@@ -611,7 +663,7 @@ const ExcelWorkflow = () => {
     setConvocatoriaData(convocatorias.find(c => c.id_convocatoria === convocatoriaId) || null);
   };
 
-  const handleDataScanned = (data: any[]) => {
+  const handleDataScanned = (data: EstudianteExcel[]) => {
     console.log("Datos escaneados y transformados:", data);
     setScannedData(data);
     setShowScanner(false);
@@ -624,7 +676,7 @@ const ExcelWorkflow = () => {
     setScannedData([]);
   };
 
-  const handleInscribir = async (dataToSend: any) => {
+  const handleInscribir = async (dataToSend: InscripcionExcelPayload) => {
     console.log('Datos a enviar al backend:', dataToSend);
     setGlobalErrorMessages([]);
     try {
@@ -640,28 +692,28 @@ const ExcelWorkflow = () => {
       setShowExcelUpload(false);
       setShowScanner(false);
       setConvocatoriaData(null);
-    } catch (error: any) {
-      
-      if (error.response?.status === 422 && error.response?.data?.errors) {
-        const messages = Object.values(error.response.data.errors).flat() as string[];
+    } catch (error: unknown) {
+      const axiosError = axios.isAxiosError<ErrorRespuestaApi>(error) ? error : undefined;
+      if (axiosError?.response?.status === 422 && axiosError.response?.data?.errors) {
+        const messages = Object.values(axiosError.response.data.errors).flat() as string[];
         setGlobalErrorMessages(messages); // Almacena todos los mensajes de error
         toast.error(`Opsie! Errores en los datos. Por favor, revisa el cuadro de errores.`, {
                 position: "top-right",
                 autoClose: 10000,
         });
-      } else if (error.response?.status === 409) {
+      } else if (axiosError?.response?.status === 409) {
         toast.error("Opsie! El estudiante ya está inscrito en esta materia y nivel.", {
             position: "top-right",
             autoClose: 5000,
         });
       } else {
-        toast.error(`Opsie! Algo salió mal: ${error.response?.data?.message || error.message || 'Error desconocido'}`, {
+        toast.error(`Opsie! Algo salió mal: ${axiosError?.response?.data?.message || (error instanceof Error ? error.message : undefined) || 'Error desconocido'}`, {
             position: "top-right",
             autoClose: 5000,
         });
       }
       console.error('Error al inscribir estudiantes:', error);
-      console.error('Detalles del error de validación:', error.response?.data);
+      console.error('Detalles del error de validación:', axiosError?.response?.data);
 
     }
   };

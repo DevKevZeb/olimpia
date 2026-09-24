@@ -1,7 +1,8 @@
 import { useState } from 'react';
+import axios from 'axios';
 
 export interface UseFileUploadReturn {
-  uploadFile: (file: File) => Promise<any>;
+  uploadFile: (file: File) => Promise<unknown>;
   isUploading: boolean;
   error: string | null;
   uploadProgress: number;
@@ -9,7 +10,7 @@ export interface UseFileUploadReturn {
 }
 
 export function useFileUpload(
-  uploadFunction: (file: File) => Promise<any>
+  uploadFunction: (file: File) => Promise<unknown>
 ): UseFileUploadReturn {
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,11 +42,12 @@ export function useFileUpload(
       const response = await uploadFunction(file);
       setUploadProgress(100);
       return response;
-    } catch (error: any) {
+    } catch (error: unknown) {
       let message = 'Error al subir el archivo';
+      const responseMessage = axios.isAxiosError<{ message?: string }>(error) ? error.response?.data?.message : undefined;
       
-      if (error.response?.data?.message) {
-        message = error.response.data.message;
+      if (responseMessage) {
+        message = responseMessage;
       }
       
       setError(message);

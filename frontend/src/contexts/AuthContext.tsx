@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import axios from 'axios';
 import { apiService } from '../api/apiService';
 
 interface Admin {
@@ -41,7 +42,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string): Promise<{ success: boolean; message: string }> => {
     try {
       setIsLoading(true);
-      const response = await apiService.post('/admin/login', { email, password });
+      const response = await apiService.post<{ admin: Admin; token: string }>('/admin/login', { email, password });
       
       if (response.success) {
         const { admin: adminData, token: newToken } = response.data;
@@ -54,45 +55,46 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return { success: true, message: response.message };
       } else {
         return { success: false, message: response.message };
-      }    } catch (error: any) {
+      }    } catch (error: unknown) {
+      const axiosError = axios.isAxiosError<{ message?: string }>(error) ? error : undefined;
       console.error('Error en login - Full error object:', error);
-      console.error('Error en login - error.response:', error.response);
-      console.error('Error en login - error.request:', error.request);
-      console.error('Error en login - error.message:', error.message);
+      console.error('Error en login - error.response:', axiosError?.response);
+      console.error('Error en login - error.request:', axiosError?.request);
+      console.error('Error en login - error.message:', error instanceof Error ? error.message : undefined);
       
       // Manejar diferentes tipos de errores
-      if (error.response) {
-        console.error('Error response status:', error.response.status);
-        console.error('Error response data:', error.response.data);
+      if (axiosError?.response) {
+        console.error('Error response status:', axiosError.response.status);
+        console.error('Error response data:', axiosError.response.data);
         
-        if (error.response.status === 401) {
+        if (axiosError.response.status === 401) {
           return { 
             success: false, 
-            message: error.response.data?.message || 'Credenciales incorrectas' 
-          };        } else if (error.response.status === 422) {
+            message: axiosError.response.data?.message || 'Credenciales incorrectas' 
+          };        } else if (axiosError.response.status === 422) {
           return { 
             success: false, 
-            message: error.response.data?.message || 'Datos de entrada inválidos' 
+            message: axiosError.response.data?.message || 'Datos de entrada inválidos' 
           };
-        } else if (error.response.status === 429) {
+        } else if (axiosError.response.status === 429) {
           return { 
             success: false, 
-            message: error.response.data?.message || 'Demasiados intentos. Intenta más tarde.' 
+            message: axiosError.response.data?.message || 'Demasiados intentos. Intenta más tarde.' 
           };
         } else {
           return { 
             success: false, 
-            message: error.response.data?.message || `Error del servidor (${error.response.status})` 
+            message: axiosError.response.data?.message || `Error del servidor (${axiosError.response.status})` 
           };
         }
-      } else if (error.request) {
-        console.error('Error request - no response received:', error.request);
+      } else if (axiosError?.request) {
+        console.error('Error request - no response received:', axiosError.request);
         return { 
           success: false, 
           message: 'No se pudo conectar con el servidor. Verifica tu conexión a internet.' 
         };
       } else {
-        console.error('Error setting up request:', error.message);
+        console.error('Error setting up request:', error instanceof Error ? error.message : undefined);
         return { 
           success: false, 
           message: 'Error inesperado. Por favor, intenta nuevamente.' 
@@ -127,7 +129,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
 
     try {
-      const response = await apiService.get('/admin/check-auth');
+      const response = await apiService.get<{ admin: Admin }>('/admin/check-auth');
       
       if (response.success) {
         setAdmin(response.data.admin);

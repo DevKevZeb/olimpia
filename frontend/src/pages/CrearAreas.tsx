@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import axiosInstance from '../api/axiosInstance';
 
 export default function CrearArea() {
@@ -20,7 +21,7 @@ export default function CrearArea() {
       const response = await axiosInstance.get('/v1/areas');
       const areas: { nombre: string }[] = response.data.data;
       setAreasExistentes(areas.map((area) => area.nombre).sort((a, b) => a.localeCompare(b)));
-    } catch (err) {
+    } catch {
       console.error('Error al obtener las áreas existentes.');
     }
   };
@@ -56,8 +57,8 @@ export default function CrearArea() {
 
       alert('Área creada exitosamente.');
       setFormVisible(false);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al crear el área.');
+    } catch (err) {
+      setError((axios.isAxiosError<{ message?: string }>(err) ? err.response?.data?.message : undefined) || 'Error al crear el área.');
     }
   };
   return (

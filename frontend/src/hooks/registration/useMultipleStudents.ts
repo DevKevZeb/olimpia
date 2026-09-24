@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { EstudianteFormData, AreaSeleccionada } from '../../types/index';
+import { EstudianteFormData, AreaSeleccionada, Convocatoria } from '../../types/index';
 import { 
   createNewEstudiante,
   updateActiveStudent as updateActiveStudentUtil,
@@ -9,7 +9,7 @@ import {
 } from '../../utils/registration/formUtils';
 
 interface UseMultipleStudentsProps {
-  convocatoria: any;
+  convocatoria: Convocatoria | null;
 }
 
 interface UseMultipleStudentsReturn {

@@ -4,7 +4,7 @@ import Button from '../ui/Button';
 import Alert from '../ui/Alert';
 
 interface FileUploadFormProps {
-  onUpload: (file: File) => Promise<any>;
+  onUpload: (file: File) => Promise<unknown>;
   loading?: boolean;
   error?: string | null;
   acceptedTypes?: string;

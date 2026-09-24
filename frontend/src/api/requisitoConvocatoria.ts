@@ -1,16 +1,23 @@
 import { RequisitoConvocatoria } from '../types/RequisitoConvocatoria';
 import axiosInstance from './axiosInstance';
 
+interface ConvocatoriaApi {
+  id: number;
+  nombre: string;
+  estado: string;
+  max_areas_por_estudiante: number;
+}
+
 export const fetchConvocatorias = async (): Promise<{ id_convocatoria: number; nombre: string; estado: string; max_areas_por_estudiante: number }[]> => {
   try {
-    const response = await axiosInstance.get('/v1/convocatorias'); 
-    return response.data.data.map((convocatoria: any) => ({ // Accede a response.data.data y mapea
+    const response = await axiosInstance.get<{ data: ConvocatoriaApi[] }>('/v1/convocatorias'); 
+    return response.data.data.map((convocatoria) => ({ // Accede a response.data.data y mapea
       id_convocatoria: convocatoria.id,
       nombre: convocatoria.nombre,
       estado: convocatoria.estado,
       max_areas_por_estudiante: convocatoria.max_areas_por_estudiante,
     }));
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error al obtener las convocatorias:', error);
     throw error;
   }
@@ -28,7 +35,7 @@ export const fetchRequisitosConvocatoria = async (
         console.warn('API response did not contain an array at response.data.data:', response.data);
         return []; // Return an empty array to prevent further errors
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error(`Error al obtener los requisitos para la convocatoria ${idConvocatoria}:`, error);
       throw error;
     }
@@ -37,7 +44,7 @@ export const fetchRequisitosConvocatoria = async (
 export const saveRequisitosConvocatoria = async (
   idConvocatoria: number,
   requisitos: Omit<RequisitoConvocatoria, 'id' | 'created_at' | 'updated_at'>[]
-): Promise<any> => {
+): Promise<unknown> => {
   try {
     const response = await axiosInstance.post(`/v1/convocatorias/${idConvocatoria}/requisitos`, requisitos, {
       headers: {
@@ -45,7 +52,7 @@ export const saveRequisitosConvocatoria = async (
       },
     });
     return response.data; // La estructura de la respuesta para POST puede variar
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error al guardar los requisitos:', error);
     throw error;
   }

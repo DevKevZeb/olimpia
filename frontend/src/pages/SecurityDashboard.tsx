@@ -42,7 +42,7 @@ export default function SecurityDashboard() {
     try {
       setLoading(true);
       setError('');
-      const response = await apiService.get('/admin/login-statistics');
+      const response = await apiService.get<LoginStatistics>('/admin/login-statistics');
       
       if (response.success) {
         setStatistics(response.data);

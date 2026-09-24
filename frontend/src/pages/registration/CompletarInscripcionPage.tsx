@@ -40,7 +40,7 @@ export default function CompletarInscripcionPage() {
   const [customError, setCustomError] = useState<string | null>(null);
 
   // Hook para verificación de código
-  const { verifyCode, isLoading: isVerifying, error: verifyError } = useCodeVerification();// Crear un wrapper para la función de upload que convierte File a FormData
+  const { verifyCode, isLoading: isVerifying, error: verifyError } = useCodeVerification<OrdenInfo>();// Crear un wrapper para la función de upload que convierte File a FormData
   const uploadWrapper = useCallback(async (file: File) => {
     const formData = new FormData();
     formData.append('pdf_comprobante', file);
@@ -62,6 +62,8 @@ export default function CompletarInscripcionPage() {
     
     try {
       const response = await verifyCode(code);
+      // verifyCode devuelve undefined (y fija su propio error) si el código está vacío
+      if (!response) return;
       
       // Validaciones específicas con mensajes más claros
       const fechaVencimiento = new Date(response.orden.fecha_vencimiento);

@@ -1,6 +1,6 @@
 import axiosInstance from './axiosInstance';
 
-interface ApiResponse<T = any> {
+interface ApiResponse<T = unknown> {
     success: boolean;
     message: string;
     data?: T;
@@ -24,14 +24,14 @@ export const obtenerTodasConvocatorias = async (): Promise<Convocatoria[] | null
             return response.data.data;
         }
         return null;
-    } catch (error: any) {
+    } catch (error) {
         console.error('Error al obtener las convocatorias:', error);
         alert('Error al obtener las convocatorias.');
         throw error;
     }
 };
 
-export const obtenerReportePorCampoId = async (campo: string, id: number  , params?: Record<string, unknown> ): Promise<any | null> => {
+export const obtenerReportePorCampoId = async (campo: string, id: number  , params?: Record<string, unknown> ): Promise<unknown> => {
     try {
         const response = await axiosInstance.get<ApiResponse>(`/v1/reportes/${campo}/${id}`,
            { 
@@ -42,7 +42,7 @@ export const obtenerReportePorCampoId = async (campo: string, id: number  , para
             return response.data.data;
         }
         return null;
-    } catch (error: any) {
+    } catch (error) {
         console.error(`Error al obtener reporte por ${campo} con ID ${id}:`, error);
         alert(`Error al obtener el reporte para ${campo} con ID ${id}.`);
         throw error;

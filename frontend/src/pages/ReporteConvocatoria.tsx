@@ -41,7 +41,7 @@ interface ReporteInscripciones {
     estado_inscripcion: string;
     areas_inscritas: string;
     fecha_inscripcion: string;
-    [key: string]: any; // Para otras propiedades específicas de la inscripción
+    [key: string]: unknown; // Para otras propiedades específicas de la inscripción
 }
 
 const ReporteConvocatoriaView = () => {
@@ -60,7 +60,7 @@ const ReporteConvocatoriaView = () => {
             try {
                 const data = await obtenerTodasConvocatorias();
                 setConvocatorias(data);
-            } catch (error: any) {
+            } catch (error) {
                 console.error('Error al cargar las convocatorias:', error);
                 setErrorConvocatorias('Error al cargar las convocatorias.');
             } finally {
@@ -80,7 +80,7 @@ const ReporteConvocatoriaView = () => {
                 try {
                     const data = await obtenerReportePorCampoId('convocatoria', selectedConvocatoriaId);
                     setReporteData(data as ReporteInscripciones[]);
-                } catch (err: any) {
+                } catch (err) {
                     console.error('Error al obtener el reporte de inscripciones:', err);
                     setError('Error al cargar el reporte de inscripciones.');
                     setReporteData(null);
@@ -200,7 +200,7 @@ const ReporteConvocatoriaView = () => {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {reporteData.map((item: any, idx: number) => (
+                      {reporteData.map((item, idx: number) => (
                         <TableRow key={idx}>
                           <TableCell>{item.estudiante?.nombres}</TableCell>
                           <TableCell>{item.estudiante?.apellidos}</TableCell>

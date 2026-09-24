@@ -28,7 +28,7 @@ interface ConvocatoriaNivelConfig {
 
 // Variable para almacenar todas las configuraciones cargadas
 let allConvocatoriaNivelConfigs: ConvocatoriaNivelConfig[] = [];
-let gradeNameToIdMap = new Map<string, number>();
+const gradeNameToIdMap = new Map<string, number>();
 
 /**
  * Busca el ID de convocatoria nivel basado en los nombres proporcionados.
@@ -128,7 +128,7 @@ export const descargarPlantilla = async (idConvocatoria: number) => {
   }
 };
 
-let allGradesMap: Map<string, GradoResponse> = new Map();
+const allGradesMap: Map<string, GradoResponse> = new Map();
 
 export const loadAllGrades = async (): Promise<void> => {
   try {
@@ -164,7 +164,7 @@ export const obtenerIdGradoPorNombre = async (nombreGrado: string): Promise<Grad
         return response.data.data;
       }
       return null;
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error al obtener ID del grado por nombre:', error);
       throw error;
     }

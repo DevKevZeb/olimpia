@@ -46,7 +46,7 @@ export default function AdminLogin() {
       } else {
         setError(result.message || 'Credenciales inválidas');
       }
-    } catch (err) {
+    } catch {
       setError('Error inesperado. Intenta nuevamente.');
     } finally {
       setIsLoading(false);

@@ -3,7 +3,7 @@
  * Funciones extraídas de Registration.tsx para validar campos y formularios
  */
 
-export const validateField = (name: string, value: any) => {
+export const validateField = (name: string, value: string) => {
   let error = '';
   switch (name) {
     case 'nombres':
@@ -113,15 +113,15 @@ export const validateField = (name: string, value: any) => {
   return error;
 };
 
-import {RequisitoGuardado, FormErrors} from'../../types/registration'
+import {RequisitoGuardado, FormErrors, EstudianteFormData} from'../../types/registration'
 
 export const validateStep1 = (
-  formData: any,
+  formData: EstudianteFormData,
   requisitosGuardados: Record<string, RequisitoGuardado>
 ) => {
   let isValid = true;
-  let currentErrors: FormErrors = {};
-  let errorMessage = '';
+  const currentErrors: FormErrors = {};
+  const errorMessage = '';
 
   // 1. Validar campos del estudiante usando validateField
   const nombresError = validateField('nombres', formData.nombres);
@@ -257,7 +257,7 @@ export const validateStep1 = (
     }
   }
 
-  let camposObligatoriosVaciosArray: string[] = [];
+  const camposObligatoriosVaciosArray: string[] = [];
   for (const fieldName in currentErrors) {
       if (currentErrors) { // Si hay un error para este campo
           camposObligatoriosVaciosArray.push(fieldName);

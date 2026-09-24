@@ -30,7 +30,7 @@ export default function Home() {
       try {
         const response = await axiosInstance.get('/areas-de-convocatoria');
         setAreas(response.data.data.areas);
-      } catch (error) {
+      } catch {
         // 404: no hay una convocatoria activa
         setAreas([]);
       } finally {
