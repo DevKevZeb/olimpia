@@ -23,6 +23,7 @@ interface Convocatoria {
 export default function Home() {
   const navigate = useNavigate();
   const [areas, setAreas] = useState<Area[]>([]);
+  const [cargandoAreas, setCargandoAreas] = useState(true);
   const [convocatoria, setConvocatoria] = useState<Convocatoria | null>(null);
   useEffect(() => {
     const fetchAreas = async () => {
@@ -30,7 +31,10 @@ export default function Home() {
         const response = await axiosInstance.get('/areas-de-convocatoria');
         setAreas(response.data.data.areas);
       } catch (error) {
-        console.error('Error al cargar las áreas:', error);
+        // 404: no hay una convocatoria activa
+        setAreas([]);
+      } finally {
+        setCargandoAreas(false);
       }
     };
 
@@ -128,7 +132,10 @@ export default function Home() {
                 </div>
               ))
             ) : (
-              <p className="col-span-full text-center text-gray-500">Cargando áreas...</p>            )}
+              <p className="col-span-full text-center text-gray-500">
+                {cargandoAreas ? 'Cargando áreas...' : 'No hay una convocatoria abierta en este momento.'}
+              </p>
+            )}
           </div>
         </div>
       </section>
