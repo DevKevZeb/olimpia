@@ -27,8 +27,9 @@ const AgregarDocumento: React.FC = () => {
   useEffect(() => {
     const obtenerConvocatorias = async () => {
       try {
-        const res = await axiosInstance.get('/convocatorias');
-        setConvocatorias(res.data.data); // asumiendo que tu backend responde con { data: [] }
+        const res = await axiosInstance.get('/v1/convocatorias');
+        const lista: { id: number; nombre: string }[] = res.data.data;
+        setConvocatorias(lista.map((c) => ({ id_convocatoria: c.id, nombre: c.nombre })));
       } catch (err) {
         console.error('Error al obtener convocatorias', err);
       }
@@ -56,6 +57,7 @@ const AgregarDocumento: React.FC = () => {
       console.error('No hay archivo para subir');
       return;
     }
+    if (convocatoriaSeleccionada === null) return;
 
     const formData = new FormData();
     formData.append('file', archivo); // Ajusta 'file' si el backend espera otro nombre
@@ -124,7 +126,7 @@ const AgregarDocumento: React.FC = () => {
             </Button>
 
             <Dialog open={modalAbierto === area.id_area} onClose={() => setModalAbierto(null)}>
-              <DialogTitle>Subir Documento para {area.nombre_area}</DialogTitle>
+              <DialogTitle>Subir Documento para {area.area?.nombre_area}</DialogTitle>
               <DialogContent>
                 <input
                   type="file"

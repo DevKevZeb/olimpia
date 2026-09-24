@@ -25,7 +25,6 @@ use App\Http\Controllers\Api\ConvocatoriaConfigController;
 use App\Http\Controllers\Api\ReportesInscripcion;
 use App\Http\Controllers\Api\ReporteEstudiantesConvocatoriaController;
 use App\Http\Controllers\Api\AmpliarFechaController;
-use App\Http\Controllers\Api\AreaController;
 use App\Http\Controllers\Api\EstadoInscripcionController;
 use App\Http\Controllers\Api\DocumentoController;
 use App\Http\Controllers\Api\SearchController;
@@ -117,9 +116,6 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });
 
-    Route::get('/areas', [AreaController::class, 'index']);
-    Route::post('/areas', [AreaController::class, 'store']);
-    Route::get('/convocatorias', [AmpliarFechaController::class, 'index']);
     Route::put('/convocatorias/{id}/ampliar-fecha', [AmpliarFechaController::class, 'actualizarFecha']);
     Route::get('/convocatorias/{id}/areas', [DocumentoController::class, 'obtenerAreasPorConvocatoria']);
     Route::post('/documentos/subir', [DocumentoController::class, 'subirDocumento']);

@@ -1,6 +1,5 @@
-import React, { useState, useEffect, ChangeEvent } from 'react';
+import { useState, useEffect } from 'react';
 import '../styles/Reportes.css';
-import { styled } from '@mui/material/styles';
 import {
     Typography,
     Box,
@@ -16,11 +15,11 @@ import {
     Select,
     MenuItem,
     Button,
-    Divider,
+    SelectChangeEvent,
 } from '@mui/material';
 import { obtenerTodasConvocatorias, obtenerReportePorCampoId, Convocatoria } from '../api/reportes';
 import { exportarPDF } from '../components/exportarPDF';
-import { getAreasPorConvocatoria, getNivelesPorConvocatoria } from '../api/adminConvocatoriaApi';
+import { getAreasPorConvocatoria, getNivelesPorConvocatoria, AreaConvocatoriaAsignada, NivelConvocatoriaAsignado } from '../api/adminConvocatoriaApi';
 import DescargarExcelButton from '../components/DescargarExcelButton';
 
 interface ReporteInscripciones {
@@ -40,6 +39,9 @@ interface ReporteInscripciones {
             ci: string;
         };
     };
+    estado_inscripcion: string;
+    areas_inscritas: string;
+    fecha_inscripcion: string;
     [key: string]: any; // Para otras propiedades específicas de la inscripción
 }
 
@@ -49,10 +51,10 @@ const ReporteNiveles = () => {
     const [error, setError] = useState<string | null>(null);
     const [convocatorias, setConvocatorias] = useState<Convocatoria[] | null>(null);
     const [selectedConvocatoriaId, setSelectedConvocatoriaId] = useState<number | ''>('');
-    const [selectedArea, setSelectedArea] = useState<string>('');
-    const [selectedNivel, setSelectedNivel] = useState<string>('');
-    const [areas, setAreas] = useState<string[]>([]);
-    const [niveles, setNiveles] = useState<string[]>([]);
+    const [selectedArea, setSelectedArea] = useState<number | ''>('');
+    const [selectedNivel, setSelectedNivel] = useState<number | ''>('');
+    const [areas, setAreas] = useState<AreaConvocatoriaAsignada[]>([]);
+    const [niveles, setNiveles] = useState<NivelConvocatoriaAsignado[]>([]);
     const [loadingConvocatorias, setLoadingConvocatorias] = useState(false);
     const [errorConvocatorias, setErrorConvocatorias] = useState<string | null>(null);
     
@@ -74,7 +76,7 @@ const ReporteNiveles = () => {
         fetchConvocatorias();
     }, []);
 
-        const fetchAreas = async (convocatoriaID ) => {
+        const fetchAreas = async (convocatoriaID: number | '') => {
           if(!convocatoriaID)
             {
               return;
@@ -90,7 +92,7 @@ const ReporteNiveles = () => {
             }
         };
       
-        const fetchNiveles = async (area) => {
+        const fetchNiveles = async (area: number | '') => {
 
             try {
                 const data = await getNivelesPorConvocatoria(selectedConvocatoriaId, area);
@@ -103,7 +105,7 @@ const ReporteNiveles = () => {
             }
         };
       
-        const cargarReporte = async (nivel) => {
+        const cargarReporte = async (nivel: number | '') => {
             if (selectedConvocatoriaId && nivel !== '') {
                 setReporteData(null);
                 setError(null);
@@ -128,7 +130,7 @@ const ReporteNiveles = () => {
         };
        
 
-    const handleConvocatoriaChange = (event: ChangeEvent<{ value: number | '' }>) => {
+    const handleConvocatoriaChange = (event: SelectChangeEvent<number | ''>) => {
         setSelectedConvocatoriaId(event.target.value);
         setNiveles([]);
         setAreas([]);
@@ -137,7 +139,7 @@ const ReporteNiveles = () => {
         setReporteData(null);
         fetchAreas(event.target.value);
       };
-      const handleAreaChange = (event: ChangeEvent<{ value: number | '' }>) => {
+      const handleAreaChange = (event: SelectChangeEvent<number | ''>) => {
       console.log("->",event.target.value);
         setSelectedArea(event.target.value);
         setNiveles([]);
@@ -146,7 +148,7 @@ const ReporteNiveles = () => {
         fetchNiveles(event.target.value);
         
     };
-    const handleNivelChange = (event: ChangeEvent<{ value: number | '' }>) => {
+    const handleNivelChange = (event: SelectChangeEvent<number | ''>) => {
       setSelectedNivel(event.target.value);
       
       cargarReporte(event.target.value);

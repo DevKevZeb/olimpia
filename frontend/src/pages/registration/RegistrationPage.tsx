@@ -346,6 +346,7 @@ export default function RegistrationPage() {
     
     // Resetear el formulario
     setFormData({
+      id: newEstudiante.id,
       nombres: '',
       apellidos: '',
       ci: '',

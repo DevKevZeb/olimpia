@@ -1,13 +1,18 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import { createNivelCategoria } from '../api/adminConvocatoriaApi';
 import FormInput from '../components/FormInput';
 
-export default function CrearNivelPage({ onNivelCreado }) {
+interface CrearNivelPageProps {
+  onNivelCreado?: () => void;
+}
+
+export default function CrearNivelPage({ onNivelCreado }: CrearNivelPageProps) {
   const [nuevoNivel, setNuevoNivel] = useState('');
   const [nivelError, setNivelError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleCrearNivel = async (e) => {
+  const handleCrearNivel = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!nuevoNivel.trim()) {
       setNivelError('El nombre del nivel no puede estar vacío');
@@ -21,7 +26,7 @@ export default function CrearNivelPage({ onNivelCreado }) {
       if (onNivelCreado) onNivelCreado();
       alert('Nivel creado exitosamente');
     } catch (error) {
-      if (error.response && error.response.data && error.response.data.message) {
+      if (axios.isAxiosError<{ message?: string }>(error) && error.response && error.response.data && error.response.data.message) {
         setNivelError(`Error: ${error.response.data.message}`);
       } else {
         setNivelError('Error al crear el nivel. Por favor, inténtelo de nuevo.');

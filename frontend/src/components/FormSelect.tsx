@@ -1,6 +1,11 @@
-import React from 'react';
+import type { SelectHTMLAttributes } from 'react';
 
-export default function FormSelect({ label, error, children, ...props }) {
+interface FormSelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
+  label: string;
+  error?: string;
+}
+
+export default function FormSelect({ label, error, children, ...props }: FormSelectProps) {
   return (
     <div className="mb-4">
       <label className="block text-gray-700 font-medium mb-2">{label}</label>

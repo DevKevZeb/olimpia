@@ -1,9 +1,14 @@
 import { Button } from "@mui/material";
-import handleExportExcel from "../hooks/HandleExportExcel";
+import handleExportExcel, { FilaReporteExcel } from "../hooks/HandleExportExcel";
 
 
 
-const DescargarExcelButton = ({data, campo}) => {
+interface DescargarExcelButtonProps {
+    data: FilaReporteExcel[] | null;
+    campo: string;
+}
+
+const DescargarExcelButton = ({data, campo}: DescargarExcelButtonProps) => {
  return   <Button
                    variant="contained"
                     sx={{
@@ -16,7 +21,7 @@ const DescargarExcelButton = ({data, campo}) => {
                         marginLeft:'16px'
                       }}
                    disabled={!data || data.length === 0}
-                   onClick={() => handleExportExcel(data,campo)}
+                   onClick={() => data && handleExportExcel(data,campo)}
               >
                    
               Exportar Excel

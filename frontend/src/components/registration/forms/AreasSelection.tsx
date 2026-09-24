@@ -1,6 +1,6 @@
 import React from 'react';
 import { ChevronRight, AlertCircle } from 'lucide-react';
-import { AreaNivel, AreaSeleccionada, Convocatoria } from '../../types/index';
+import { AreaNivel, AreaSeleccionada, Convocatoria } from '../../../types/index';
 
 interface AreasSelectionProps {
   areasNiveles: AreaNivel[];

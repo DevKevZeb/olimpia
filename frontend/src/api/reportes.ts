@@ -6,7 +6,7 @@ interface ApiResponse<T = any> {
     data?: T;
 }
 
-interface Convocatoria {
+export interface Convocatoria {
     id: number;
     nombre: string;
     fecha_inicio_inscripcion: string;
@@ -31,7 +31,7 @@ export const obtenerTodasConvocatorias = async (): Promise<Convocatoria[] | null
     }
 };
 
-export const obtenerReportePorCampoId = async (campo: string, id: number  , params:any ): Promise<any | null> => {
+export const obtenerReportePorCampoId = async (campo: string, id: number  , params?: Record<string, unknown> ): Promise<any | null> => {
     try {
         const response = await axiosInstance.get<ApiResponse>(`/v1/reportes/${campo}/${id}`,
            { 

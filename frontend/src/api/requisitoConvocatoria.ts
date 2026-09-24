@@ -1,7 +1,7 @@
 import { RequisitoConvocatoria } from '../types/RequisitoConvocatoria';
 import axiosInstance from './axiosInstance';
 
-export const fetchConvocatorias = async (): Promise<{ id_convocatoria: number; nombre: string; max_areas_por_estudiante: number }[]> => {
+export const fetchConvocatorias = async (): Promise<{ id_convocatoria: number; nombre: string; estado: string; max_areas_por_estudiante: number }[]> => {
   try {
     const response = await axiosInstance.get('/v1/convocatorias'); 
     return response.data.data.map((convocatoria: any) => ({ // Accede a response.data.data y mapea

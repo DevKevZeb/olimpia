@@ -108,6 +108,7 @@ export interface RequisitoGuardado {
   entidad: string;
   campo: string;
   es_obligatorio: boolean;
+  valor?: string | number | boolean | null;
 }
 
 export interface RequisitoConvocatoria {

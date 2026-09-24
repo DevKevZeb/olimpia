@@ -17,6 +17,7 @@ class AreaCompetenciaResource extends JsonResource
         return [
             'id' => $this->id_area,
             'nombre' => $this->nombre_area,
+            'descripcion' => $this->descripcion,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

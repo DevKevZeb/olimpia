@@ -1,5 +1,7 @@
 <?php
 namespace App\Http\Requests;
+use App\Models\ConvocatoriaNivel;
+use App\Models\Grado;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreInscripcionCompletaRequest extends FormRequest
@@ -62,5 +64,33 @@ class StoreInscripcionCompletaRequest extends FormRequest
             'codigo_unico.unique' => 'El código único de pago ya ha sido registrado.',
             // ... otros mensajes personalizados
         ];
+    }
+
+    /**
+     * Cada nivel elegido debe pertenecer a la convocatoria y admitir el grado del estudiante.
+     */
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            if ($validator->errors()->isNotEmpty()) {
+                return;
+            }
+
+            foreach ($this->input('lista_inscripcion', []) as $i => $estudiante) {
+                $grado = Grado::find($estudiante['id_grado']);
+
+                foreach ($estudiante['areas_seleccionadas'] as $j => $seleccion) {
+                    $nivel = ConvocatoriaNivel::with(['convocatoriaArea', 'gradoMin', 'gradoMax'])
+                        ->find($seleccion['id_convocatoria_nivel']);
+                    $campo = "lista_inscripcion.$i.areas_seleccionadas.$j.id_convocatoria_nivel";
+
+                    if ((int) $nivel->convocatoriaArea->id_convocatoria !== (int) $this->input('id_convocatoria')) {
+                        $validator->errors()->add($campo, 'El nivel seleccionado no pertenece a esta convocatoria.');
+                    } elseif ($grado->orden < $nivel->gradoMin->orden || $grado->orden > $nivel->gradoMax->orden) {
+                        $validator->errors()->add($campo, "El grado {$grado->nombre_grado} no corresponde al nivel seleccionado.");
+                    }
+                }
+            }
+        });
     }
 }

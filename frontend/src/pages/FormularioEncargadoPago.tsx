@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import '../styles/FormularioEncargadoPago.css';
 
 interface FormularioEncargadoPagoProps {
@@ -8,8 +8,6 @@ interface FormularioEncargadoPagoProps {
 }
 
 const FormularioEncargadoPago: React.FC<FormularioEncargadoPagoProps> = ({ formData, onInputChange, onFormValidityChange }) => {
-  const [isFormValid, setIsFormValid] = useState(false);
-
   useEffect(() => {
     // Verifica si todos los campos obligatorios están llenos
     const {
@@ -25,7 +23,6 @@ const FormularioEncargadoPago: React.FC<FormularioEncargadoPagoProps> = ({ formD
       !!apellidos_encargado &&
       !!email_encargado;
 
-    setIsFormValid(isValid);
     onFormValidityChange(isValid); // Comunica la validez al padre
   }, [formData, onFormValidityChange]);
 

@@ -1,6 +1,11 @@
-import React from 'react';
+import type { InputHTMLAttributes } from 'react';
 
-export default function FormInput({ label, error, ...props }) {
+interface FormInputProps extends InputHTMLAttributes<HTMLInputElement> {
+  label: string;
+  error?: string;
+}
+
+export default function FormInput({ label, error, ...props }: FormInputProps) {
   return (
     <div className="mb-4">
       <label className="block text-gray-700 font-medium mb-2">{label}</label>

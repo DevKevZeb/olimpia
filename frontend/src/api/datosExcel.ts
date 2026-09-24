@@ -8,10 +8,10 @@ interface GradoResponse {
     updated_at: string;
 }
   
-interface ApiResponse {
+interface ApiResponse<T = GradoResponse | GradoResponse[]> {
     success: boolean;
     message: string;
-    data: GradoResponse | GradoResponse[];
+    data: T;
 }
 
 interface ConvocatoriaNivelConfig {
@@ -159,7 +159,7 @@ export const getGradoIdByName = (nombreGrado: string): number | null => {
 
 export const obtenerIdGradoPorNombre = async (nombreGrado: string): Promise<GradoResponse | null> => {
     try {
-      const response = await axiosInstance.get<ApiResponse>(`/v1/grados/por-nombre/${encodeURIComponent(nombreGrado)}`);
+      const response = await axiosInstance.get<ApiResponse<GradoResponse>>(`/v1/grados/por-nombre/${encodeURIComponent(nombreGrado)}`);
       if (response.data.success && response.data.data) {
         return response.data.data;
       }

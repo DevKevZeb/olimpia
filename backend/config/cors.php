@@ -19,8 +19,8 @@ return [
 
     'allowed_methods' => ['*'],
 
-    // Allow requests from the frontend development server
-    'allowed_origins' => ['http://localhost:5173', 'http://localhost'],
+    // Orígenes del frontend separados por coma (CORS_ALLOWED_ORIGINS en .env)
+    'allowed_origins' => array_filter(array_map('trim', explode(',', env('CORS_ALLOWED_ORIGINS', 'http://localhost:5173')))),
 
     'allowed_origins_patterns' => [],
 

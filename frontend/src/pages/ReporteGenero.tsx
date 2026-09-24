@@ -1,6 +1,5 @@
-import React, { useState, useEffect, ChangeEvent } from 'react';
+import { useState, useEffect } from 'react';
 import '../styles/Reportes.css';
-import { styled } from '@mui/material/styles';
 import {
     Typography,
     Box,
@@ -16,6 +15,7 @@ import {
     Select,
     MenuItem,
     Button,
+    SelectChangeEvent,
     Divider,
 } from '@mui/material';
 import { obtenerTodasConvocatorias, obtenerReportePorCampoId, Convocatoria } from '../api/reportes';
@@ -31,7 +31,7 @@ interface ReporteInscripciones {
         grado: string;
         unidad_educativa: {
             nombre: string;
-            genero: string;
+            departamento: string;
         };
         tutor_legal: {
             nombre: string;
@@ -39,6 +39,9 @@ interface ReporteInscripciones {
             ci: string;
         };
     };
+    estado_inscripcion: string;
+    areas_inscritas: string;
+    fecha_inscripcion: string;
     [key: string]: any; // Para otras propiedades específicas de la inscripción
 }
 
@@ -103,10 +106,10 @@ const ReporteGenero = () => {
         cargarReporte();
     }, [selectedConvocatoriaId, selectedGenero]);
 
-    const handleConvocatoriaChange = (event: ChangeEvent<{ value: number | '' }>) => {
+    const handleConvocatoriaChange = (event: SelectChangeEvent<number | ''>) => {
         setSelectedConvocatoriaId(event.target.value);
     };
-    const handlegeneroChange = (event: ChangeEvent<{ value: string | '' }>) => {
+    const handlegeneroChange = (event: SelectChangeEvent<string>) => {
         setSelectedGenero(event.target.value);
     };
 
@@ -119,7 +122,7 @@ const ReporteGenero = () => {
             'Estudiante CI',
             'Estudiante Grado',
             'Unidad Educativa',
-            'genero',
+            'Departamento',
             'Tutor Nombre',
             'Tutor Apellido',
             'Tutor CI',
@@ -135,7 +138,7 @@ const ReporteGenero = () => {
                 item.estudiante?.ci ?? '',
                 item.estudiante?.grado ?? '',
                 item.estudiante?.unidad_educativa?.nombre ?? '',
-                item.estudiante?.unidad_educativa?.genero ?? '',
+                item.estudiante?.unidad_educativa?.departamento ?? '',
                 item.estudiante?.tutor_legal?.nombre ?? '',
                 item.estudiante?.tutor_legal?.apellido ?? '',
                 item.estudiante?.tutor_legal?.ci ?? '',

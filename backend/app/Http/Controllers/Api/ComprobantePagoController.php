@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Exceptions\ComprobanteRechazadoException;
 use App\Models\ComprobantePago;
 use App\Models\OrdenPago;
 use Illuminate\Http\Request;
@@ -110,9 +111,10 @@ class ComprobantePagoController extends ApiController
                 'Comprobante de pago registrado correctamente',
                 201
             );
+        } catch (ComprobanteRechazadoException $e) {
+            return $this->errorResponse($e->getMessage(), 422);
         } catch (\Exception $e) {
-            // Aquí podrías tener lógica más fina para diferentes tipos de excepciones
-            return $this->errorResponse($e->getMessage(), 422); // O 500 si es un error interno
+            return $this->serverErrorResponse('Error al registrar el comprobante de pago', $e);
         }
     }
     
