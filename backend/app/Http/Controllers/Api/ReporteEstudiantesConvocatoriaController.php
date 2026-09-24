@@ -38,6 +38,7 @@ class ReporteEstudiantesConvocatoriaController extends Controller
             ->join('niveles_categoria', 'convocatoria_niveles.id_nivel', '=', 'niveles_categoria.id_nivel')
             ->join('grados', 'estudiantes.id_grado', '=', 'grados.id_grado')
             ->leftJoin('unidades_educativas', 'estudiantes.id_unidad_educativa', '=', 'unidades_educativas.id_unidad_educativa')
+            ->leftJoin('ordenes_pago', 'detalles_lista_inscripcion.id_lista', '=', 'ordenes_pago.id_lista')
             ->select(
                 'estudiantes.nombres',
                 'estudiantes.apellidos',
@@ -50,8 +51,8 @@ class ReporteEstudiantesConvocatoriaController extends Controller
                 'unidades_educativas.provincia',
                 'areas_competencia.nombre_area',
                 'niveles_categoria.nombre_nivel',
-                'detalles_lista_inscripcion.fecha_inscripcion',
-                'detalles_lista_inscripcion.estado'
+                'detalles_lista_inscripcion.fecha_registro as fecha_inscripcion',
+                'ordenes_pago.estado'
             )
             ->where('convocatoria_areas.id_convocatoria', $convocatoriaId)
             ->orderBy('estudiantes.apellidos')
