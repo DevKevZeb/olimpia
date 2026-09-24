@@ -136,3 +136,6 @@ dist
 .pnp.*
 
 /vendor/
+
+# Índice local de CodeGraph
+.codegraph/
