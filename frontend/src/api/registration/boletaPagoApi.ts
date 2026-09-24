@@ -112,7 +112,9 @@ const createNewEstudiante = (): EstudianteFormData => {
     ci: '',
     fecha_nacimiento: '',
     email: '',
+    telefono: '',
     id_grado: '',
+    genero: '',
     id_convocatoria: '', // Agregamos este campo requerido
     unidad_educativa: {
       id_unidad_educativa: null,

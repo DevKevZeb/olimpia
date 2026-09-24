@@ -57,6 +57,7 @@ const AgregarDocumento: React.FC = () => {
       console.error('No hay archivo para subir');
       return;
     }
+    if (convocatoriaSeleccionada === null) return;
 
     const formData = new FormData();
     formData.append('file', archivo); // Ajusta 'file' si el backend espera otro nombre
@@ -125,7 +126,7 @@ const AgregarDocumento: React.FC = () => {
             </Button>
 
             <Dialog open={modalAbierto === area.id_area} onClose={() => setModalAbierto(null)}>
-              <DialogTitle>Subir Documento para {area.nombre_area}</DialogTitle>
+              <DialogTitle>Subir Documento para {area.area?.nombre_area}</DialogTitle>
               <DialogContent>
                 <input
                   type="file"
