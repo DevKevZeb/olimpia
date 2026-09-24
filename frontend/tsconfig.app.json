@@ -13,6 +13,8 @@
     "moduleDetection": "force",
     "noEmit": true,
     "jsx": "react-jsx",
+    /* Solo tipos del navegador: msw instala @types/node como dependencia transitiva */
+    "types": ["vite/client"],
 
     /* Linting */
     "strict": true,
