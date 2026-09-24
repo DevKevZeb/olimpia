@@ -102,7 +102,7 @@ export default function AdminLogin() {
                   value={formData.email}
                   onChange={handleInputChange}
                   className="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
-                  placeholder="admin@ohsansi.com"
+                  placeholder="admin@olimpia.test"
                 />
               </div>
             </div>
@@ -182,7 +182,7 @@ export default function AdminLogin() {
               </div>
             </div>
             <div className="mt-4 text-center text-sm text-gray-600">
-              <p>Email: <span className="font-mono text-blue-600">admin@ohsansi.com</span></p>
+              <p>Email: <span className="font-mono text-blue-600">admin@olimpia.test</span></p>
               <p>Contraseña: <span className="font-mono text-blue-600">admin123</span></p>
             </div>
           </div>

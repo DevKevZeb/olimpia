@@ -68,8 +68,8 @@ class PdfParserService
         // Extraer aclaración completa
         if (preg_match('/Aclaración:\s*([^\n\r]+)/i', $ocrText, $m)) {
             $data['aclaracion'] = trim($m[1]);
-            // Buscar código de inscripción en la aclaración (formato: O-SANSI-2025-XXXXX)
-            if (preg_match('/(O-SANSI-\d{4}-\d+)/i', $data['aclaracion'], $cm)) {
+            // Buscar código de inscripción en la aclaración (formato: OLP-2025-XXXXX)
+            if (preg_match('/(OLP-\d{4}-\d+)/i', $data['aclaracion'], $cm)) {
                 $data['codigo_inscripcion_extraido'] = trim($cm[1]);
             }
         }
@@ -111,7 +111,7 @@ class PdfParserService
             throw new ComprobanteRechazadoException('No se pudo extraer la aclaración del recibo. ' . $debugInfo);
         }
         if (is_null($data['codigo_inscripcion_extraido'])) {
-            throw new ComprobanteRechazadoException('No se encontró un código de inscripción válido en la aclaración del PDF. El código debe tener el formato O-SANSI-YYYY-XXXXX');
+            throw new ComprobanteRechazadoException('No se encontró un código de inscripción válido en la aclaración del PDF. El código debe tener el formato OLP-YYYY-XXXXX');
         }
 
         return $data;

@@ -610,7 +610,7 @@ const ResumenInscripcion: React.FC<ResumenInscripcionProps> = ({
                 <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-md mb-6">
                   <p className="font-medium text-yellow-800 mb-1">Instrucciones de pago</p>
                   <ol className="text-sm text-yellow-700 list-decimal pl-5 space-y-1">
-                    <li>Presente esta boleta en las cajas de la facultad</li>
+                    <li>Presente esta boleta en las cajas habilitadas</li>
                     <li>Realice el pago del monto total indicado</li>
                     <li>Conserve el comprobante que le entregarán</li>
                     <li>Regrese a la página de inscripción e introduzca el código de verificación de esta boleta</li>

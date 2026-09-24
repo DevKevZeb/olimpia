@@ -41,7 +41,7 @@ class PdfParserServiceTest extends TestCase
         $this->assertSame('0000123', $data['numero_recibo']);
         $this->assertSame('Ana Rojas', $data['nombre_pagador']);
         $this->assertSame(15.0, $data['monto_total']);
-        $this->assertSame('O-SANSI-2025-00001', $data['codigo_inscripcion_extraido']);
+        $this->assertSame('OLP-2025-00001', $data['codigo_inscripcion_extraido']);
     }
 
     public function test_reads_dates_as_day_month_year(): void

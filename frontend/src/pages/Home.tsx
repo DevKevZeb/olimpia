@@ -91,7 +91,7 @@ export default function Home() {
         }}
       >
         <div className="text-center text-white">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Oh! SanSi - Olimpiadas de Ciencias y Tecnología</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">Olimpia · Olimpiadas de Ciencia y Tecnología</h1>
           <p className="text-xl mb-8">Inscríbete y participa en las áreas de tu interés</p>          <button 
             className="bg-blue-600 text-white px-6 py-3 rounded-md font-medium hover:bg-blue-700 transition"
             onClick={() => navigate('/registration')}
@@ -149,7 +149,7 @@ export default function Home() {
               </div>
               <h3 className="text-xl font-semibold mb-3">Descargar Boleta</h3>
               <p className="text-gray-600 mb-6 min-h-[3rem]">
-                Descarga tu boleta de pago para realizar el pago en cajas de la facultad
+                Descarga tu boleta de pago para realizar el pago en las cajas habilitadas
               </p>              <button
                 onClick={() => navigate('/download-boleta')}
                 className="w-full bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition font-medium"

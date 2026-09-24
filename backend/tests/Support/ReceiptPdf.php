@@ -15,14 +15,14 @@ class ReceiptPdf
             'pagador' => 'Ana Rojas',
             'fecha' => '03-06-25 11:30',
             'total' => '15.00',
-            'aclaracion' => 'O-SANSI-2025-00001',
+            'aclaracion' => 'OLP-2025-00001',
         ], $overrides);
 
         $lines = array_filter([
             'RECIBO DE CAJA (EJEMPLO)',
             'Nro. ' . $data['numero'],
             $data['pagador'] !== null ? 'Recibí de: ' . $data['pagador'] : null,
-            'Por concepto de: OLIMPIADA OH! SANSI',
+            'Por concepto de: OLIMPIA - INSCRIPCION',
             'Fecha: ' . $data['fecha'],
             'Total: Bs ' . $data['total'],
             $data['aclaracion'] !== null ? 'Aclaración: ' . $data['aclaracion'] : null,

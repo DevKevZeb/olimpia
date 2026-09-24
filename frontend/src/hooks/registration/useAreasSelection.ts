@@ -1,4 +1,3 @@
-// filepath: c:\xampp\htdocs\oh-sansi\frontend\src\hooks\useAreasSelection.ts
 import { useState, useEffect, useCallback } from 'react';
 import { getAreasPorGrado } from '../../api/registration/inscripcionCompletaApi';
 import { 

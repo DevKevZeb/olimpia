@@ -439,7 +439,7 @@ const DataSummary = ({ scannedData, onCancel, onSave }: { scannedData: any[]; on
 
   const handleGuardarInscripcion = () => {
     if (scannedData.length > 0 && isPagoFormValid) {
-      const codigo_unico = `O-SANSI-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
+      const codigo_unico = `OLP-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
       const dataConPago = {
         lista_inscripcion: scannedData,
         id_convocatoria: scannedData[0]?.id_convocatoria,

@@ -1,4 +1,4 @@
-# oh-sansi
+# Olimpia
 Sistema de inscripcion de estudiantes a olimpiadas 
 
 ## Estructura del Repositorio

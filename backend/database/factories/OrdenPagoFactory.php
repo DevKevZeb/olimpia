@@ -23,7 +23,7 @@ class OrdenPagoFactory extends Factory
      */    public function definition()
     {
         return [
-            'codigo_unico' => 'O-SANSI-2024-' . $this->faker->numberBetween(10000, 99999),
+            'codigo_unico' => 'OLP-2024-' . $this->faker->numberBetween(10000, 99999),
             'tipo_origen' => 'lista',
             'id_lista' => ListaInscripcion::factory(),
             'monto_total' => $this->faker->randomFloat(2, 100, 1000),

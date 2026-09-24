@@ -150,7 +150,7 @@ export default function CompletarInscripcionPage() {
             onVerify={handleVerification}
             loading={isVerifying}
             error={customError || verifyError}
-            placeholder="Código de inscripción (ej: O-SANSI-2024-12345)"
+            placeholder="Código de inscripción (ej: OLP-2025-12345)"
             buttonText="Verificar Código"
             helperText="Ingrese el código que recibió al completar su pre-inscripción"
           />

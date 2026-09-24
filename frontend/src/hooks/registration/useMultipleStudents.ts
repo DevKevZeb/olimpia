@@ -1,4 +1,3 @@
-// filepath: c:\xampp\htdocs\oh-sansi\frontend\src\hooks\useMultipleStudents.ts
 import { useState, useEffect, useCallback } from 'react';
 import { EstudianteFormData, AreaSeleccionada } from '../../types/index';
 import { 

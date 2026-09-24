@@ -10,6 +10,6 @@
     <p>Utilice este código para generar su boleta de pago correspondiente a la inscripción.</p>
     <p>Por favor, siga las instrucciones de pago proporcionadas por la institución.</p>
     <p>Atentamente,</p>
-    <p>Oh! Sansi</p>
+    <p>Olimpia</p>
 </body>
 </html>

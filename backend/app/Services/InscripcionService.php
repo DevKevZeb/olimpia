@@ -135,7 +135,7 @@ class InscripcionService
 
     private function findOrCreateTutorLegal(array $data): TutorLegal
     {
-        $data['email'] = $data['email'] ?? 'tutor.sin.email@miinstitucion.edu.bo';
+        $data['email'] = $data['email'] ?? 'tutor.sin.email@olimpia.test';
         $data['telefono'] = $data['telefono'] ?? 'Sin Teléfono';
         $data['parentesco'] = $data['parentesco'] ?? 'No Especificado';
 
@@ -147,7 +147,7 @@ class InscripcionService
 
     private function findOrCreateEstudiante(array $estudianteData, int $idUnidadEducativa, int $idTutorLegal): Estudiante
     {
-        $estudianteData['email'] = $estudianteData['email'] ?? 'estudiante.no.tiene.correo@miinstitucion.edu.bo';
+        $estudianteData['email'] = $estudianteData['email'] ?? 'estudiante.no.tiene.correo@olimpia.test';
         $estudianteData['genero'] = $estudianteData['genero'] ?? 'No Especificado';
         $estudianteData['telefono'] = $estudianteData['telefono'] ?? '0'; // Asegúrate que sea string o int según tu DB
         $estudianteData['departamento'] = $estudianteData['departamento'] ?? 'No Especificado';
@@ -181,7 +181,7 @@ class InscripcionService
         $apellidos = $tutorData['apellidos'] ?? 'Sin Apellido Asignado';
         $ci = $tutorData['ci'] ?? 'SN';
         $telefono = $tutorData['telefono'] ?? 'No Registrado';
-        $email = $tutorData['email'] ?? 'tutoracademico.no.email@miinstitucion.edu.bo';
+        $email = $tutorData['email'] ?? 'tutoracademico.no.email@olimpia.test';
 
         return TutorAcademico::updateOrCreate(
             ['ci' => $ci], // Asume que el CI es único para tutores académicos
