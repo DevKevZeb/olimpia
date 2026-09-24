@@ -213,25 +213,25 @@ export const validateStep1 = (
   // 2. Validar campos del tutor legal usando validateField
   const tutorNombresError = validateField('tutor_legal.nombres', formData.tutor_legal.nombres);
   if (tutorNombresError) {
-    currentErrors.tutor_legal = { ...currentErrors.unidad_educativa, nombres: tutorNombresError };
+    currentErrors.tutor_legal = { ...currentErrors.tutor_legal, nombres: tutorNombresError };
     isValid = false;
   }
   
   const tutorApellidosError = validateField('tutor_legal.apellidos', formData.tutor_legal.apellidos);
   if (tutorApellidosError) {
-    currentErrors.tutor_legal = { ...currentErrors.unidad_educativa, apellidos: tutorApellidosError };
+    currentErrors.tutor_legal = { ...currentErrors.tutor_legal, apellidos: tutorApellidosError };
     isValid = false;
   }
   
   const tutorCiError = validateField('tutor_legal.ci', formData.tutor_legal.ci);
   if (tutorCiError) {
-    currentErrors.tutor_legal = { ...currentErrors.unidad_educativa, ci: tutorCiError };
+    currentErrors.tutor_legal = { ...currentErrors.tutor_legal, ci: tutorCiError };
     isValid = false;
   }
   
   const tutorEmailError = validateField('tutor_legal.email', formData.tutor_legal.email);
   if (tutorEmailError) {
-    currentErrors.tutor_legal = { ...currentErrors.unidad_educativa, email: tutorEmailError };
+    currentErrors.tutor_legal = { ...currentErrors.tutor_legal, email: tutorEmailError };
     isValid = false;
   }
   
@@ -241,7 +241,7 @@ export const validateStep1 = (
   if(requisitoTutorTelefono){
     const tutorTelefonoError = validateField('tutor_legal.telefono', formData.tutor_legal.telefono);
     if (tutorTelefonoError) {
-      currentErrors.tutor_legal = { ...currentErrors.unidad_educativa, telefono: tutorTelefonoError };
+      currentErrors.tutor_legal = { ...currentErrors.tutor_legal, telefono: tutorTelefonoError };
       isValid = false;
     }
   }
@@ -252,7 +252,7 @@ export const validateStep1 = (
   if(requisitoTutorParentesco){
     const tutorParentescoError = validateField('tutor_legal.parentesco', formData.tutor_legal.parentesco);
     if (tutorParentescoError) {
-      currentErrors.tutor_legal = { ...currentErrors.unidad_educativa, parentesco: tutorParentescoError };
+      currentErrors.tutor_legal = { ...currentErrors.tutor_legal, parentesco: tutorParentescoError };
       isValid = false;
     }
   }
