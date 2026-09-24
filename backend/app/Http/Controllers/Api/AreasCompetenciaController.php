@@ -30,6 +30,7 @@ class AreasCompetenciaController extends ApiController
     {
         $validator = Validator::make($request->all(), [
             'nombre_area' => 'required|string|max:100|unique:areas_competencia',
+            'descripcion' => 'nullable|string|max:200',
         ]);
 
         if ($validator->fails()) {
@@ -75,6 +76,7 @@ class AreasCompetenciaController extends ApiController
         
         $validator = Validator::make($request->all(), [
             'nombre_area' => 'required|string|max:100|unique:areas_competencia,nombre_area,' . $id . ',id_area',
+            'descripcion' => 'nullable|string|max:200',
         ]);
 
         if ($validator->fails()) {

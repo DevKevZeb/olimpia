@@ -18,8 +18,9 @@ export default function CrearArea() {
 
   const obtenerAreas = async () => {
     try {
-      const response = await axiosInstance.get('/areas');
-      setAreasExistentes(response.data); // Solo array de strings
+      const response = await axiosInstance.get('/v1/areas');
+      const areas: { nombre: string }[] = response.data.data;
+      setAreasExistentes(areas.map((area) => area.nombre).sort((a, b) => a.localeCompare(b)));
     } catch (err) {
       console.error('Error al obtener las áreas existentes.');
     }
@@ -46,7 +47,7 @@ export default function CrearArea() {
     setExito('');
 
     try {
-      await axiosInstance.post('/areas', {
+      await axiosInstance.post('/v1/areas', {
         nombre_area: nombre,
         descripcion: descripcion
       });
