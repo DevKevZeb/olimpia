@@ -27,8 +27,9 @@ const AgregarDocumento: React.FC = () => {
   useEffect(() => {
     const obtenerConvocatorias = async () => {
       try {
-        const res = await axiosInstance.get('/convocatorias');
-        setConvocatorias(res.data.data); // asumiendo que tu backend responde con { data: [] }
+        const res = await axiosInstance.get('/v1/convocatorias');
+        const lista: { id: number; nombre: string }[] = res.data.data;
+        setConvocatorias(lista.map((c) => ({ id_convocatoria: c.id, nombre: c.nombre })));
       } catch (err) {
         console.error('Error al obtener convocatorias', err);
       }

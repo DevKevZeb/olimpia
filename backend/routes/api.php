@@ -116,7 +116,6 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });
 
-    Route::get('/convocatorias', [AmpliarFechaController::class, 'index']);
     Route::put('/convocatorias/{id}/ampliar-fecha', [AmpliarFechaController::class, 'actualizarFecha']);
     Route::get('/convocatorias/{id}/areas', [DocumentoController::class, 'obtenerAreasPorConvocatoria']);
     Route::post('/documentos/subir', [DocumentoController::class, 'subirDocumento']);

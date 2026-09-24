@@ -28,18 +28,4 @@ class AmpliarFechaController extends ApiController
             'Fecha de inscripción ampliada correctamente'
         );
     }
-    
-    /**
-     * Lista todas las convocatorias (puede usarse para el slider).
-     */
-    public function index(): JsonResponse
-    {
-        $convocatorias = Convocatoria::orderBy('fecha_fin_inscripcion', 'desc')->get([
-            'id_convocatoria',
-            'nombre',
-            'fecha_fin_inscripcion'
-        ]);
-
-        return $this->successResponse($convocatorias, 'Lista de convocatorias obtenida correctamente');
-    }
 }
