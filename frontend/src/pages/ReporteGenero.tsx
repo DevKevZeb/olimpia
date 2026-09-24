@@ -32,8 +32,6 @@ interface ReporteInscripciones {
         unidad_educativa: {
             nombre: string;
             departamento: string;
-            // El backend no devuelve este campo; se mantiene opcional por la exportación a PDF
-            genero?: string;
         };
         tutor_legal: {
             nombre: string;
@@ -124,7 +122,7 @@ const ReporteGenero = () => {
             'Estudiante CI',
             'Estudiante Grado',
             'Unidad Educativa',
-            'genero',
+            'Departamento',
             'Tutor Nombre',
             'Tutor Apellido',
             'Tutor CI',
@@ -140,7 +138,7 @@ const ReporteGenero = () => {
                 item.estudiante?.ci ?? '',
                 item.estudiante?.grado ?? '',
                 item.estudiante?.unidad_educativa?.nombre ?? '',
-                item.estudiante?.unidad_educativa?.genero ?? '',
+                item.estudiante?.unidad_educativa?.departamento ?? '',
                 item.estudiante?.tutor_legal?.nombre ?? '',
                 item.estudiante?.tutor_legal?.apellido ?? '',
                 item.estudiante?.tutor_legal?.ci ?? '',
