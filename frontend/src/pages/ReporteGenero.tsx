@@ -21,6 +21,7 @@ import {
 import { obtenerTodasConvocatorias, obtenerReportePorCampoId, Convocatoria } from '../api/reportes';
 import { exportarPDF } from '../components/exportarPDF';
 import DescargarExcelButton from '../components/DescargarExcelButton';
+import { formatReportValue } from '../utils/formatReportValue';
 
 interface ReporteInscripciones {
     id: string;
@@ -144,7 +145,7 @@ const ReporteGenero = () => {
                 item.estudiante?.tutor_legal?.ci ?? '',
                 ...Object.keys(item)
                     .filter(key => !['id', 'estudiante', 'created_at', 'updated_at', 'fecha_registro'].includes(key))
-                    .map(key => JSON.stringify(item[key])),
+                    .map(key => formatReportValue(item[key])),
             ];
         });
 
@@ -248,7 +249,7 @@ const ReporteGenero = () => {
                           {Object.keys(item)
                             .filter(key => !['id', 'estudiante', 'created_at', 'updated_at', 'fecha_registro'].includes(key))
                             .map((key, index) => (
-                              <TableCell key={`extra_cell_${idx}_${index}`}>{JSON.stringify(item[key])}</TableCell>
+                              <TableCell key={`extra_cell_${idx}_${index}`}>{formatReportValue(item[key])}</TableCell>
                             ))}
                         </TableRow>
                       ))}
