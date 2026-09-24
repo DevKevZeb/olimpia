@@ -26,7 +26,7 @@ export default function Layout({ children }: LayoutProps) {
               >
                 Inicio
               </Link>              <Link 
-                to="/inscripcion" 
+                to="/registration" 
                 className="text-gray-700 hover:text-blue-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-200 hover:bg-blue-50"
               >
                 Inscripción
