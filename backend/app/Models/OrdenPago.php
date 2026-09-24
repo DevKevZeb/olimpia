@@ -38,10 +38,8 @@ class OrdenPago extends Model
     public function getNombreResponsablePago(): ?string
     {
         if ($this->tipo_origen === 'lista' && $this->lista) {
-            // Asegúrate de que ListaInscripcion tenga una relación con EncargadoPago
-            // O que sepas de dónde sacar el nombre del responsable de la lista
-            // Por ejemplo, si EncargadoPago está relacionado con ListaInscripcion
-            $encargado = $this->lista->encargadoPago; // Asumiendo una relación 'encargadoPago' en ListaInscripcion
+            // encargadoPago es hasMany: la lista tiene un único responsable de pago
+            $encargado = $this->lista->encargadoPago()->first();
             return $encargado ? trim($encargado->nombres . ' ' . $encargado->apellidos) : null;
         } elseif ($this->tipo_origen === 'individual') {
             return $this->encargado_nombre; // O $this->encargado->nombre_completo si usas una relación

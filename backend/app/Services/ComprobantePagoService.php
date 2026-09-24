@@ -2,12 +2,13 @@
 
 namespace App\Services;
 
+use App\Exceptions\ComprobanteRechazadoException;
 use App\Models\ComprobantePago;
 use App\Models\OrdenPago;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use App\Services\PdfParserService; 
+use Throwable;
 
 class ComprobantePagoService
 {
@@ -18,64 +19,93 @@ class ComprobantePagoService
         $this->pdfParserService = $pdfParserService;
     }
 
+    /**
+     * Lee el recibo en PDF, comprueba que corresponda a la orden y, si todo
+     * coincide, registra el comprobante como verificado y marca la orden como pagada.
+     *
+     * @throws ComprobanteRechazadoException si la orden no admite pagos o el recibo no coincide
+     */
     public function createComprobanteFromPdf(string $codigoOrden, UploadedFile $pdfFile): ComprobantePago
     {
-        return DB::transaction(function () use ($codigoOrden, $pdfFile) {
-            $orden = OrdenPago::where('codigo_unico', $codigoOrden)->firstOrFail();
+        $orden = OrdenPago::where('codigo_unico', $codigoOrden)->firstOrFail();
+        $this->assertOrdenAdmitePago($orden);
 
-            // Validaciones de estado de la orden (movidas desde el controlador)
-            if ($orden->estado === 'pagada') {
-                throw new \Exception('Esta orden de pago ya ha sido pagada.');
-            }
-            if ($orden->estado === 'vencida') {
-                throw new \Exception('Esta orden de pago está vencida.');
-            }
-            if ($orden->comprobantes()->where('estado_verificacion', 'pendiente')->exists()) {
-                throw new \Exception('Esta orden ya tiene un comprobante pendiente de verificación.');
-            }
+        $filePath = $pdfFile->store('comprobantes', 'public');
 
-            // Guardar el archivo PDF
-            $filePath = $pdfFile->store('comprobantes', 'public');
-
-            // Extraer datos del PDF usando el servicio dedicado
+        try {
             $extractedData = $this->pdfParserService->extractDataFromReceiptPdf(
                 Storage::disk('public')->path($filePath)
             );
-
-            // Validaciones de datos extraídos (movidas desde el controlador)
             $this->validateExtractedData($extractedData, $orden);
 
-            // Crear el comprobante
-            $comprobante = ComprobantePago::create([
-                'id_orden' => $orden->id_orden,
-                'numero_comprobante' => $extractedData['numero_recibo'],
-                'nombre_pagador' => $extractedData['nombre_pagador'],
-                'fecha_pago' => $extractedData['fecha_pago'],
-                'monto_pagado' => $extractedData['monto_total'],
-                'pdf_comprobante' => $filePath,
-                'datos_ocr' => $extractedData, // Guardar todos los datos extraídos
-                'estado_verificacion' => 'pendiente',
-            ]);
+            return DB::transaction(function () use ($orden, $extractedData, $filePath) {
+                $comprobante = ComprobantePago::create([
+                    'id_orden' => $orden->id_orden,
+                    'numero_comprobante' => $extractedData['numero_recibo'],
+                    'nombre_pagador' => $extractedData['nombre_pagador'],
+                    'fecha_pago' => $extractedData['fecha_pago'],
+                    'monto_pagado' => $extractedData['monto_total'],
+                    'pdf_comprobante' => $filePath,
+                    'datos_ocr' => $extractedData,
+                    'estado_verificacion' => 'verificado',
+                ]);
 
-            // Actualizar el estado de la orden
-            $orden->update(['estado' => 'pagada']);
+                $orden->update(['estado' => 'pagada']);
 
-            return $comprobante;
-        });
+                return $comprobante;
+            });
+        } catch (Throwable $e) {
+            // El recibo no se registró: no se conserva el archivo subido
+            Storage::disk('public')->delete($filePath);
+            throw $e;
+        }
     }
 
-    private function validateExtractedData(array $extractedData, OrdenPago $orden)
+    private function assertOrdenAdmitePago(OrdenPago $orden): void
     {
-        // Toda la lógica de validación del OCR y coincidencia con la orden
-        // Código de inscripción, nombre del pagador, monto exacto.
-        // Si falla, lanzar excepciones significativas que el controlador pueda capturar.
-
-        // Ejemplo:
-        if (strtoupper($extractedData['codigo_inscripcion_extraido']) !== strtoupper($orden->codigo_unico)) {
-            Storage::disk('public')->delete($extractedData['pdf_path_temp']); // Asegúrate de limpiar si falla aquí
-            throw new \Exception('El recibo no pertenece al código de inscripción proporcionado.');
+        if ($orden->estado === 'pagada') {
+            throw new ComprobanteRechazadoException('Esta orden de pago ya ha sido pagada.');
         }
-        // ... otras validaciones ...
+        if ($orden->estado === 'vencida') {
+            throw new ComprobanteRechazadoException('Esta orden de pago está vencida.');
+        }
+    }
+
+    /**
+     * Compara el código, el monto y el pagador del recibo con la orden.
+     */
+    private function validateExtractedData(array $extractedData, OrdenPago $orden): void
+    {
+        if (strtoupper($extractedData['codigo_inscripcion_extraido']) !== strtoupper($orden->codigo_unico)) {
+            throw new ComprobanteRechazadoException('El recibo no pertenece al código de inscripción proporcionado.');
+        }
+
+        if ($extractedData['monto_total'] + 0.009 < (float) $orden->monto_total) {
+            throw new ComprobanteRechazadoException(sprintf(
+                'El monto del recibo (Bs %.2f) es menor al monto de la orden (Bs %.2f).',
+                $extractedData['monto_total'],
+                $orden->monto_total
+            ));
+        }
+
+        $responsable = $orden->getNombreResponsablePago();
+        if ($responsable && !$this->mismoPagador($extractedData['nombre_pagador'], $responsable)) {
+            throw new ComprobanteRechazadoException('El nombre del pagador en el recibo no coincide con el responsable de pago de la orden.');
+        }
+    }
+
+    /**
+     * El recibo puede traer nombres y apellidos en cualquier orden y sin tildes;
+     * se acepta si todas sus palabras pertenecen al nombre del responsable.
+     */
+    private function mismoPagador(string $nombreRecibo, string $nombreResponsable): bool
+    {
+        $recibo = array_unique(explode(' ', $this->pdfParserService->normalizeName($nombreRecibo)));
+        $responsable = array_unique(explode(' ', $this->pdfParserService->normalizeName($nombreResponsable)));
+
+        $minimoPalabras = min(2, count($responsable));
+
+        return count($recibo) >= $minimoPalabras && empty(array_diff($recibo, $responsable));
     }
 
     public function updateComprobante(ComprobantePago $comprobante, array $data, ?\Illuminate\Http\UploadedFile $pdfFile = null): ComprobantePago
