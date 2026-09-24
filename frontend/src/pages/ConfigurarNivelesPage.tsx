@@ -20,6 +20,7 @@ interface Grado {
 interface NivelAsignado {
   id_convocatoria_nivel: number;
   id_area: number;
+  id_nivel: number;
   nombre_nivel: string;
   nombre_grado_min: string;
   nombre_grado_max: string;
@@ -59,7 +60,6 @@ export default function ConfigurarNivelesPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
-  const [showAsignados, setShowAsignados] = useState(false);
   const [gradoModalNivel, setGradoModalNivel] = useState<Nivel | null>(null);
 
   useEffect(() => {
@@ -204,13 +204,8 @@ export default function ConfigurarNivelesPage() {
   };
 
   // Modal para editar grados
-  const openGradoModal = (nivel: Nivel) => setGradoModalNivel(nivel);
   const closeGradoModal = () => setGradoModalNivel(null);
 
-  // Niveles ya asignados por área (para validación)
-  const nivelesAsignadosIds = new Set(
-    nivelesAsignados.map(n => n.id_nivel)
-  );
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
@@ -248,7 +243,6 @@ export default function ConfigurarNivelesPage() {
           onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedConvocatoria(e.target.value)}
           required
           disabled={loadingConvocatorias}
-          error={false}
         >
           <option value="">-- Seleccione una convocatoria --</option>
           {(convocatorias || []).map((convocatoria: { id_convocatoria: number; nombre: string }) => (
@@ -318,8 +312,6 @@ export default function ConfigurarNivelesPage() {
                     </div>
                   );
                 }
-                // Si es nivel de rango (primaria/secundaria), mostrar todos los grados para seleccionar
-                const esRango = NIVELES_PRIMARIA.includes(nivel.nombre_nivel) || NIVELES_SECUNDARIA.includes(nivel.nombre_nivel);
                 // Para niveles manuales o de rango, mostrar todos los grados como chips seleccionables
                 return (
                   <div key={nivel.id_nivel} className="bg-gray-50 rounded p-2 border flex flex-col gap-1 min-w-[180px] max-w-xs">

@@ -1,15 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { getAreasCompetencia, getAreasPorConvocatoria, asociarAreas } from '../api/adminConvocatoriaApi';
+import { getAreasCompetencia, getAreasPorConvocatoria, asociarAreas, AreaConvocatoriaAsignada } from '../api/adminConvocatoriaApi';
 import AsignarAreasForm from '../components/AsignarAreasForm';
 import { useConvocatoriasPlanificadas } from '../hooks/useConvocatorias';
 
+interface AreaCompetencia {
+  id_area: number;
+  nombre_area: string;
+}
+
 export default function AsignarAreasPage() {
-  const { convocatorias, loading: loadingConvocatorias } = useConvocatoriasPlanificadas();
-  const [areas, setAreas] = useState([]);
+  const { convocatorias } = useConvocatoriasPlanificadas();
+  const [areas, setAreas] = useState<AreaCompetencia[]>([]);
   const [selectedConvocatoria, setSelectedConvocatoria] = useState('');
-  const [areasAsignadas, setAreasAsignadas] = useState([]);
-  const [areasDisponibles, setAreasDisponibles] = useState([]);
-  const [selectedAreas, setSelectedAreas] = useState([]);
+  const [areasAsignadas, setAreasAsignadas] = useState<AreaConvocatoriaAsignada[]>([]);
+  const [areasDisponibles, setAreasDisponibles] = useState<AreaCompetencia[]>([]);
+  const [selectedAreas, setSelectedAreas] = useState<{ id_area: number }[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -20,7 +25,7 @@ export default function AsignarAreasPage() {
     if (selectedConvocatoria) {
       setIsLoading(true);
       getAreasPorConvocatoria(selectedConvocatoria)
-        .then(areasAsignadas => {
+        .then((areasAsignadas: AreaConvocatoriaAsignada[]) => {
           setAreasAsignadas(areasAsignadas);
           const idsAreasAsignadas = areasAsignadas.map(area => area.id_area);
           setAreasDisponibles(areas.filter(area => !idsAreasAsignadas.includes(area.id_area)));
@@ -43,7 +48,7 @@ export default function AsignarAreasPage() {
     }
   };
 
-  const handleAreaSelect = (areaId) => {
+  const handleAreaSelect = (areaId: number) => {
     const isSelected = selectedAreas.some((area) => area.id_area === areaId);
     if (isSelected) {
       setSelectedAreas(selectedAreas.filter((area) => area.id_area !== areaId));
@@ -52,7 +57,7 @@ export default function AsignarAreasPage() {
     }
   };
 
-  const handleAsignarAreas = async (e) => {
+  const handleAsignarAreas = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!selectedConvocatoria || selectedAreas.length === 0) return;
     setIsLoading(true);

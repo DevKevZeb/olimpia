@@ -9,7 +9,7 @@ interface AsignarAreasFormProps {
   selectedAreas: any[];
   isLoading: boolean;
   onConvocatoriaChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
-  onAreaSelect: (areaId: string) => void;
+  onAreaSelect: (areaId: number) => void;
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
 }
 

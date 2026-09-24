@@ -1,6 +1,5 @@
-import React, { useState, useEffect, ChangeEvent } from 'react';
+import { useState, useEffect, ChangeEvent } from 'react';
 import '../styles/Reportes.css';
-import { styled } from '@mui/material/styles';
 import {
     Typography,
     Box,
@@ -16,8 +15,8 @@ import {
     Select,
     MenuItem,
     Button,
-    Divider,
     TextField,
+    SelectChangeEvent,
 } from '@mui/material';
 import { obtenerTodasConvocatorias, obtenerReportePorCampoId, Convocatoria } from '../api/reportes';
 import { exportarPDF } from '../components/exportarPDF';
@@ -40,6 +39,9 @@ interface ReporteInscripciones {
             ci: string;
         };
     };
+    estado_inscripcion: string;
+    areas_inscritas: string;
+    fecha_inscripcion: string;
     [key: string]: any; // Para otras propiedades específicas de la inscripción
 }
 
@@ -98,7 +100,7 @@ const ReporteUnidadEducativa = () => {
         cargarReporte();
     }, [selectedConvocatoriaId, unidadEducativa]);
 
-    const handleConvocatoriaChange = (event: ChangeEvent<{ value: number | '' }>) => {
+    const handleConvocatoriaChange = (event: SelectChangeEvent<number | ''>) => {
         setSelectedConvocatoriaId(event.target.value);
     };
   

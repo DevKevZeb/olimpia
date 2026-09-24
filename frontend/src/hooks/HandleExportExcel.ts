@@ -1,6 +1,27 @@
 import * as XLSX from 'xlsx';
 
-export default function handleExportExcel(data, campo){
+export interface FilaReporteExcel {
+    estudiante: {
+        nombres: string;
+        apellidos: string;
+        ci: string;
+        grado: string;
+        unidad_educativa: {
+            nombre: string;
+            departamento: string;
+        };
+        tutor_legal: {
+            nombre: string;
+            apellido: string;
+            ci: string;
+        };
+    };
+    estado_inscripcion: string;
+    areas_inscritas: string;
+    fecha_inscripcion: string;
+}
+
+export default function handleExportExcel(data: FilaReporteExcel[], campo: string){
     // data = Array.from(data);
     console.log(data)
     console.log("SEGA")

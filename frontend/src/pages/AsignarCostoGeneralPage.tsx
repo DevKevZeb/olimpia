@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { setCostoGeneralConvocatoria, getAreasPorConvocatoria } from '../api/adminConvocatoriaApi';
+import { setCostoGeneralConvocatoria, getAreasPorConvocatoria, AreaConvocatoriaAsignada } from '../api/adminConvocatoriaApi';
 import FormInput from '../components/FormInput';
 import FormSelect from '../components/FormSelect';
 import { useConvocatoriasPlanificadas } from '../hooks/useConvocatorias';
@@ -9,16 +9,20 @@ import { useConvocatoriasPlanificadas } from '../hooks/useConvocatorias';
 // Puedes replicar el patrón aplicado en AsignarCostoGeneralPage para reducir duplicación y mejorar clean code en todos los formularios y selects de tu dashboard.
 // Si quieres que lo aplique en una página específica, indícalo y lo implemento directamente.
 
-export default function AsignarCostoGeneralPage({ onCostoAsignado }) {
+interface AsignarCostoGeneralPageProps {
+  onCostoAsignado?: () => void;
+}
+
+export default function AsignarCostoGeneralPage({ onCostoAsignado }: AsignarCostoGeneralPageProps) {
   const { convocatorias, loading: loadingConvocatorias } = useConvocatoriasPlanificadas();
   const [selectedConvocatoria, setSelectedConvocatoria] = useState('');
   const [costoGeneral, setCostoGeneral] = useState('');
-  const [costoActual, setCostoActual] = useState(null);
+  const [costoActual, setCostoActual] = useState<number | string | null>(null);
   const [mensajeCosto, setMensajeCosto] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleConvocatoriaChange = async (e) => {
+  const handleConvocatoriaChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const id = e.target.value;
     setSelectedConvocatoria(id);
     setCostoActual(null);
@@ -31,7 +35,7 @@ export default function AsignarCostoGeneralPage({ onCostoAsignado }) {
           setMensajeCosto('Esta convocatoria no tiene áreas asignadas.');
           return;
         }
-        const costos = areas.map(a => a.costo_inscripcion);
+        const costos: AreaConvocatoriaAsignada['costo_inscripcion'][] = areas.map((a: AreaConvocatoriaAsignada) => a.costo_inscripcion);
         const todosNull = costos.every(c => c === null || c === undefined);
         // Nueva lógica: si todos los costos son 0 (numérico o string)
         const todosCero = costos.length > 0 && costos.every(c => c === 0 || c === '0' || c === 0.0 || c === '0.00');
@@ -52,7 +56,7 @@ export default function AsignarCostoGeneralPage({ onCostoAsignado }) {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
     if (!selectedConvocatoria) {
@@ -107,7 +111,7 @@ export default function AsignarCostoGeneralPage({ onCostoAsignado }) {
         </FormSelect>
         {mensajeCosto && <div className="mb-2 text-sm text-gray-500">{mensajeCosto}</div>}
         {costoActual !== null && (
-          <div className="mb-2 text-sm text-blue-700">Costo actual: <b>{parseInt(costoActual, 10)}</b></div>
+          <div className="mb-2 text-sm text-blue-700">Costo actual: <b>{parseInt(String(costoActual), 10)}</b></div>
         )}
         <FormInput
           label="Costo General"

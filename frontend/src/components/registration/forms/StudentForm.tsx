@@ -1,8 +1,6 @@
 
 import { Calendar, ChevronRight, AlertCircle } from 'lucide-react';
 import { EstudianteFormData, FormErrors, Grado } from '../../../types/registration';
-import { Autocomplete, TextField } from '@mui/material';
-import { getDatosEstudiante } from '../../../api/registration/inscripcionCompletaApi';
 
 interface StudentFormProps {
   formData: EstudianteFormData;

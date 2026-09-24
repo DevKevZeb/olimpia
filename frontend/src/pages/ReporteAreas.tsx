@@ -1,6 +1,5 @@
-import React, { useState, useEffect, ChangeEvent } from 'react';
+import { useState, useEffect } from 'react';
 import '../styles/Reportes.css';
-import { styled } from '@mui/material/styles';
 import {
     Typography,
     Box,
@@ -16,11 +15,11 @@ import {
     Select,
     MenuItem,
     Button,
-    Divider,
+    SelectChangeEvent,
 } from '@mui/material';
 import { obtenerTodasConvocatorias, obtenerReportePorCampoId, Convocatoria } from '../api/reportes';
 import { exportarPDF } from '../components/exportarPDF';
-import { getAreasPorConvocatoria, getNivelesPorConvocatoria } from '../api/adminConvocatoriaApi';
+import { getAreasPorConvocatoria, AreaConvocatoriaAsignada } from '../api/adminConvocatoriaApi';
 import DescargarExcelButton from '../components/DescargarExcelButton';
 
 interface ReporteInscripciones {
@@ -40,6 +39,9 @@ interface ReporteInscripciones {
             ci: string;
         };
     };
+    estado_inscripcion: string;
+    areas_inscritas: string;
+    fecha_inscripcion: string;
     [key: string]: any; // Para otras propiedades específicas de la inscripción
 }
 
@@ -49,10 +51,8 @@ const ReporteAreas = () => {
     const [error, setError] = useState<string | null>(null);
     const [convocatorias, setConvocatorias] = useState<Convocatoria[] | null>(null);
     const [selectedConvocatoriaId, setSelectedConvocatoriaId] = useState<number | ''>('');
-    const [selectedArea, setSelectedArea] = useState<string>('');
-    const [selectedNivel, setSelectedNivel] = useState<string>('');
-    const [areas, setAreas] = useState<string[]>([]);
-    const [niveles, setNiveles] = useState<string[]>([]);
+    const [selectedArea, setSelectedArea] = useState<number | ''>('');
+    const [areas, setAreas] = useState<AreaConvocatoriaAsignada[]>([]);
     const [loadingConvocatorias, setLoadingConvocatorias] = useState(false);
     const [errorConvocatorias, setErrorConvocatorias] = useState<string | null>(null);
     
@@ -74,7 +74,7 @@ const ReporteAreas = () => {
         fetchConvocatorias();
     }, []);
 
-        const fetchAreas = async (convocatoriaID ) => {
+        const fetchAreas = async (convocatoriaID: number | '') => {
           if(!convocatoriaID)
             {
               return;
@@ -90,20 +90,7 @@ const ReporteAreas = () => {
             }
         };
       
-        const fetchNiveles = async (area) => {
-
-            try {
-                const data = await getNivelesPorConvocatoria(selectedConvocatoriaId, area);
-                setNiveles(data);
-            } catch (error: any) {
-                console.error('Error al cargar las convocatorias:', error);
-                setErrorConvocatorias('Error al cargar las convocatorias.');
-            } finally {
-                setLoadingConvocatorias(false);
-            }
-        };
-        
-        const cargarReporte = async (area) => {
+        const cargarReporte = async (area: number | '') => {
             if (selectedConvocatoriaId && area !== '') {
                 setReporteData(null);
                 setError(null);
@@ -127,20 +114,16 @@ const ReporteAreas = () => {
         };
        
 
-    const handleConvocatoriaChange = (event: ChangeEvent<{ value: number | '' }>) => {
+    const handleConvocatoriaChange = (event: SelectChangeEvent<number | ''>) => {
         setSelectedConvocatoriaId(event.target.value);
-        setNiveles([]);
         setAreas([]);
         setSelectedArea('');                    
-        setSelectedNivel('');                    
         setReporteData(null);
         fetchAreas(event.target.value);
       };
-      const handleAreaChange = (event: ChangeEvent<{ value: number | '' }>) => {
+      const handleAreaChange = (event: SelectChangeEvent<number | ''>) => {
       console.log("->",event.target.value);
         setSelectedArea(event.target.value);
-        setNiveles([]);
-        setSelectedNivel('');            
         setReporteData(null);
         cargarReporte(event.target.value);
         

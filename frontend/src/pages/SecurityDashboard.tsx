@@ -37,7 +37,6 @@ export default function SecurityDashboard() {
   const [statistics, setStatistics] = useState<LoginStatistics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
 
   const fetchStatistics = async () => {
     try {
@@ -47,7 +46,6 @@ export default function SecurityDashboard() {
       
       if (response.success) {
         setStatistics(response.data);
-        setLastRefresh(new Date());
       } else {
         setError('Error al cargar las estadísticas de seguridad');
       }

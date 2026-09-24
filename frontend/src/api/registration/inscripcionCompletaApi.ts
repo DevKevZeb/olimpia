@@ -1,3 +1,4 @@
+import axios from 'axios';
 import axiosInstance from '../axiosInstance';
 
 /**
@@ -59,12 +60,13 @@ export const inscribirEstudiante = async (data: any ) => {
     //openModal();
     return response.data?.data || response.data;
   } catch (error) {
+    const axiosError = axios.isAxiosError<{ message?: string }>(error) ? error : undefined;
     console.error('Error al inscribir estudiante:', error);
-    console.error('Detalles del error de validación:', error.response?.data); // Loguea los detalles del error
-    if(error.status == 409){
+    console.error('Detalles del error de validación:', axiosError?.response?.data); // Loguea los detalles del error
+    if(axiosError?.status == 409){
       alert("Opsie! , Estudiante ya inscrito en materia - nivel" );
     }else {
-      alert("Opsie! , algo salio mal! " + error.response?.data?.message);
+      alert("Opsie! , algo salio mal! " + axiosError?.response?.data?.message);
     }
     throw error;
   }
@@ -76,7 +78,7 @@ export const estudianteEstaInscrito = async (data: any ) => {
     return response.data?.data || response.data;
   } catch (error) {
     console.error('Error al inscribir estudiante:', error);
-    console.error('Detalles del error de validación:', error.response?.data);
+    console.error('Detalles del error de validación:', axios.isAxiosError(error) ? error.response?.data : undefined);
     throw error;
   }
 };
@@ -103,6 +105,6 @@ export const getUser = async (data: any, ) => {
     return response.data?.data.usuario || response.data.usuario;
   } catch (error) {
     console.error('Error al obtener informacion:', error);
-    console.error('Detalles del error de validación:', error.response?.data); // Loguea los detalles del error
+    console.error('Detalles del error de validación:', axios.isAxiosError(error) ? error.response?.data : undefined); // Loguea los detalles del error
     throw error;
   }};

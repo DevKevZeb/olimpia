@@ -1,6 +1,5 @@
-import React, { useState, useEffect, ChangeEvent } from 'react';
+import { useState, useEffect } from 'react';
 import '../styles/Reportes.css';
-import { styled } from '@mui/material/styles';
 import {
     Typography,
     Box,
@@ -16,6 +15,7 @@ import {
     Select,
     MenuItem,
     Button,
+    SelectChangeEvent,
     Divider,
 } from '@mui/material';
 import { obtenerTodasConvocatorias, obtenerReportePorCampoId, Convocatoria } from '../api/reportes';
@@ -31,7 +31,9 @@ interface ReporteInscripciones {
         grado: string;
         unidad_educativa: {
             nombre: string;
-            genero: string;
+            departamento: string;
+            // El backend no devuelve este campo; se mantiene opcional por la exportación a PDF
+            genero?: string;
         };
         tutor_legal: {
             nombre: string;
@@ -39,6 +41,9 @@ interface ReporteInscripciones {
             ci: string;
         };
     };
+    estado_inscripcion: string;
+    areas_inscritas: string;
+    fecha_inscripcion: string;
     [key: string]: any; // Para otras propiedades específicas de la inscripción
 }
 
@@ -103,10 +108,10 @@ const ReporteGenero = () => {
         cargarReporte();
     }, [selectedConvocatoriaId, selectedGenero]);
 
-    const handleConvocatoriaChange = (event: ChangeEvent<{ value: number | '' }>) => {
+    const handleConvocatoriaChange = (event: SelectChangeEvent<number | ''>) => {
         setSelectedConvocatoriaId(event.target.value);
     };
-    const handlegeneroChange = (event: ChangeEvent<{ value: string | '' }>) => {
+    const handlegeneroChange = (event: SelectChangeEvent<string>) => {
         setSelectedGenero(event.target.value);
     };
 

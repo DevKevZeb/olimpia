@@ -5,7 +5,6 @@ export default function CrearArea() {
   const [nombre, setNombre] = useState('');
   const [descripcion, setDescripcion] = useState('');
   const [error, setError] = useState('');
-  const [exito, setExito] = useState('');
   const [areasExistentes, setAreasExistentes] = useState<string[]>([]);
   const [formVisible, setFormVisible] = useState(true);
 
@@ -44,7 +43,6 @@ export default function CrearArea() {
     }
 
     setError('');
-    setExito('');
 
     try {
       await axiosInstance.post('/v1/areas', {

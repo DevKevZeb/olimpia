@@ -1,4 +1,46 @@
+import axios from 'axios';
 import axiosInstance from './axiosInstance';
+
+type IdConvocatoria = number | string;
+
+/** Área asociada a una convocatoria (GET /v1/admin/convocatorias/{id}/areas) */
+export interface AreaConvocatoriaAsignada {
+  id_convocatoria_area: number;
+  id_area: number;
+  nombre_area: string;
+  costo_inscripcion: number | string | null;
+}
+
+/** Nivel asociado a un área de una convocatoria (GET /v1/admin/convocatorias/{id}/niveles[/{area}]) */
+export interface NivelConvocatoriaAsignado {
+  id_convocatoria_nivel: number;
+  id_convocatoria_area: number;
+  id_area: number;
+  nombre_area: string;
+  id_nivel: number;
+  nombre_nivel: string;
+  id_grado_min: number;
+  nombre_grado_min: string;
+  id_grado_max: number;
+  nombre_grado_max: string;
+}
+
+export interface CrearConvocatoriaData {
+  nombre: string;
+  fecha_inicio_inscripcion: string;
+  fecha_fin_inscripcion: string;
+  max_areas_por_estudiante: number;
+}
+
+export interface AsociarAreasData {
+  id_convocatoria: IdConvocatoria;
+  areas: { id_area: number; costo_inscripcion: number }[];
+}
+
+export interface AsociarNivelesGradosData {
+  id_convocatoria: IdConvocatoria;
+  niveles: { id_nivel: number; id_area: number; id_grado_min: number; id_grado_max: number }[];
+}
 
 /**
  * Obtiene todas las convocatorias activas
@@ -60,7 +102,7 @@ export const getNivelesCategoria = async () => {
  * Crea un nuevo nivel de categoría
  * @param nombre_nivel Nombre del nivel a crear
  */
-export const createNivelCategoria = async (nombre_nivel) => {
+export const createNivelCategoria = async (nombre_nivel: string) => {
   try {
     const response = await axiosInstance.post('/v1/niveles', { nombre_nivel });
     return response.data?.data || response.data;
@@ -88,7 +130,7 @@ export const getGrados = async () => {
  * Crea una nueva convocatoria (solo datos básicos)
  * @param data Datos básicos de la convocatoria
  */
-export const crearConvocatoria = async (data) => {
+export const crearConvocatoria = async (data: CrearConvocatoriaData) => {
   try {
     console.log('Enviando datos de convocatoria:', data);
     const response = await axiosInstance.post('/v1/admin/convocatorias', data);
@@ -113,14 +155,14 @@ export const crearConvocatoria = async (data) => {
  * Asocia áreas a una convocatoria existente
  * @param data Datos de asociación de áreas
  */
-export const asociarAreas = async (data) => {
+export const asociarAreas = async (data: AsociarAreasData) => {
   try {
     console.log('Enviando datos de áreas al servidor:', data);
     const response = await axiosInstance.post('/v1/admin/convocatorias/asociar-areas', data);
     return response.data;
   } catch (error) {
     console.error('Error al asociar áreas:', error);
-    if (error.response) {
+    if (axios.isAxiosError(error) && error.response) {
       console.error('Respuesta del servidor:', error.response.data);
     }
     throw error;
@@ -131,14 +173,14 @@ export const asociarAreas = async (data) => {
  * Asocia niveles y grados a las áreas de una convocatoria
  * @param data Datos de asociación de niveles y grados
  */
-export const asociarNivelesGrados = async (data) => {
+export const asociarNivelesGrados = async (data: AsociarNivelesGradosData) => {
   try {
     console.log('Enviando datos de niveles y grados al servidor:', data);
     const response = await axiosInstance.post('/v1/admin/convocatorias/asociar-niveles-grados', data);
     return response.data;
   } catch (error) {
     console.error('Error al asociar niveles y grados:', error);
-    if (error.response) {
+    if (axios.isAxiosError(error) && error.response) {
       console.error('Respuesta del servidor:', error.response.data);
     }
     throw error;
@@ -149,7 +191,7 @@ export const asociarNivelesGrados = async (data) => {
  * Obtiene las áreas asociadas a una convocatoria específica
  * @param idConvocatoria ID de la convocatoria
  */
-export const getAreasPorConvocatoria = async (idConvocatoria) => {
+export const getAreasPorConvocatoria = async (idConvocatoria: IdConvocatoria) => {
   try {
     const response = await axiosInstance.get(`/v1/admin/convocatorias/${idConvocatoria}/areas`);
     return response.data?.data || response.data;
@@ -163,7 +205,7 @@ export const getAreasPorConvocatoria = async (idConvocatoria) => {
  * Obtiene los niveles asociados a las áreas de una convocatoria específica
  * @param idConvocatoria ID de la convocatoria
  */
-export const getNivelesPorConvocatoria = async (idConvocatoria, idAreaConvocatoria = null) => {
+export const getNivelesPorConvocatoria = async (idConvocatoria: IdConvocatoria, idAreaConvocatoria: IdConvocatoria | null = null) => {
   try {
     const areas = idAreaConvocatoria ? `/${idAreaConvocatoria}` : '' ;   
 

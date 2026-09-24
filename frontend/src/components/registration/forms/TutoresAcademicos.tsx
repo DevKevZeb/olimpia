@@ -1,6 +1,6 @@
 import React from 'react';
 import { ChevronRight, AlertCircle } from 'lucide-react';
-import { AreaSeleccionada, TutorAcademico } from '../../types/index';
+import { AreaSeleccionada, TutorAcademico } from '../../../types/index';
 
 interface TutoresAcademicosProps {
   areas_seleccionadas: AreaSeleccionada[];
