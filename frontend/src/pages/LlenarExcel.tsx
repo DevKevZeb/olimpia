@@ -13,6 +13,19 @@ interface Grado {
   nombre_grado: string;
 }
 
+// Formas crudas que puede devolver la API (id_convocatoria/id_grado o id)
+interface ConvocatoriaApi {
+  id_convocatoria?: number;
+  id?: number;
+  nombre?: string;
+}
+
+interface GradoApi {
+  id_grado?: number;
+  id?: number;
+  nombre_grado?: string;
+}
+
 interface AreaConvocatoria {
   id_convocatoria_area: number;
   id_area: number;
@@ -42,8 +55,8 @@ const RegistroInscripcionExcel: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    getConvocatoriasActivas().then((data: any) => {
-      const convs = (Array.isArray(data) ? data : []).map((c: any) => ({
+    getConvocatoriasActivas().then((data: unknown) => {
+      const convs = (Array.isArray(data) ? (data as ConvocatoriaApi[]) : []).map((c) => ({
         id_convocatoria: Number(c.id_convocatoria ?? c.id ?? 0),
         nombre: c.nombre ?? '',
       }));
@@ -55,8 +68,8 @@ const RegistroInscripcionExcel: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    getGrados().then((data: any) => {
-      const gradosList = (Array.isArray(data) ? data : []).map((g: any) => ({
+    getGrados().then((data: unknown) => {
+      const gradosList = (Array.isArray(data) ? (data as GradoApi[]) : []).map((g) => ({
         id_grado: Number(g.id_grado ?? g.id ?? 0),
         nombre_grado: g.nombre_grado ?? '',
       }));
@@ -71,13 +84,13 @@ const RegistroInscripcionExcel: React.FC = () => {
   const fetchAreasNiveles = async () => {
     if (selectedConvocatoriaId && selectedGradoId) {
       getAreasPorConvocatoria(selectedConvocatoriaId)
-        .then((areasResponse: any) => {
+        .then((areasResponse: AreaConvocatoria[] | { data?: AreaConvocatoria[] } | null) => {
           const areas = Array.isArray(areasResponse) ? areasResponse : (areasResponse?.data || []);
           getNivelesPorConvocatoria(selectedConvocatoriaId)
-            .then((nivelesResponse: any) => {
+            .then((nivelesResponse: NivelConvocatoria[] | { data?: NivelConvocatoria[] } | null) => {
               const niveles = Array.isArray(nivelesResponse) ? nivelesResponse : (nivelesResponse?.data || []);
               const nivelesFiltrados = niveles.filter(
-                (nivel: any) => nivel.id_grado_min <= selectedGradoId && nivel.id_grado_max >= selectedGradoId
+                (nivel) => nivel.id_grado_min <= selectedGradoId && nivel.id_grado_max >= selectedGradoId
               );
               setAreasNiveles({ areas, niveles: nivelesFiltrados });
             })

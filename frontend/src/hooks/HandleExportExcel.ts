@@ -27,11 +27,11 @@ export default function handleExportExcel(data: FilaReporteExcel[], campo: strin
     console.log("SEGA")
     if (data.length === 0) return;
     // Aplanar los datos para Excel: una fila por estudiante, con el nombre del área
-    const excelRows: any[] = [];
+    const excelRows: Record<string, string>[] = [];
 
     
     data.forEach( dt => {
-      var row = {
+      const row = {
           "Estudiante Nombres": dt.estudiante.nombres ,
           "Estudiante Apellidos": dt.estudiante.apellidos,
           "CI": dt.estudiante.ci,

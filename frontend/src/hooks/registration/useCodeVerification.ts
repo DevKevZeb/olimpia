@@ -1,20 +1,22 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
+import axios from 'axios';
 import { verificarCodigoOrden } from '../../api/registration/boletaPagoApi';
 
-export interface UseCodeVerificationReturn {
-  verifyCode: (code: string) => Promise<any>;
+export interface UseCodeVerificationReturn<T = unknown> {
+  verifyCode: (code: string) => Promise<T | undefined>;
   isLoading: boolean;
   error: string | null;
-  data: any | null;
+  data: T | null;
   clearError: () => void;
 }
 
-export function useCodeVerification(): UseCodeVerificationReturn {
+export function useCodeVerification<T = unknown>(): UseCodeVerificationReturn<T> {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [data, setData] = useState<any | null>(null);
+  const [data, setData] = useState<T | null>(null);
 
-  const verifyCode = async (code: string) => {
+  // Memorizada: la página la usa como dependencia de un efecto de auto-verificación
+  const verifyCode = useCallback(async (code: string): Promise<T | undefined> => {
     if (!code.trim()) {
       setError('Por favor ingrese un código de verificación');
       return;
@@ -24,17 +26,18 @@ export function useCodeVerification(): UseCodeVerificationReturn {
     setError(null);
 
     try {
-      const response = await verificarCodigoOrden(code);
+      const response: T = await verificarCodigoOrden(code);
       setData(response);
       return response;
-    } catch (error: any) {
+    } catch (error: unknown) {
       let message = 'Error al verificar el código';
+      const axiosError = axios.isAxiosError<{ message?: string }>(error) ? error : undefined;
       
-      if (error.response) {
-        if (error.response.status === 404) {
+      if (axiosError?.response) {
+        if (axiosError.response.status === 404) {
           message = 'No se encontró una orden con ese código';
-        } else if (error.response.data?.message) {
-          message = error.response.data.message;
+        } else if (axiosError.response.data?.message) {
+          message = axiosError.response.data.message;
         }
       }
       
@@ -43,11 +46,11 @@ export function useCodeVerification(): UseCodeVerificationReturn {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const clearError = () => {
+  const clearError = useCallback(() => {
     setError(null);
-  };
+  }, []);
 
   return {
     verifyCode,

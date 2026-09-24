@@ -1,11 +1,18 @@
-import { AxiosInstance } from 'axios';
+import axios, { AxiosInstance } from 'axios';
 import sharedAxios from './axiosInstance';
 
-interface ApiResponse<T = any> {
+interface ApiResponse<T = unknown> {
   success: boolean;
   message: string;
-  data?: T;
-  errors?: any;
+  data: T;
+  errors?: unknown;
+}
+
+interface ApiError {
+  success: false;
+  message: string;
+  errors?: unknown;
+  status: number;
 }
 
 class ApiService {
@@ -13,52 +20,50 @@ class ApiService {
   private axiosInstance: AxiosInstance = sharedAxios;
 
   // Métodos HTTP genéricos
-  async get<T = any>(url: string, params?: any): Promise<ApiResponse<T>> {
+  async get<T = unknown>(url: string, params?: unknown): Promise<ApiResponse<T>> {
     try {
-      const response = await this.axiosInstance.get(url, { params });
+      const response = await this.axiosInstance.get<ApiResponse<T>>(url, { params });
       return response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       throw this.handleError(error);
     }
   }
-  async post<T = any>(url: string, data?: any): Promise<ApiResponse<T>> {
-    try {
-      const response = await this.axiosInstance.post(url, data);
-      return response.data;
-    } catch (error: any) {
-      throw error; // Lanzar el error original, no el transformado
-    }
+  async post<T = unknown>(url: string, data?: unknown): Promise<ApiResponse<T>> {
+    // Sin try/catch: se propaga el error original, no el transformado
+    const response = await this.axiosInstance.post<ApiResponse<T>>(url, data);
+    return response.data;
   }
 
-  async put<T = any>(url: string, data?: any): Promise<ApiResponse<T>> {
+  async put<T = unknown>(url: string, data?: unknown): Promise<ApiResponse<T>> {
     try {
-      const response = await this.axiosInstance.put(url, data);
+      const response = await this.axiosInstance.put<ApiResponse<T>>(url, data);
       return response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       throw this.handleError(error);
     }
   }
 
-  async delete<T = any>(url: string): Promise<ApiResponse<T>> {
+  async delete<T = unknown>(url: string): Promise<ApiResponse<T>> {
     try {
-      const response = await this.axiosInstance.delete(url);
+      const response = await this.axiosInstance.delete<ApiResponse<T>>(url);
       return response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       throw this.handleError(error);
     }
   }
 
   // Método para manejar errores
-  private handleError(error: any): any {
-    if (error.response) {
+  private handleError(error: unknown): ApiError {
+    const axiosError = axios.isAxiosError<{ message?: string; errors?: unknown }>(error) ? error : undefined;
+    if (axiosError?.response) {
       // Error de respuesta del servidor
       return {
         success: false,
-        message: error.response.data?.message || 'Error del servidor',
-        errors: error.response.data?.errors,
-        status: error.response.status,
+        message: axiosError.response.data?.message || 'Error del servidor',
+        errors: axiosError.response.data?.errors,
+        status: axiosError.response.status,
       };
-    } else if (error.request) {
+    } else if (axiosError?.request) {
       // Error de red
       return {
         success: false,

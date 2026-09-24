@@ -55,7 +55,7 @@ class InscripcionCompletaTest extends TestCase
     {
         return [
             'id_convocatoria' => $this->convocatoria->id_convocatoria,
-            'codigo_unico' => 'O-SANSI-2026-00001',
+            'codigo_unico' => 'OLP-2026-00001',
             'encargado_pago' => [
                 'nombres_encargado' => 'Ana',
                 'apellidos_encargado' => 'Rojas',
@@ -87,7 +87,7 @@ class InscripcionCompletaTest extends TestCase
         $this->postJson('/api/v1/public/inscripcion-completa', $this->payload('2do Primaria'))
             ->assertCreated();
 
-        $orden = OrdenPago::where('codigo_unico', 'O-SANSI-2026-00001')->firstOrFail();
+        $orden = OrdenPago::where('codigo_unico', 'OLP-2026-00001')->firstOrFail();
         $this->assertSame('pendiente', $orden->estado);
         $this->assertEquals(15, $orden->monto_total);
     }

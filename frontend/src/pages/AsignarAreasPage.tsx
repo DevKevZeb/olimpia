@@ -70,7 +70,7 @@ export default function AsignarAreasPage() {
       // Refresca las áreas asignadas y disponibles
       getAreasPorConvocatoria(selectedConvocatoria).then(setAreasAsignadas);
       fetchData();
-    } catch (error) {
+    } catch {
       alert('Error al asignar áreas. Por favor, inténtelo de nuevo.');
     } finally {
       setIsLoading(false);

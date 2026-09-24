@@ -154,7 +154,7 @@ export default function DescargarBoletaPage() {
             onVerify={handleVerification}
             loading={isVerifying}
             error={localError}
-            placeholder="Código de inscripción (ej: O-SANSI-2024-12345)"
+            placeholder="Código de inscripción (ej: OLP-2025-12345)"
             buttonText="Descargar Boleta"
             helperText="Ingrese el código que recibió al completar su pre-inscripción"
           />
@@ -216,7 +216,7 @@ export default function DescargarBoletaPage() {
             <h3 className="font-semibold text-yellow-800 mb-3 text-lg">Instrucciones de Pago</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <ol className="text-yellow-700 list-decimal list-inside space-y-2">
-                <li>Presente esta boleta en las cajas de la facultad</li>
+                <li>Presente esta boleta en las cajas habilitadas</li>
                 <li>Realice el pago del monto total indicado</li>
                 <li>Conserve el comprobante que le entregarán</li>
               </ol>

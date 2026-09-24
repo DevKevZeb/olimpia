@@ -3,7 +3,7 @@
  * Funciones extraídas de Registration.tsx para validar campos y formularios
  */
 
-export const validateField = (name: string, value: any) => {
+export const validateField = (name: string, value: string) => {
   let error = '';
   switch (name) {
     case 'nombres':
@@ -113,15 +113,15 @@ export const validateField = (name: string, value: any) => {
   return error;
 };
 
-import {RequisitoGuardado, FormErrors} from'../../types/registration'
+import {RequisitoGuardado, FormErrors, EstudianteFormData} from'../../types/registration'
 
 export const validateStep1 = (
-  formData: any,
+  formData: EstudianteFormData,
   requisitosGuardados: Record<string, RequisitoGuardado>
 ) => {
   let isValid = true;
-  let currentErrors: FormErrors = {};
-  let errorMessage = '';
+  const currentErrors: FormErrors = {};
+  const errorMessage = '';
 
   // 1. Validar campos del estudiante usando validateField
   const nombresError = validateField('nombres', formData.nombres);
@@ -213,25 +213,25 @@ export const validateStep1 = (
   // 2. Validar campos del tutor legal usando validateField
   const tutorNombresError = validateField('tutor_legal.nombres', formData.tutor_legal.nombres);
   if (tutorNombresError) {
-    currentErrors.tutor_legal = { ...currentErrors.unidad_educativa, nombres: tutorNombresError };
+    currentErrors.tutor_legal = { ...currentErrors.tutor_legal, nombres: tutorNombresError };
     isValid = false;
   }
   
   const tutorApellidosError = validateField('tutor_legal.apellidos', formData.tutor_legal.apellidos);
   if (tutorApellidosError) {
-    currentErrors.tutor_legal = { ...currentErrors.unidad_educativa, apellidos: tutorApellidosError };
+    currentErrors.tutor_legal = { ...currentErrors.tutor_legal, apellidos: tutorApellidosError };
     isValid = false;
   }
   
   const tutorCiError = validateField('tutor_legal.ci', formData.tutor_legal.ci);
   if (tutorCiError) {
-    currentErrors.tutor_legal = { ...currentErrors.unidad_educativa, ci: tutorCiError };
+    currentErrors.tutor_legal = { ...currentErrors.tutor_legal, ci: tutorCiError };
     isValid = false;
   }
   
   const tutorEmailError = validateField('tutor_legal.email', formData.tutor_legal.email);
   if (tutorEmailError) {
-    currentErrors.tutor_legal = { ...currentErrors.unidad_educativa, email: tutorEmailError };
+    currentErrors.tutor_legal = { ...currentErrors.tutor_legal, email: tutorEmailError };
     isValid = false;
   }
   
@@ -241,7 +241,7 @@ export const validateStep1 = (
   if(requisitoTutorTelefono){
     const tutorTelefonoError = validateField('tutor_legal.telefono', formData.tutor_legal.telefono);
     if (tutorTelefonoError) {
-      currentErrors.tutor_legal = { ...currentErrors.unidad_educativa, telefono: tutorTelefonoError };
+      currentErrors.tutor_legal = { ...currentErrors.tutor_legal, telefono: tutorTelefonoError };
       isValid = false;
     }
   }
@@ -252,12 +252,12 @@ export const validateStep1 = (
   if(requisitoTutorParentesco){
     const tutorParentescoError = validateField('tutor_legal.parentesco', formData.tutor_legal.parentesco);
     if (tutorParentescoError) {
-      currentErrors.tutor_legal = { ...currentErrors.unidad_educativa, parentesco: tutorParentescoError };
+      currentErrors.tutor_legal = { ...currentErrors.tutor_legal, parentesco: tutorParentescoError };
       isValid = false;
     }
   }
 
-  let camposObligatoriosVaciosArray: string[] = [];
+  const camposObligatoriosVaciosArray: string[] = [];
   for (const fieldName in currentErrors) {
       if (currentErrors) { // Si hay un error para este campo
           camposObligatoriosVaciosArray.push(fieldName);

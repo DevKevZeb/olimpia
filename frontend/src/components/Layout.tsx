@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Phone, Mail, MapPin } from 'lucide-react';
-import logo from '../img/logo.png';
+import logo from '../img/logo.svg';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -16,7 +16,7 @@ export default function Layout({ children }: LayoutProps) {
           <div className="flex justify-between h-20 items-center">
             <div className="flex items-center">
               <Link to="/" className="flex items-center space-x-2">
-                <img src={logo} alt="Oh! SanSi Logo" className="h-20 w-auto object-contain" />
+                <img src={logo} alt="Olimpia" className="h-12 w-auto object-contain" />
               </Link>
             </div>
             <div className="flex items-center space-x-8">
@@ -63,9 +63,9 @@ export default function Layout({ children }: LayoutProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
-              <h3 className="text-xl font-bold mb-4">Oh! SanSi</h3>
+              <h3 className="text-xl font-bold mb-4">Olimpia</h3>
               <p className="text-gray-400">
-                Olimpiadas de Ciencias y Tecnología, fomentando el talento y la innovación en la juventud.
+                Sistema de inscripción a olimpiadas académicas: convocatorias, inscripciones, pagos y reportes en un solo lugar.
               </p>
             </div>
             <div>
@@ -73,7 +73,7 @@ export default function Layout({ children }: LayoutProps) {
               <div className="space-y-2">
                 <p className="flex items-center">
                   <Mail className="w-5 h-5 mr-2" />
-                  contacto@ohsansi.edu
+                  contacto@olimpia.test
                 </p>
                 <p className="flex items-center">
                   <Phone className="w-5 h-5 mr-2" />

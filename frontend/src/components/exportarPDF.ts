@@ -4,7 +4,7 @@ import autoTable from 'jspdf-autotable';
 interface ExportarPDFOptions {
     nombreReporte: string;
     encabezados: string[];
-    filas: any[][]; // Asegúrate que sean arrays de strings o números
+    filas: (string | number)[][]; // Asegúrate que sean arrays de strings o números
 }
 
 export const exportarPDF = ({ nombreReporte, encabezados, filas }: ExportarPDFOptions) => {

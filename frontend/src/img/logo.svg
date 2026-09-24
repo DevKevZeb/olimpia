@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 64" role="img" aria-labelledby="title">
+  <title id="title">Olimpia</title>
+  <!-- Medalla: cinta y disco con estrella -->
+  <path d="M18 4h10l6 14h-10z" fill="#1d4ed8"/>
+  <path d="M46 4H36l-6 14h10z" fill="#2563eb"/>
+  <circle cx="32" cy="38" r="21" fill="#1d4ed8"/>
+  <circle cx="32" cy="38" r="16" fill="none" stroke="#fbbf24" stroke-width="3"/>
+  <path d="M32 27.5l3.1 6.3 6.9 1-5 4.9 1.2 6.9L32 43.3l-6.2 3.3 1.2-6.9-5-4.9 6.9-1z" fill="#fbbf24"/>
+  <!-- Nombre -->
+  <text x="64" y="44" font-family="Inter, 'Segoe UI', Roboto, Arial, sans-serif" font-size="34" font-weight="700" fill="#1e3a8a" letter-spacing="-0.5">Olimpia</text>
+</svg>

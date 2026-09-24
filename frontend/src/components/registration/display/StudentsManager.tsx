@@ -1,4 +1,3 @@
-// filepath: c:\xampp\htdocs\oh-sansi\frontend\src\components\registration\StudentsManager.tsx
 import React from 'react';
 import { Plus, Trash2, Users } from 'lucide-react';
 import { EstudianteFormData } from '../../../types/registration';

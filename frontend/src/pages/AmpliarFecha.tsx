@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import axiosInstance from '../api/axiosInstance';
 
 interface Convocatoria {
@@ -17,7 +18,7 @@ export default function AmpliarFecha() {
     try {
       const response = await axiosInstance.get('/v1/convocatorias');
       setConvocatorias(response.data.data);
-    } catch (err) {
+    } catch {
       setError('No se pudo obtener la lista de convocatorias.');
     }
   };
@@ -52,8 +53,8 @@ export default function AmpliarFecha() {
       alert('La fecha de inscripción fue actualizada exitosamente.');
       window.close(); // Cierra si es una ventana emergente
       // Alternativa: window.location.href = '/otra-ruta'; ← si quieres redirigir
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al ampliar la fecha.');
+    } catch (err) {
+      setError((axios.isAxiosError<{ message?: string }>(err) ? err.response?.data?.message : undefined) || 'Error al ampliar la fecha.');
     }
   };
 

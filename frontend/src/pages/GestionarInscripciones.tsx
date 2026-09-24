@@ -167,14 +167,14 @@ export default function GestionarInscripciones() {
             <h3 className="font-medium text-blue-900 mb-2">¿Cómo obtener su código de inscripción?</h3>
             <p className="text-sm text-blue-800">
               Su código de inscripción fue generado al completar el proceso de pre-inscripción. 
-              Tiene el formato: <code className="bg-blue-100 px-1 rounded">O-SANSI-2025-XXXXX</code>
+              Tiene el formato: <code className="bg-blue-100 px-1 rounded">OLP-2025-XXXXX</code>
             </p>
           </div>
           
           <div className="flex gap-4 mb-6">
             <input
               type="text"
-              placeholder="Código de inscripción (ej: O-SANSI-2024-12345)"
+              placeholder="Código de inscripción (ej: OLP-2025-12345)"
               value={codigo}
               onChange={(e) => setCodigo(e.target.value)}
               className="flex-1 px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"

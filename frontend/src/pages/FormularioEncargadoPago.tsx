@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import '../styles/FormularioEncargadoPago.css';
 
 interface FormularioEncargadoPagoProps {
-  formData: Record<string, any>;
+  formData: Record<string, string | undefined>;
   onInputChange: (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
   onFormValidityChange: (isValid: boolean) => void;
 }

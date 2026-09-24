@@ -1,4 +1,3 @@
-// filepath: c:\xampp\htdocs\oh-sansi\frontend\src\hooks\useAreasSelection.ts
 import { useState, useEffect, useCallback } from 'react';
 import { getAreasPorGrado } from '../../api/registration/inscripcionCompletaApi';
 import { 
@@ -153,8 +152,8 @@ export const useAreasSelection = ({
     const isSelected = areas_seleccionadas.some(item => item.id_convocatoria_nivel === areaNivel.id_convocatoria_nivel);
     
     // Verificar límite de áreas si estamos añadiendo una nueva
-    if (!isSelected && convocatoria && areas_seleccionadas.length >= convocatoria.max_areas) {
-      setFormErrorMessage(`Solo puede seleccionar hasta ${convocatoria.max_areas} áreas por estudiante`);
+    if (!isSelected && convocatoria && areas_seleccionadas.length >= convocatoria.max_areas_por_estudiante) {
+      setFormErrorMessage(`Solo puede seleccionar hasta ${convocatoria.max_areas_por_estudiante} áreas por estudiante`);
       return;
     }
     

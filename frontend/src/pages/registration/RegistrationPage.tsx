@@ -64,7 +64,7 @@ export default function RegistrationPage() {
   const [codigoUnicoBackend, setCodigoUnicoBackend] = useState('');
   
   // Generar código temporal para enviar al backend
-  const codigo_unico_temporal = `O-SANSI-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
+  const codigo_unico_temporal = `OLP-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
   
   // Estados para la inscripción
   const [isLoading, setIsLoading] = useState(false);
@@ -498,10 +498,10 @@ export default function RegistrationPage() {
                 <>
                   <p className="text-sm text-gray-600 mb-1">Te estás inscribiendo a: <span className="font-semibold">{convocatoria.nombre}</span></p>
                   <p className="text-sm text-gray-500">
-                    Periodo de inscripción: {new Date(convocatoria.updated_at).toLocaleDateString()} - {new Date(convocatoria.fecha_fin).toLocaleDateString()}
+                    Periodo de inscripción: {new Date(convocatoria.fecha_inicio_inscripcion).toLocaleDateString()} - {new Date(convocatoria.fecha_fin_inscripcion).toLocaleDateString()}
                   </p>
                   <p className="text-sm text-gray-500 mt-1">
-                    Puedes inscribirte hasta en <span className="font-semibold">{convocatoria.max_areas}</span> áreas
+                    Puedes inscribirte hasta en <span className="font-semibold">{convocatoria.max_areas_por_estudiante}</span> áreas
                   </p>
                 </>
               ) : (
@@ -896,7 +896,7 @@ export default function RegistrationPage() {
                 <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-md mb-6">
                   <p className="font-medium text-yellow-800 mb-1">Instrucciones de pago</p>
                   <ol className="text-sm text-yellow-700 list-decimal pl-5 space-y-1">
-                    <li>Presente esta boleta en las cajas de la facultad</li>
+                    <li>Presente esta boleta en las cajas habilitadas</li>
                     <li>Realice el pago del monto total indicado</li>
                     <li>Conserve el comprobante que le entregarán</li>
                     <li>Regrese a la página de inscripción e introduzca el código de verificación de esta boleta</li>
@@ -1000,7 +1000,7 @@ export default function RegistrationPage() {
                 </p>
                 <ol className="text-yellow-700 text-sm list-decimal list-inside space-y-1">
                   <li>Descargar su boleta de pago</li>
-                  <li>Realizar el pago en las cajas de la facultad</li>
+                  <li>Realizar el pago en las cajas habilitadas</li>
                   <li>Regresar a "Completar Inscripción" con su código</li>
                   <li>Subir el comprobante de pago</li>
                 </ol>

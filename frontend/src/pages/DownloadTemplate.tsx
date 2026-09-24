@@ -1,4 +1,5 @@
 import React from 'react';
+import axios from 'axios';
 import '../styles/DowloadTemplate.css';
 import {descargarPlantilla} from '../api/datosExcel';
 
@@ -12,8 +13,8 @@ const DownloadTemplate: React.FC<DownloadTemplateProps> = ({ selectedConvocatori
       console.log('Descargando plantilla para la convocatoria ID:', selectedConvocatoriaId);
       try {
         await descargarPlantilla(selectedConvocatoriaId); // Llama a la función importada
-      } catch (error: any) {
-        console.error('Error al descargar la plantilla:', error.response || error);
+      } catch (error) {
+        console.error('Error al descargar la plantilla:', (axios.isAxiosError(error) && error.response) || error);
         alert('Error al descargar la plantilla.');
       }
     } else {

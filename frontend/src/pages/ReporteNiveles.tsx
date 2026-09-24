@@ -21,6 +21,7 @@ import { obtenerTodasConvocatorias, obtenerReportePorCampoId, Convocatoria } fro
 import { exportarPDF } from '../components/exportarPDF';
 import { getAreasPorConvocatoria, getNivelesPorConvocatoria, AreaConvocatoriaAsignada, NivelConvocatoriaAsignado } from '../api/adminConvocatoriaApi';
 import DescargarExcelButton from '../components/DescargarExcelButton';
+import { formatReportValue } from '../utils/formatReportValue';
 
 interface ReporteInscripciones {
     id: string;
@@ -42,7 +43,7 @@ interface ReporteInscripciones {
     estado_inscripcion: string;
     areas_inscritas: string;
     fecha_inscripcion: string;
-    [key: string]: any; // Para otras propiedades específicas de la inscripción
+    [key: string]: unknown; // Para otras propiedades específicas de la inscripción
 }
 
 const ReporteNiveles = () => {
@@ -65,7 +66,7 @@ const ReporteNiveles = () => {
             try {
                 const data = await obtenerTodasConvocatorias();
                 setConvocatorias(data);
-            } catch (error: any) {
+            } catch (error) {
                 console.error('Error al cargar las convocatorias:', error);
                 setErrorConvocatorias('Error al cargar las convocatorias.');
             } finally {
@@ -84,7 +85,7 @@ const ReporteNiveles = () => {
             try {
                 const data = await getAreasPorConvocatoria(convocatoriaID);
                 setAreas(data);
-            } catch (error: any) {
+            } catch (error) {
                 console.error('Error al cargar las convocatorias:', error);
                 setErrorConvocatorias('Error al cargar las convocatorias.');
             } finally {
@@ -97,7 +98,7 @@ const ReporteNiveles = () => {
             try {
                 const data = await getNivelesPorConvocatoria(selectedConvocatoriaId, area);
                 setNiveles(data);
-            } catch (error: any) {
+            } catch (error) {
                 console.error('Error al cargar las convocatorias:', error);
                 setErrorConvocatorias('Error al cargar las convocatorias.');
             } finally {
@@ -117,7 +118,7 @@ const ReporteNiveles = () => {
                      };
                     const data = await obtenerReportePorCampoId('nivel', selectedConvocatoriaId , params);
                     setReporteData(data as ReporteInscripciones[]);
-                } catch (err: any) {
+                } catch (err) {
                     console.error('Error al obtener el reporte de inscripciones:', err);
                     setError('Error al cargar el reporte de inscripciones.');
                     setReporteData(null);
@@ -185,7 +186,7 @@ const ReporteNiveles = () => {
                 item.estudiante?.tutor_legal?.ci ?? '',
                 ...Object.keys(item)
                     .filter(key => !['id', 'estudiante', 'created_at', 'updated_at', 'fecha_registro'].includes(key))
-                    .map(key => JSON.stringify(item[key])),
+                    .map(key => formatReportValue(item[key])),
             ];
         });
 
@@ -301,7 +302,7 @@ const ReporteNiveles = () => {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {reporteData.map((item: any, idx: number) => (
+                      {reporteData.map((item, idx: number) => (
                         <TableRow key={idx}>
                           <TableCell>{item.estudiante?.nombres}</TableCell>
                           <TableCell>{item.estudiante?.apellidos}</TableCell>
@@ -315,7 +316,7 @@ const ReporteNiveles = () => {
                           {Object.keys(item)
                             .filter(key => !['id', 'estudiante', 'created_at', 'updated_at', 'fecha_registro'].includes(key))
                             .map((key, index) => (
-                              <TableCell key={`extra_cell_${idx}_${index}`}>{JSON.stringify(item[key])}</TableCell>
+                              <TableCell key={`extra_cell_${idx}_${index}`}>{formatReportValue(item[key])}</TableCell>
                             ))}
                         </TableRow>
                       ))}

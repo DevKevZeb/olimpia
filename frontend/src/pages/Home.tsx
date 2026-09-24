@@ -13,24 +13,28 @@ interface Area {
 interface Convocatoria {
   id: number;
   nombre: string;
-  fecha_inicio: string;
-  fecha_fin: string;
+  fecha_inicio_inscripcion: string;
+  fecha_fin_inscripcion: string;
   updated_at: string;
-  max_areas: number;
+  max_areas_por_estudiante: number;
   estado: string;
 }
 
 export default function Home() {
   const navigate = useNavigate();
   const [areas, setAreas] = useState<Area[]>([]);
+  const [cargandoAreas, setCargandoAreas] = useState(true);
   const [convocatoria, setConvocatoria] = useState<Convocatoria | null>(null);
   useEffect(() => {
     const fetchAreas = async () => {
       try {
         const response = await axiosInstance.get('/areas-de-convocatoria');
         setAreas(response.data.data.areas);
-      } catch (error) {
-        console.error('Error al cargar las áreas:', error);
+      } catch {
+        // 404: no hay una convocatoria activa
+        setAreas([]);
+      } finally {
+        setCargandoAreas(false);
       }
     };
 
@@ -91,7 +95,7 @@ export default function Home() {
         }}
       >
         <div className="text-center text-white">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Oh! SanSi - Olimpiadas de Ciencias y Tecnología</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">Olimpia · Olimpiadas de Ciencia y Tecnología</h1>
           <p className="text-xl mb-8">Inscríbete y participa en las áreas de tu interés</p>          <button 
             className="bg-blue-600 text-white px-6 py-3 rounded-md font-medium hover:bg-blue-700 transition"
             onClick={() => navigate('/registration')}
@@ -128,7 +132,10 @@ export default function Home() {
                 </div>
               ))
             ) : (
-              <p className="col-span-full text-center text-gray-500">Cargando áreas...</p>            )}
+              <p className="col-span-full text-center text-gray-500">
+                {cargandoAreas ? 'Cargando áreas...' : 'No hay una convocatoria abierta en este momento.'}
+              </p>
+            )}
           </div>
         </div>
       </section>
@@ -149,7 +156,7 @@ export default function Home() {
               </div>
               <h3 className="text-xl font-semibold mb-3">Descargar Boleta</h3>
               <p className="text-gray-600 mb-6 min-h-[3rem]">
-                Descarga tu boleta de pago para realizar el pago en cajas de la facultad
+                Descarga tu boleta de pago para realizar el pago en las cajas habilitadas
               </p>              <button
                 onClick={() => navigate('/download-boleta')}
                 className="w-full bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition font-medium"
@@ -205,7 +212,7 @@ export default function Home() {
               <h3 className="font-semibold mb-2">Inscripciones</h3>
               {convocatoria ? (
                 <p className="text-gray-600">
-                  {new Date(convocatoria.fecha_inicio).toLocaleDateString()} - {new Date(convocatoria.fecha_fin).toLocaleDateString()}
+                  {new Date(convocatoria.fecha_inicio_inscripcion).toLocaleDateString()} - {new Date(convocatoria.fecha_fin_inscripcion).toLocaleDateString()}
                 </p>
               ) : (
                 <p className="text-gray-500">Cargando fechas...</p>

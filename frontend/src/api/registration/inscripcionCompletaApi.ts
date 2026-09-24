@@ -54,7 +54,7 @@ export const buscarUnidadesEducativas = async (query: string) => {
  * Procesa la inscripción completa de un estudiante
  * @param data Datos completos del formulario de inscripción
  */
-export const inscribirEstudiante = async (data: any ) => {
+export const inscribirEstudiante = async (data: unknown) => {
   try {
     const response = await axiosInstance.post('/v1/public/inscripcion-completa', data);
     //openModal();
@@ -72,7 +72,7 @@ export const inscribirEstudiante = async (data: any ) => {
   }
 };
 
-export const estudianteEstaInscrito = async (data: any ) => {
+export const estudianteEstaInscrito = async (data: unknown) => {
   try {
     const response = await axiosInstance.post('/v1/public/estudiante-esta-inscrito', data);
     return response.data?.data || response.data;
@@ -98,7 +98,7 @@ export const getDatosEstudiante = async (ci: number | string) => {
  * Procesa la inscripción completa de un estudiante
  * @param data Datos completos del formulario de inscripción
  */
-export const getUser = async (data: any, ) => {
+export const getUser = async (data: unknown) => {
   try {
     console.log("data " + data);
     const response = await axiosInstance.get('/v1/search-by-ci', {params: data});

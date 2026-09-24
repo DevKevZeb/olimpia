@@ -9,7 +9,7 @@ interface Props {
 }
 
 const RegistroRequisitos: React.FC<Props> = ({ initialConvocatoriaId }) => {
-  const [convocatorias, setConvocatorias] = useState<{ id_convocatoria: number; estado: String; nombre: string }[]>([]);
+  const [convocatorias, setConvocatorias] = useState<{ id_convocatoria: number; estado: string; nombre: string }[]>([]);
   const [selectedConvocatoriaId, setSelectedConvocatoriaId] = useState<number | undefined>(initialConvocatoriaId);
   const [requisitosGuardados, setRequisitosGuardados] = useState<Record<string, boolean>>({});
   const [loadingConvocatorias, setLoadingConvocatorias] = useState(true);
@@ -35,8 +35,8 @@ const RegistroRequisitos: React.FC<Props> = ({ initialConvocatoriaId }) => {
         if (initialConvocatoriaId) {
           setSelectedConvocatoriaId(initialConvocatoriaId);
         }
-      } catch (error: any) {
-        setError('Error al cargar las convocatorias: ' + error.message);
+      } catch (error) {
+        setError('Error al cargar las convocatorias: ' + (error instanceof Error ? error.message : undefined));
         setLoadingConvocatorias(false);
       }
     };
@@ -56,8 +56,8 @@ const RegistroRequisitos: React.FC<Props> = ({ initialConvocatoriaId }) => {
           });
           setRequisitosGuardados(initialRequisitosGuardados);
           setLoadingRequisitos(false);
-        } catch (error: any) {
-          setError('Error al cargar los requisitos: ' + error.message);
+        } catch (error) {
+          setError('Error al cargar los requisitos: ' + (error instanceof Error ? error.message : undefined));
           setLoadingRequisitos(false);
           setRequisitosGuardados({});
         }
@@ -160,8 +160,8 @@ const RegistroRequisitos: React.FC<Props> = ({ initialConvocatoriaId }) => {
         updatedRequisitosGuardados[`${requisito.entidad}.${requisito.campo}`] = true;
       });
       setRequisitosGuardados(updatedRequisitosGuardados);
-    } catch (error: any) {
-      setError('Error al guardar la configuración de requisitos: ' + error.message);
+    } catch (error) {
+      setError('Error al guardar la configuración de requisitos: ' + (error instanceof Error ? error.message : undefined));
       setTimeout(() => setError(null), 3000);
     }
   };

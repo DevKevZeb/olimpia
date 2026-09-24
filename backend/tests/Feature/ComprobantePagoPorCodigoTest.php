@@ -15,7 +15,7 @@ class ComprobantePagoPorCodigoTest extends TestCase
 {
     use RefreshDatabase;
 
-    private const CODIGO = 'O-SANSI-2025-00001';
+    private const CODIGO = 'OLP-2025-00001';
 
     protected function setUp(): void
     {
@@ -73,7 +73,7 @@ class ComprobantePagoPorCodigoTest extends TestCase
     {
         $orden = $this->crearOrden();
 
-        $this->subirRecibo(['aclaracion' => 'O-SANSI-2025-99999'])
+        $this->subirRecibo(['aclaracion' => 'OLP-2025-99999'])
             ->assertStatus(422)
             ->assertJsonPath('message', 'El recibo no pertenece al código de inscripción proporcionado.');
 
@@ -110,6 +110,6 @@ class ComprobantePagoPorCodigoTest extends TestCase
 
     public function test_rejects_unknown_order_code(): void
     {
-        $this->subirRecibo([], 'O-SANSI-2025-00404')->assertStatus(422);
+        $this->subirRecibo([], 'OLP-2025-00404')->assertStatus(422);
     }
 }

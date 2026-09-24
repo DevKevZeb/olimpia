@@ -93,7 +93,7 @@ export const updateRequisitosValues = (
 /**
  * Crear un nuevo estudiante con valores iniciales
  */
-export const createNewEstudiante = (convocatoria?: Convocatoria): EstudianteFormData => {
+export const createNewEstudiante = (convocatoria?: Convocatoria | null): EstudianteFormData => {
   console.log('🆕 createNewEstudiante: Creando nuevo estudiante con convocatoria:', convocatoria?.id);
     return {
     id: Date.now().toString(), // Temporary ID for client-side tracking (converted to string)

@@ -51,8 +51,8 @@ const BoletaInfo: React.FC<Props> = ({ componentRef, estudiantes, costoTotalGene
       {/* Encabezado institucional oficial */}
       <div className="flex justify-between items-start mb-2">
         <div className="text-left leading-tight">
-          <p className="font-bold">UNIVERSIDAD MAYOR DE SAN SIMÓN</p>
-          <p className="font-semibold">FACULTAD DE CIENCIAS Y TECNOLOGÍA</p>
+          <p className="font-bold">OLIMPIA</p>
+          <p className="font-semibold">OLIMPIADAS DE CIENCIA Y TECNOLOGÍA</p>
           <p className="font-semibold">SECRETARÍA ADMINISTRATIVA</p>
         </div>
       </div>
