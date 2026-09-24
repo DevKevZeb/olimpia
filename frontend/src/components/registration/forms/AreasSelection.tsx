@@ -49,7 +49,7 @@ const AreasSelection: React.FC<AreasSelectionProps> = ({
               <h4 className="text-base font-semibold">Áreas Disponibles</h4>
               {convocatoria && (
                 <span className="ml-2 text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
-                  {areas_seleccionadas.length}/{convocatoria.max_areas}
+                  {areas_seleccionadas.length}/{convocatoria.max_areas_por_estudiante}
                 </span>
               )}
               <div className="ml-2 text-gray-400 cursor-help" title="Puedes seleccionar hasta el máximo de áreas permitidas">

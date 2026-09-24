@@ -498,10 +498,10 @@ export default function RegistrationPage() {
                 <>
                   <p className="text-sm text-gray-600 mb-1">Te estás inscribiendo a: <span className="font-semibold">{convocatoria.nombre}</span></p>
                   <p className="text-sm text-gray-500">
-                    Periodo de inscripción: {new Date(convocatoria.updated_at).toLocaleDateString()} - {new Date(convocatoria.fecha_fin).toLocaleDateString()}
+                    Periodo de inscripción: {new Date(convocatoria.fecha_inicio_inscripcion).toLocaleDateString()} - {new Date(convocatoria.fecha_fin_inscripcion).toLocaleDateString()}
                   </p>
                   <p className="text-sm text-gray-500 mt-1">
-                    Puedes inscribirte hasta en <span className="font-semibold">{convocatoria.max_areas}</span> áreas
+                    Puedes inscribirte hasta en <span className="font-semibold">{convocatoria.max_areas_por_estudiante}</span> áreas
                   </p>
                 </>
               ) : (

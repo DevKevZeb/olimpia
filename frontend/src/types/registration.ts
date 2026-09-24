@@ -7,10 +7,10 @@
 export interface Convocatoria {
   id: number;
   nombre: string;
-  fecha_inicio: string;
-  fecha_fin: string;
+  fecha_inicio_inscripcion: string;
+  fecha_fin_inscripcion: string;
   updated_at: string;
-  max_areas: number;
+  max_areas_por_estudiante: number;
 }
 
 export interface Grado {

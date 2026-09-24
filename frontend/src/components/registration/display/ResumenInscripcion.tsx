@@ -122,12 +122,12 @@ const ResumenInscripcion: React.FC<ResumenInscripcionProps> = ({
               <div>
                 <p className="text-sm text-gray-500">Período de Inscripción</p>
                 <p className="font-medium">
-                  {new Date(convocatoria.fecha_inicio).toLocaleDateString()} - {new Date(convocatoria.fecha_fin).toLocaleDateString()}
+                  {new Date(convocatoria.fecha_inicio_inscripcion).toLocaleDateString()} - {new Date(convocatoria.fecha_fin_inscripcion).toLocaleDateString()}
                 </p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Áreas máximas por estudiante</p>
-                <p className="font-medium">{convocatoria.max_areas}</p>
+                <p className="font-medium">{convocatoria.max_areas_por_estudiante}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Total de estudiantes</p>

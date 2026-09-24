@@ -13,10 +13,10 @@ interface Area {
 interface Convocatoria {
   id: number;
   nombre: string;
-  fecha_inicio: string;
-  fecha_fin: string;
+  fecha_inicio_inscripcion: string;
+  fecha_fin_inscripcion: string;
   updated_at: string;
-  max_areas: number;
+  max_areas_por_estudiante: number;
   estado: string;
 }
 
@@ -212,7 +212,7 @@ export default function Home() {
               <h3 className="font-semibold mb-2">Inscripciones</h3>
               {convocatoria ? (
                 <p className="text-gray-600">
-                  {new Date(convocatoria.fecha_inicio).toLocaleDateString()} - {new Date(convocatoria.fecha_fin).toLocaleDateString()}
+                  {new Date(convocatoria.fecha_inicio_inscripcion).toLocaleDateString()} - {new Date(convocatoria.fecha_fin_inscripcion).toLocaleDateString()}
                 </p>
               ) : (
                 <p className="text-gray-500">Cargando fechas...</p>
