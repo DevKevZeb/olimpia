@@ -15,8 +15,8 @@ export interface Convocatoria {
 
 export interface Grado {
   id: number;
-  nombre: string;
-  nombre_grado?: string;
+  nombre_grado: string;
+  orden?: number;
 }
 
 export interface Area {

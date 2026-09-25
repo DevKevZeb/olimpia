@@ -105,7 +105,7 @@ const AreasSelection: React.FC<AreasSelectionProps> = ({
         </div>
       )}
 
-      <div className="flex justify-between mt-6">
+      <div className="flex justify-between gap-3 mt-6">
         <button
           onClick={onPrevStep}
           className="border border-gray-300 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-50 flex items-center"

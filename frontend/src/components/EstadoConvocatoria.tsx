@@ -113,7 +113,7 @@ const EstadoConvocatoria: React.FC<EstadoConvocatoriaProps> = ({
 
   if (loading) {
     return (
-      <div className="bg-white p-6 rounded-lg shadow border">
+      <div className="bg-white p-4 sm:p-6 rounded-lg shadow border">
         <div className="animate-pulse flex space-x-4">
           <div className="rounded-full bg-gray-200 h-10 w-10"></div>
           <div className="flex-1 space-y-2 py-1">
@@ -130,7 +130,7 @@ const EstadoConvocatoria: React.FC<EstadoConvocatoriaProps> = ({
 
   if (!estadoInfo) {
     return (
-      <div className="bg-white p-6 rounded-lg shadow border">
+      <div className="bg-white p-4 sm:p-6 rounded-lg shadow border">
         <div className="text-center text-gray-500">
           No se pudo cargar la información del estado
         </div>
@@ -139,8 +139,8 @@ const EstadoConvocatoria: React.FC<EstadoConvocatoriaProps> = ({
   }
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow border">
-      <div className="flex items-center justify-between mb-4">
+    <div className="bg-white p-4 sm:p-6 rounded-lg shadow border">
+      <div className="flex flex-wrap xl:flex-nowrap items-center justify-between gap-2 xl:gap-0 mb-4">
         <h3 className="text-lg font-semibold text-gray-900">Estado de la Convocatoria</h3>
         
         {/* Estado actual */}

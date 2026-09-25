@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Routes, Route, NavLink, Navigate } from 'react-router-dom';
+import { Routes, Route, NavLink, Navigate, useLocation } from 'react-router-dom';
+import { Menu, X } from 'lucide-react';
 import { getDashboardEstadisticas, DashboardEstadisticas } from '../api/adminConvocatoriaApi';
 import { useAuth } from '../contexts/AuthContext';
 import ConvocatoriasPage from './ConvocatoriasPage';
@@ -30,7 +31,7 @@ function DashboardHome() {
   }, []);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
       {dashboardCards.map((card) => (
         <div key={card.key} className={`${card.bg} rounded-lg p-6 shadow flex flex-col items-center`}>
           <span className={`text-3xl font-bold ${card.text}`}>{card.icon}</span>
@@ -76,12 +77,37 @@ export default function AdminPanel() {
   const handleLogout = () => {
     logout();
   };
+
+  // En móvil la barra lateral es un panel deslizable que se cierra al navegar
+  const [menuAbierto, setMenuAbierto] = useState(false);
+  const { pathname } = useLocation();
+  useEffect(() => {
+    setMenuAbierto(false);
+  }, [pathname]);
+
   return (
     <div className="flex min-h-screen bg-gray-50">
+      {/* Fondo oscuro detrás del menú (móvil) */}
+      {menuAbierto && (
+        <div className="md:hidden fixed inset-0 z-30 bg-black/40" aria-hidden="true" onClick={() => setMenuAbierto(false)} />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-64 bg-white border-r shadow-sm hidden md:flex flex-col fixed left-0 top-0 h-screen z-10">
-        <div className="h-20 flex items-center justify-center border-b">
+      <aside
+        className={`w-64 bg-white border-r shadow-sm flex flex-col fixed left-0 top-0 h-screen z-40 transform transition-transform duration-200 md:translate-x-0 ${
+          menuAbierto ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <div className="h-16 md:h-20 flex items-center justify-between md:justify-center px-6 border-b">
           <span className="text-2xl font-bold text-blue-700">Administrador</span>
+          <button
+            type="button"
+            className="md:hidden p-2 rounded-md text-gray-600 hover:bg-gray-100"
+            aria-label="Cerrar menú"
+            onClick={() => setMenuAbierto(false)}
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
         
         {/* User info */}
@@ -135,24 +161,40 @@ export default function AdminPanel() {
           </button>
         </div>
       </aside>
-      
-      {/* Main content with left margin to account for fixed sidebar */}
-      <main className="flex-1 p-6 md:p-12 md:ml-64"><Routes>
-          <Route path="" element={<DashboardHome />} />
-          <Route path="convocatorias" element={<ConvocatoriasPage />} />
-          <Route path="ampliar-fecha" element={<AmpliarFecha />} />
-          <Route path="areas" element={<AsignarAreasPage />} />
-          <Route path="niveles" element={<ConfigurarNivelesPage />} />
-          <Route path="crear-nivel" element={<CrearNivelPage onNivelCreado={handleNivelCreado} />} />
-          <Route path="crear-area" element={<CrearAreas />} />
-          <Route path="costos" element={<AsignarCostoGeneralPage onCostoAsignado={handleCostoAsignado} />} />
-          <Route path="camposobligatorios" element={<CamposObligatorios />} />
-          <Route path="reportes/*" element={<ReportesPage />} />
-          <Route path="seguridad" element={<SecurityDashboard />} />
-          <Route path="*" element={<Navigate to="" replace />} />
-          <Route path="subir-anexos" element={<AgregarDocumento />} />
-        </Routes>
-      </main>
+
+      {/* Columna de contenido: la barra móvil es sticky para no tapar el aviso de demo */}
+      <div className="flex-1 min-w-0 md:ml-64 flex flex-col">
+        {/* Barra superior (móvil) */}
+        <header className="md:hidden sticky top-0 z-20 h-14 bg-white border-b shadow-sm flex items-center px-4 gap-3">
+          <button
+            type="button"
+            className="p-2 -ml-2 rounded-md text-gray-700 hover:bg-gray-100"
+            aria-label="Abrir menú"
+            aria-expanded={menuAbierto}
+            onClick={() => setMenuAbierto(true)}
+          >
+            <Menu className="w-6 h-6" />
+          </button>
+          <span className="text-lg font-bold text-blue-700">Administrador</span>
+        </header>
+
+        <main className="flex-1 px-4 py-6 sm:px-6 md:p-12"><Routes>
+            <Route path="" element={<DashboardHome />} />
+            <Route path="convocatorias" element={<ConvocatoriasPage />} />
+            <Route path="ampliar-fecha" element={<AmpliarFecha />} />
+            <Route path="areas" element={<AsignarAreasPage />} />
+            <Route path="niveles" element={<ConfigurarNivelesPage />} />
+            <Route path="crear-nivel" element={<CrearNivelPage onNivelCreado={handleNivelCreado} />} />
+            <Route path="crear-area" element={<CrearAreas />} />
+            <Route path="costos" element={<AsignarCostoGeneralPage onCostoAsignado={handleCostoAsignado} />} />
+            <Route path="camposobligatorios" element={<CamposObligatorios />} />
+            <Route path="reportes/*" element={<ReportesPage />} />
+            <Route path="seguridad" element={<SecurityDashboard />} />
+            <Route path="*" element={<Navigate to="" replace />} />
+            <Route path="subir-anexos" element={<AgregarDocumento />} />
+          </Routes>
+        </main>
+      </div>
     </div>
   );
 }

@@ -529,7 +529,7 @@ const DataSummary = ({ scannedData, onCancel, onSave }: { scannedData: Estudiant
                 {/* La tabla se renderiza condicionalmente */}
                 {showTable && (
                     <div className="table-container" style={{ overflowX: 'auto' }}>
-                        <table style={{ borderCollapse: 'collapse', width: '100%' }}>
+                        <table className="min-w-[1100px]" style={{ borderCollapse: 'collapse', width: '100%' }}>
                             <thead>
                                 <tr>
                                     {headers.map((header) => (
@@ -591,7 +591,7 @@ const DataSummary = ({ scannedData, onCancel, onSave }: { scannedData: Estudiant
             </>
         )}
 
-      <div className="actions">
+      <div className="actions flex-wrap">
         <button onClick={onCancel}>Volver</button>
         <button onClick={handleMostrarFormularioPago} disabled={scannedData.length === 0}>Inscribir Estudiantes</button>
       </div>

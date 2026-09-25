@@ -125,10 +125,10 @@ export default function FileUploadForm({
           </>
         ) : (
           <div className="flex items-center justify-between p-3 bg-white border rounded-lg">
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-3 min-w-0">
               <File className="h-8 w-8 text-blue-600" />
-              <div className="text-left">
-                <p className="text-sm font-medium text-gray-900">
+              <div className="text-left min-w-0">
+                <p className="text-sm font-medium text-gray-900 break-all">
                   {selectedFile.name}
                 </p>
                 <p className="text-xs text-gray-500">

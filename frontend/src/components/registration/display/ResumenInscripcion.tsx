@@ -6,8 +6,7 @@ import {
   EstudianteFormData, 
   Grado, 
   ComprobanteDetails,
-  AreaSeleccionada,
-  TutorAcademico
+  AreaSeleccionada
 } from '../../../types/registration';
 
 interface OrdenInfo {
@@ -44,10 +43,8 @@ interface ResumenInscripcionProps {
   encargadoCI: string;
   
   // Modal states
-  isModalOpen: boolean;
   isBoletaModalOpen: boolean;
   isComprobanteModalOpen: boolean;
-  selectedStudentDetails: EstudianteFormData | null;
   codigo_unico: string;
   comprobanteDetails: ComprobanteDetails | null;
   ordenInfo: OrdenInfo | null;
@@ -58,7 +55,6 @@ interface ResumenInscripcionProps {
   onEncargadoCorreoChange: (value: string) => void;
   onEncargadoCIChange: (value: string) => void;
   onOpenStudentDetailsModal: (student: EstudianteFormData) => void;
-  onCloseModal: () => void;
   onCloseBoletaModal: () => void;
   onSetIsComprobanteModalOpen: (isOpen: boolean) => void;
   onFetchCodigoUnico: () => void;
@@ -75,10 +71,8 @@ const ResumenInscripcion: React.FC<ResumenInscripcionProps> = ({
   encargadoApellido,
   encargadoCorreo,
   encargadoCI,
-  isModalOpen,
   isBoletaModalOpen,
   isComprobanteModalOpen,
-  selectedStudentDetails,
   codigo_unico,
   comprobanteDetails,
   ordenInfo,
@@ -87,7 +81,6 @@ const ResumenInscripcion: React.FC<ResumenInscripcionProps> = ({
   onEncargadoCorreoChange,
   onEncargadoCIChange,
   onOpenStudentDetailsModal,
-  onCloseModal,
   onCloseBoletaModal,
   onSetIsComprobanteModalOpen,
   onFetchCodigoUnico,
@@ -97,7 +90,7 @@ const ResumenInscripcion: React.FC<ResumenInscripcionProps> = ({
   const [habilitar, setHabilitar] = useState(false);
   return (
     <>
-      <div>
+      <div className="break-words">
         <h3 className="text-lg font-semibold mb-2">Confirmación y Boleta de Pago</h3>
         <p className="text-sm text-gray-600 mb-6">
           Revisa los datos de tu inscripción y descarga tu boleta de pago
@@ -139,7 +132,7 @@ const ResumenInscripcion: React.FC<ResumenInscripcionProps> = ({
         
         {/* Resumen de Estudiantes */}
         <div className="border-b pb-4 mb-4">
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex flex-wrap gap-2 justify-between items-center mb-4">
             <h4 className="text-base font-semibold">Resumen de Estudiantes</h4>
             <div className="flex items-center">
               <span className="text-sm font-medium mr-2">Total: {estudiantes.length} estudiante(s)</span>
@@ -162,7 +155,7 @@ const ResumenInscripcion: React.FC<ResumenInscripcionProps> = ({
               return (
                 <div key={estudiante.id} className={`rounded-lg border ${acordeonColor}`}>
                   <div className="p-4">
-                    <div className="flex justify-between items-center mb-3">
+                    <div className="flex flex-wrap gap-2 justify-between items-center mb-3">
                       <div className="flex items-center">
                         <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center mr-3 font-medium">
                           {index + 1}
@@ -199,7 +192,7 @@ const ResumenInscripcion: React.FC<ResumenInscripcionProps> = ({
                       </div>
                       <div>
                         <span className="text-gray-500">Grado:</span> {
-                          grados.find(grado => grado.id.toString() === estudiante.id_grado.toString())?.nombre || ''
+                          grados.find(grado => grado.id.toString() === estudiante.id_grado.toString())?.nombre_grado || ''
                         }
                       </div>
                     </div>
@@ -232,7 +225,7 @@ const ResumenInscripcion: React.FC<ResumenInscripcionProps> = ({
         </div>
         
         {/* Botones de acción */}
-        <div className="flex gap-3 mb-6">
+        <div className="flex flex-col sm:flex-row gap-3 mb-6">
           <button
             className="w-full bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 flex items-center justify-center"
             onClick={() => {
@@ -259,7 +252,7 @@ const ResumenInscripcion: React.FC<ResumenInscripcionProps> = ({
 
         {habilitar && (
           <>
-            <div className="border rounded-lg p-6 mb-8">
+            <div className="border rounded-lg p-4 sm:p-6 mb-8">
               <h2 className="text-xl font-semibold mb-2">Encargado de Pago</h2>
               <p className="text-sm text-gray-600 mb-4">
                 La persona encargada deberá ir a realizar el pago para la inscripción
@@ -363,179 +356,10 @@ const ResumenInscripcion: React.FC<ResumenInscripcionProps> = ({
         </div>
       </div>
 
-      {/* Modal de detalles del estudiante */}
-      {isModalOpen && selectedStudentDetails && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white p-4 border-b flex justify-between items-center">
-              <h3 className="text-lg font-semibold">
-                Detalles de {selectedStudentDetails.nombres} {selectedStudentDetails.apellidos}
-              </h3>
-              <button 
-                onClick={onCloseModal}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <X size={20} />
-              </button>
-            </div>
-            <div className="p-6">
-              {/* Datos Personales */}
-              <div className="mb-6">
-                <h4 className="font-medium text-gray-800 mb-2 border-b pb-1">Datos Personales</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-gray-500">Nombres</p>
-                    <p className="font-medium">{selectedStudentDetails.nombres}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Apellidos</p>
-                    <p className="font-medium">{selectedStudentDetails.apellidos}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">CI</p>
-                    <p className="font-medium">{selectedStudentDetails.ci}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Fecha de Nacimiento</p>
-                    <p className="font-medium">{selectedStudentDetails.fecha_nacimiento}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Email</p>
-                    <p className="font-medium">{selectedStudentDetails.email}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Grado</p>
-                    <p className="font-medium">
-                      {grados.find(g => g.id.toString() === selectedStudentDetails.id_grado.toString())?.nombre || ''}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Unidad Educativa */}
-              <div className="mb-6">
-                <h4 className="font-medium text-gray-800 mb-2 border-b pb-1">Unidad Educativa</h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <p className="text-sm text-gray-500">Nombre</p>
-                    <p className="font-medium">{selectedStudentDetails.unidad_educativa.nombre}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Departamento</p>
-                    <p className="font-medium">{selectedStudentDetails.unidad_educativa.departamento}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Provincia</p>
-                    <p className="font-medium">{selectedStudentDetails.unidad_educativa.provincia}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Tutor Legal */}
-              <div className="mb-6">
-                <h4 className="font-medium text-gray-800 mb-2 border-b pb-1">Tutor Legal</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-gray-500">Nombres</p>
-                    <p className="font-medium">{selectedStudentDetails.tutor_legal.nombres}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Apellidos</p>
-                    <p className="font-medium">{selectedStudentDetails.tutor_legal.apellidos}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">CI</p>
-                    <p className="font-medium">{selectedStudentDetails.tutor_legal.ci}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Parentesco</p>
-                    <p className="font-medium">{selectedStudentDetails.tutor_legal.parentesco}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Email</p>
-                    <p className="font-medium">{selectedStudentDetails.tutor_legal.email}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Teléfono</p>
-                    <p className="font-medium">{selectedStudentDetails.tutor_legal.telefono}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Áreas y tutores académicos */}
-              <div className="mb-6">
-                <h4 className="font-medium text-gray-800 mb-2 border-b pb-1">Áreas seleccionadas</h4>
-                {selectedStudentDetails.areas_seleccionadas && selectedStudentDetails.areas_seleccionadas.length > 0 ? (                  <div className="space-y-4">
-                    {selectedStudentDetails.areas_seleccionadas.map((area: AreaSeleccionada, index: number) => {
-                      // Buscar el tutor académico para esta área
-                      const tutorAcademico = selectedStudentDetails.tutores_academicos?.find(
-                        (tutor: TutorAcademico) => tutor.id_convocatoria_nivel === area.id_convocatoria_nivel
-                      );
-
-                      return (
-                        <div key={index} className="border p-3 rounded-md">
-                          <div className="flex justify-between mb-2">
-                            <h5 className="font-medium">{area.area_nombre} - {area.nivel_nombre}</h5>
-                            <span className="text-sm font-medium">{area.costo} Bs.</span>
-                          </div>
-                          {tutorAcademico && (
-                            <div className="mt-2 pt-2 border-t">
-                              <p className="text-sm font-medium text-gray-700">Tutor Académico:</p>
-                              <div className="grid grid-cols-2 gap-2 text-sm mt-1">
-                                {tutorAcademico.nombres && (
-                                  <div>
-                                    <span className="text-gray-500">Nombres:</span> {tutorAcademico.nombres}
-                                  </div>
-                                )}
-                                {tutorAcademico.apellidos && (
-                                  <div>
-                                    <span className="text-gray-500">Apellidos:</span> {tutorAcademico.apellidos}
-                                  </div>
-                                )}
-                                {tutorAcademico.ci && (
-                                  <div>
-                                    <span className="text-gray-500">CI:</span> {tutorAcademico.ci}
-                                  </div>
-                                )}
-                                {tutorAcademico.email && (
-                                  <div>
-                                    <span className="text-gray-500">Email:</span> {tutorAcademico.email}
-                                  </div>
-                                )}
-                                {tutorAcademico.telefono && (
-                                  <div>
-                                    <span className="text-gray-500">Teléfono:</span> {tutorAcademico.telefono}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <p className="text-sm text-gray-500">No hay áreas seleccionadas</p>
-                )}
-              </div>
-
-              <div className="flex justify-end mt-4 pt-2 border-t">
-                <button
-                  onClick={onCloseModal}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                >
-                  Cerrar
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Modal de la boleta de pago */}
       {isBoletaModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto break-words">
             <div className="sticky top-0 bg-white p-4 border-b flex justify-between items-center">
               <h3 className="text-lg font-semibold">Boleta de Pago Consolidada</h3>
               <button 
@@ -545,7 +369,7 @@ const ResumenInscripcion: React.FC<ResumenInscripcionProps> = ({
                 <X size={20} />
               </button>
             </div>
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               <div className="mb-6">
                 <div className="flex justify-between items-center mb-4">
                   <div>
@@ -566,7 +390,7 @@ const ResumenInscripcion: React.FC<ResumenInscripcionProps> = ({
                 
                 <div className="border rounded-lg p-4 mb-4 bg-gray-50">
                   <h4 className="font-medium text-gray-800 mb-3">Detalle de Estudiantes</h4>
-                  <div className="border-t border-b py-2">
+                  <div className="border-t border-b py-2 overflow-x-auto"><div className="min-w-[480px]">
                     <div className="grid grid-cols-12 gap-2 mb-2 text-sm font-medium">
                       <div className="col-span-1">#</div>
                       <div className="col-span-4">Estudiante</div>
@@ -595,7 +419,7 @@ const ResumenInscripcion: React.FC<ResumenInscripcionProps> = ({
                         </div>
                       );
                     })}
-                  </div>
+                  </div></div>
                   
                   <div className="flex justify-between items-center py-2 text-sm">
                     <p className="font-medium">Subtotal</p>
@@ -618,7 +442,7 @@ const ResumenInscripcion: React.FC<ResumenInscripcionProps> = ({
                   </ol>
                 </div>
 
-                <div className="border-t pt-4 mt-4 flex justify-between items-center">
+                <div className="border-t pt-4 mt-4 flex flex-wrap gap-3 justify-between items-center">
                   <div>
                     <p className="text-xs text-gray-500">Esta boleta es válida hasta:</p>
                     <p className="font-medium text-sm">{new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString()}</p>
@@ -643,7 +467,7 @@ const ResumenInscripcion: React.FC<ResumenInscripcionProps> = ({
       {/* Modal de detalles del comprobante */}
       {isComprobanteModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 relative">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto break-words p-4 sm:p-6 relative">
             <button
               className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
               onClick={() => onSetIsComprobanteModalOpen(false)}

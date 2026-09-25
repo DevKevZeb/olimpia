@@ -36,7 +36,7 @@ export default function AsignarAreasForm({
   onSubmit = () => {},
 }: AsignarAreasFormProps) {
   return (
-    <div className="bg-white rounded-lg shadow-lg p-8">
+    <div className="bg-white rounded-lg shadow-lg p-4 sm:p-8">
       <p className="text-gray-600 mb-6">Selecciona las áreas para una convocatoria existente</p>
       <form onSubmit={onSubmit} className="space-y-6">
         <div className="mb-6">

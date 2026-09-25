@@ -27,12 +27,12 @@ export default function PageContainer({
   };
 
   const variantClasses = {
-    default: 'bg-white rounded-lg shadow-lg p-8',
-    wide: 'bg-white rounded-lg shadow-lg p-6 lg:p-8',
+    default: 'bg-white rounded-lg shadow-lg p-4 sm:p-8',
+    wide: 'bg-white rounded-lg shadow-lg p-4 sm:p-6 lg:p-8',
     fullscreen: 'bg-white min-h-screen p-4 lg:p-6'
   };
 
-  const containerPadding = noPadding ? '' : 'px-4 sm:px-6 lg:px-8 py-12';
+  const containerPadding = noPadding ? '' : 'px-4 sm:px-6 lg:px-8 py-6 sm:py-12';
 
   return (
     <div className={`${maxWidthClasses[maxWidth]} mx-auto ${containerPadding} ${className}`}>

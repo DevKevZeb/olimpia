@@ -94,16 +94,16 @@ export default function Home() {
           backgroundPosition: 'center'
         }}
       >
-        <div className="text-center text-white">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Olimpia · Olimpiadas de Ciencia y Tecnología</h1>
-          <p className="text-xl mb-8">Inscríbete y participa en las áreas de tu interés</p>          <button 
+        <div className="text-center text-white px-4">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">Olimpia · Olimpiadas de Ciencia y Tecnología</h1>
+          <p className="text-lg sm:text-xl mb-8">Inscríbete y participa en las áreas de tu interés</p>          <button 
             className="bg-blue-600 text-white px-6 py-3 rounded-md font-medium hover:bg-blue-700 transition"
             onClick={() => navigate('/registration')}
           >
             Iniciar Inscripción →
           </button>
           <button 
-            className="bg-green-600 text-white px-6 py-3 rounded-md font-medium hover:bg-green-700 transition ml-4"
+            className="bg-green-600 text-white px-6 py-3 rounded-md font-medium hover:bg-green-700 transition mt-3 sm:mt-0 sm:ml-4"
             onClick={() => navigate('/gestionar-inscripciones')}
           >
             Tramitar Inscripciones
@@ -114,7 +114,7 @@ export default function Home() {
       {/* Areas de Competencia */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-center mb-12">Áreas de Competencia</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12">Áreas de Competencia</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {areas.length > 0 ? (
               areas.map((area) => (
@@ -144,11 +144,11 @@ export default function Home() {
       <section className="py-16 bg-blue-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">¿Ya te inscribiste?</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold mb-4">¿Ya te inscribiste?</h2>
             <p className="text-gray-600">Continúa con tu proceso de inscripción y pago de manera fácil</p>
           </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="bg-white p-8 rounded-lg shadow-lg text-center hover:shadow-xl transition">
+            <div className="bg-white p-6 sm:p-8 rounded-lg shadow-lg text-center hover:shadow-xl transition">
               <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -165,7 +165,7 @@ export default function Home() {
               </button>
             </div>
 
-            <div className="bg-white p-8 rounded-lg shadow-lg text-center hover:shadow-xl transition">
+            <div className="bg-white p-6 sm:p-8 rounded-lg shadow-lg text-center hover:shadow-xl transition">
               <div className="w-20 h-20 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -183,7 +183,7 @@ export default function Home() {
               </button>
             </div>
 
-            <div className="bg-white p-8 rounded-lg shadow-lg text-center hover:shadow-xl transition md:col-span-2 lg:col-span-1">
+            <div className="bg-white p-6 sm:p-8 rounded-lg shadow-lg text-center hover:shadow-xl transition md:col-span-2 lg:col-span-1">
               <div className="w-20 h-20 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
@@ -205,7 +205,7 @@ export default function Home() {
       </section>      {/* Fechas Importantes */}
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-center mb-12">Fechas Importantes</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12">Fechas Importantes</h2>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="p-6 bg-white rounded-lg shadow text-center">
               <Calendar className="w-8 h-8 mx-auto mb-4 text-blue-600" />
