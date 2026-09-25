@@ -87,20 +87,6 @@ export default function AdminPanel() {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      {/* Barra superior (móvil) */}
-      <header className="md:hidden fixed top-0 inset-x-0 z-20 h-14 bg-white border-b shadow-sm flex items-center px-4 gap-3">
-        <button
-          type="button"
-          className="p-2 -ml-2 rounded-md text-gray-700 hover:bg-gray-100"
-          aria-label="Abrir menú"
-          aria-expanded={menuAbierto}
-          onClick={() => setMenuAbierto(true)}
-        >
-          <Menu className="w-6 h-6" />
-        </button>
-        <span className="text-lg font-bold text-blue-700">Administrador</span>
-      </header>
-
       {/* Fondo oscuro detrás del menú (móvil) */}
       {menuAbierto && (
         <div className="md:hidden fixed inset-0 z-30 bg-black/40" aria-hidden="true" onClick={() => setMenuAbierto(false)} />
@@ -176,23 +162,39 @@ export default function AdminPanel() {
         </div>
       </aside>
 
-      {/* Main content with left margin to account for fixed sidebar */}
-      <main className="flex-1 min-w-0 px-4 pt-20 pb-8 sm:px-6 md:p-12 md:ml-64"><Routes>
-          <Route path="" element={<DashboardHome />} />
-          <Route path="convocatorias" element={<ConvocatoriasPage />} />
-          <Route path="ampliar-fecha" element={<AmpliarFecha />} />
-          <Route path="areas" element={<AsignarAreasPage />} />
-          <Route path="niveles" element={<ConfigurarNivelesPage />} />
-          <Route path="crear-nivel" element={<CrearNivelPage onNivelCreado={handleNivelCreado} />} />
-          <Route path="crear-area" element={<CrearAreas />} />
-          <Route path="costos" element={<AsignarCostoGeneralPage onCostoAsignado={handleCostoAsignado} />} />
-          <Route path="camposobligatorios" element={<CamposObligatorios />} />
-          <Route path="reportes/*" element={<ReportesPage />} />
-          <Route path="seguridad" element={<SecurityDashboard />} />
-          <Route path="*" element={<Navigate to="" replace />} />
-          <Route path="subir-anexos" element={<AgregarDocumento />} />
-        </Routes>
-      </main>
+      {/* Columna de contenido: la barra móvil es sticky para no tapar el aviso de demo */}
+      <div className="flex-1 min-w-0 md:ml-64 flex flex-col">
+        {/* Barra superior (móvil) */}
+        <header className="md:hidden sticky top-0 z-20 h-14 bg-white border-b shadow-sm flex items-center px-4 gap-3">
+          <button
+            type="button"
+            className="p-2 -ml-2 rounded-md text-gray-700 hover:bg-gray-100"
+            aria-label="Abrir menú"
+            aria-expanded={menuAbierto}
+            onClick={() => setMenuAbierto(true)}
+          >
+            <Menu className="w-6 h-6" />
+          </button>
+          <span className="text-lg font-bold text-blue-700">Administrador</span>
+        </header>
+
+        <main className="flex-1 px-4 py-6 sm:px-6 md:p-12"><Routes>
+            <Route path="" element={<DashboardHome />} />
+            <Route path="convocatorias" element={<ConvocatoriasPage />} />
+            <Route path="ampliar-fecha" element={<AmpliarFecha />} />
+            <Route path="areas" element={<AsignarAreasPage />} />
+            <Route path="niveles" element={<ConfigurarNivelesPage />} />
+            <Route path="crear-nivel" element={<CrearNivelPage onNivelCreado={handleNivelCreado} />} />
+            <Route path="crear-area" element={<CrearAreas />} />
+            <Route path="costos" element={<AsignarCostoGeneralPage onCostoAsignado={handleCostoAsignado} />} />
+            <Route path="camposobligatorios" element={<CamposObligatorios />} />
+            <Route path="reportes/*" element={<ReportesPage />} />
+            <Route path="seguridad" element={<SecurityDashboard />} />
+            <Route path="*" element={<Navigate to="" replace />} />
+            <Route path="subir-anexos" element={<AgregarDocumento />} />
+          </Routes>
+        </main>
+      </div>
     </div>
   );
 }
