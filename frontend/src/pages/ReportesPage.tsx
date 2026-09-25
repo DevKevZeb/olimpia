@@ -20,13 +20,13 @@ const reportNav = [
 export default function ReportesPage() {
   return (
     <div className="min-h-screen">
-      <h1 className="text-2xl font-bold mb-6">Reportes</h1>      <nav className="mb-8 flex gap-4">
+      <h1 className="text-2xl font-bold mb-6">Reportes</h1>      <nav className="mb-8 flex gap-2 sm:gap-4 overflow-x-auto pb-2 xl:overflow-visible xl:pb-0">
         {reportNav.map(item => (
           <NavLink
             key={item.path}
             to={`/admin/reportes/${item.path}`}
             className={({ isActive }) =>
-              `px-4 py-2 rounded-md font-medium transition-colors ${isActive ? 'bg-blue-600 text-white  hover:text-white' : 'bg-gray-200 text-gray-700 hover:bg-blue-100'}`
+              `shrink-0 whitespace-nowrap xl:shrink xl:whitespace-normal px-4 py-2 rounded-md font-medium transition-colors ${isActive ? 'bg-blue-600 text-white  hover:text-white' : 'bg-gray-200 text-gray-700 hover:bg-blue-100'}`
             }
           >
             {item.label}

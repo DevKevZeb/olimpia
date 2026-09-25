@@ -186,11 +186,11 @@ const RegistroRequisitos: React.FC<Props> = ({ initialConvocatoriaId }) => {
     return <div>Error: {error}</div>;
   }
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 sm:py-12">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <h1 className="text-3xl font-bold text-gray-900">Configuración de Campos Obligatorios</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Configuración de Campos Obligatorios</h1>
       </div>
-      <div className="bg-white rounded-lg shadow-lg p-8 mt-8">
+      <div className="bg-white rounded-lg shadow-lg p-4 sm:p-8 mt-8">
 
       <div className="select-container">
         <label htmlFor="convocatoria">Seleccionar Convocatoria:</label>
@@ -217,7 +217,7 @@ const RegistroRequisitos: React.FC<Props> = ({ initialConvocatoriaId }) => {
           ) : (
             <div>
               <h4>Del Postulante:</h4>
-              <div className="seccion-acciones">
+              <div className="seccion-acciones flex-wrap">
                 <button type="button" onClick={() => handleSelectAll('postulante')}>Seleccionar Todos</button>
                 <button type="button" onClick={() => handleDeselectAll('postulante')}>Deseleccionar Opcionales</button>
               </div>
@@ -247,7 +247,7 @@ const RegistroRequisitos: React.FC<Props> = ({ initialConvocatoriaId }) => {
               ))}
 
               <h4>Del Tutor Legal:</h4>
-              <div className="seccion-acciones">
+              <div className="seccion-acciones flex-wrap">
                 <button type="button" onClick={() => handleSelectAll('tutorLegal')}>Seleccionar Todos</button>
                 <button type="button" onClick={() => handleDeselectAll('tutorLegal')}>Deseleccionar Opcionales</button>
               </div>
@@ -282,7 +282,7 @@ const RegistroRequisitos: React.FC<Props> = ({ initialConvocatoriaId }) => {
                   <option value="opcional">Opcional</option>
                 </select>
               </h4>
-              <div className="seccion-acciones">
+              <div className="seccion-acciones flex-wrap">
                 <button type="button" onClick={() => handleSelectAll('profesor')}>Seleccionar Todos</button>
                 <button type="button" onClick={() => handleDeselectAll('profesor')}>Deseleccionar Opcionales</button>
               </div>

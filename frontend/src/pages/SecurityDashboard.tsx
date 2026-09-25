@@ -80,8 +80,8 @@ export default function SecurityDashboard() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-3">
             <Shield className="w-8 h-8 text-blue-600" />
             Panel de Seguridad
           </h1>
@@ -97,8 +97,8 @@ export default function SecurityDashboard() {
   if (error) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-3">
             <Shield className="w-8 h-8 text-blue-600" />
             Panel de Seguridad
           </h1>
@@ -130,12 +130,12 @@ export default function SecurityDashboard() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-3">
           <Shield className="w-8 h-8 text-blue-600" />
           Panel de Seguridad
         </h1>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4">
           <div className="text-sm text-gray-500">
             Última actualización: {formatDate(statistics.generated_at)}
           </div>
@@ -179,7 +179,7 @@ export default function SecurityDashboard() {
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* 24 Hours */}
-        <div className="bg-white rounded-lg shadow-sm border p-6">
+        <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900">Últimas 24 Horas</h3>
             <Clock className="w-6 h-6 text-blue-600" />
@@ -217,7 +217,7 @@ export default function SecurityDashboard() {
         </div>
 
         {/* 7 Days */}
-        <div className="bg-white rounded-lg shadow-sm border p-6">
+        <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900">Últimos 7 Días</h3>
             <Users className="w-6 h-6 text-green-600" />
@@ -255,7 +255,7 @@ export default function SecurityDashboard() {
         </div>
 
         {/* 30 Days */}
-        <div className="bg-white rounded-lg shadow-sm border p-6">
+        <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900">Últimos 30 Días</h3>
             <Eye className="w-6 h-6 text-purple-600" />
@@ -295,7 +295,7 @@ export default function SecurityDashboard() {
 
       {/* Recent Attempts Table */}
       <div className="bg-white rounded-lg shadow-sm border">
-        <div className="px-6 py-4 border-b">
+        <div className="px-4 sm:px-6 py-4 border-b">
           <h3 className="text-lg font-semibold text-gray-900">
             Intentos Recientes (Últimas 2 Horas)
           </h3>

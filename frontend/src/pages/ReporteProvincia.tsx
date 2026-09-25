@@ -212,7 +212,7 @@ const ReporteProvincia = () => {
     };
 
     return (
-        <Box className="reporte-convocatoria" sx={{ flexGrow: 1, p: 3, minWidth: 0 }}>
+        <Box className="reporte-convocatoria" sx={{ flexGrow: 1, p: { xs: 1, sm: 3 }, minWidth: 0 }}>
           <Box sx={{ width: '100%', overflowX: 'auto' }}>
             <Typography variant="h6" gutterBottom>
               Reporte de Inscripciones por Provincia

@@ -124,9 +124,9 @@ export default function ConvocatoriasPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 sm:py-12">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <h1 className="text-3xl font-bold text-gray-900">Convocatorias Existentes</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Convocatorias Existentes</h1>
         <button
           onClick={() => setShowCrearConvocatoriaForm(!showCrearConvocatoriaForm)}
           className={`px-4 py-2 rounded-md font-medium transition ${
@@ -190,7 +190,7 @@ export default function ConvocatoriasPage() {
           </div>
         </form>
       )}
-      <div className="bg-white rounded-lg shadow-lg p-8 mt-8">
+      <div className="bg-white rounded-lg shadow-lg p-4 sm:p-8 mt-8">
         
         {loading ? (
           <div className="flex justify-center items-center h-40">
@@ -202,21 +202,21 @@ export default function ConvocatoriasPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">                <tr>
+            <table className="block xl:table min-w-full divide-y divide-gray-200">
+              <thead className="hidden xl:table-header-group bg-gray-50">                <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fechas</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado y Gestión</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Áreas</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="block xl:table-row-group bg-white divide-y divide-gray-200">
                 {convocatorias.map((convocatoria) => (
-                  <tr key={convocatoria.id_convocatoria}>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                  <tr key={convocatoria.id_convocatoria} className="block xl:table-row py-4 xl:py-0">
+                    <td className="block xl:table-cell xl:px-6 py-2 xl:py-4 xl:whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">{convocatoria.nombre}</div>
                       <div className="text-xs text-gray-500">Máx. {convocatoria.max_areas_por_estudiante} áreas</div>
-                    </td>                    <td className="px-6 py-4 whitespace-nowrap">
+                    </td>                    <td className="block xl:table-cell xl:px-6 py-2 xl:py-4 xl:whitespace-nowrap">
                       <div className="text-sm text-gray-900">
                         <div className="font-medium text-gray-700 mb-1">Fechas de Inscripción:</div>
                         <div>Del {new Date(convocatoria.fecha_inicio_inscripcion).toLocaleDateString()}</div>
@@ -250,13 +250,15 @@ export default function ConvocatoriasPage() {
                           </div>
                         )}
                       </div>
-                    </td><td className="px-6 py-4">
+                    </td><td className="block xl:table-cell xl:px-6 py-2 xl:py-4">
+                      <div className="xl:hidden text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Estado y Gestión</div>
                       <EstadoConvocatoria 
                         convocatoriaId={convocatoria.id_convocatoria}
                         onEstadoChanged={() => refetch()}
                       />
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="block xl:table-cell xl:px-6 py-2 xl:py-4">
+                      <div className="xl:hidden text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Áreas</div>
                       {convocatoria.areas && convocatoria.areas.length > 0 ? (
                         <div className="flex flex-wrap gap-1">
                           {convocatoria.areas.map((areaItem) => (
@@ -280,7 +282,7 @@ export default function ConvocatoriasPage() {
         )}
       </div>
       {toast.show && (
-        <div className={`fixed top-6 right-6 z-50 px-6 py-3 rounded shadow-lg flex items-center gap-3 text-white transition-all animate-fade-in-down
+        <div className={`fixed top-6 left-4 right-4 sm:left-auto sm:right-6 z-50 px-6 py-3 rounded shadow-lg flex items-center gap-3 text-white transition-all animate-fade-in-down
           ${toast.type === 'success' ? 'bg-green-600' : toast.type === 'error' ? 'bg-red-600' : 'bg-yellow-500'}`}
         >
           {toast.type === 'success' && <CheckCircleIcon className="w-6 h-6" />}
