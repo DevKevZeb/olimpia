@@ -1,18 +1,4 @@
-.registro-requisitos {
-    padding: 20px;
-    max-width: 800px;
-    margin: 0 auto;
-    font-family: 'Segoe UI', sans-serif;
-  }
-  
-  .registro-requisitos h2 {
-    font-size: 1.8rem;
-    margin-bottom: 20px;
-    text-align: center;
-    color: #2c3e50;
-  }
-  
-  .select-container {
+.select-container {
     margin-bottom: 20px;
   }
   
