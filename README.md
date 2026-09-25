@@ -26,6 +26,8 @@
 - Dashboard and 7 reports with PDF/Excel export.
 - Login attempt tracking and security panel.
 
+**Responsive** from 360px phones to desktop: collapsible navigation, an off-canvas admin sidebar, stacked cards and scrollable tables on small screens.
+
 ## Tech stack
 
 | Layer | Technologies |
