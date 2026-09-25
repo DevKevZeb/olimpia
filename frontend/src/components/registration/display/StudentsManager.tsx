@@ -27,7 +27,7 @@ const StudentsManager: React.FC<StudentsManagerProps> = ({
   onAddNewStudent
 }) => {
   return (
-    <div className="border rounded-lg p-6 mb-8">
+    <div className="border rounded-lg p-4 sm:p-6 mb-8">
       <h2 className="text-xl font-semibold mb-2">Estudiantes para Inscripción</h2>
       <p className="text-sm text-gray-600 mb-4">
         Los estudiantes que se inscribirán en esta convocatoria

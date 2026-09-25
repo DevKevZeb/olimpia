@@ -475,15 +475,15 @@ export default function RegistrationPage() {
   };
   return (
     <>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="bg-white rounded-lg shadow-lg  p-8">
-        <h1 className="text-3xl font-bold text-center text-gray-900 mb-4">Inscripción</h1>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
+      <div className="bg-white rounded-lg shadow-lg p-4 sm:p-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-center text-gray-900 mb-4">Inscripción</h1>
         <p className="text-gray-600 text-center mb-8">
           Completa el proceso de inscripción para participar en las olimpiadas científicas
         </p>
 
         {/* Active Call Section */}
-        <div className="border rounded-lg p-6 mb-8">
+        <div className="border rounded-lg p-4 sm:p-6 mb-8">
           <div className="flex items-start">
             <div className="flex-shrink-0 mr-3">
               <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">
@@ -527,48 +527,48 @@ export default function RegistrationPage() {
           </p>
 
           {/* Steps */}
-          <div className="flex justify-between mb-8">
+          <div className="flex justify-between gap-2 mb-8">
             {/* Step 1 */}
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-center flex-1 min-w-0 sm:flex-none">
               <div className={`w-12 h-12 rounded-full flex items-center justify-center ${step === 1 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'}`}>
                 <Check size={20} />
               </div>
               <div className="text-center mt-2">
-                <p className="font-medium">Datos Personales</p>
-                <p className="text-xs text-gray-500">Información del estudiante</p>
+                <p className="text-xs sm:text-base font-medium break-words">Datos Personales</p>
+                <p className="hidden sm:block text-xs text-gray-500">Información del estudiante</p>
               </div>
             </div>
 
             {/* Step 2 */}
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-center flex-1 min-w-0 sm:flex-none">
               <div className={`w-12 h-12 rounded-full flex items-center justify-center ${step === 2 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'}`}>
                 <Check size={20} />
               </div>
               <div className="text-center mt-2">
-                <p className="font-medium">Selección de Áreas</p>
-                <p className="text-xs text-gray-500">Áreas y niveles</p>
+                <p className="text-xs sm:text-base font-medium break-words">Selección de Áreas</p>
+                <p className="hidden sm:block text-xs text-gray-500">Áreas y niveles</p>
               </div>
             </div>
 
             {/* Step 3 */}
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-center flex-1 min-w-0 sm:flex-none">
               <div className={`w-12 h-12 rounded-full flex items-center justify-center ${step === 3 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'}`}>
                 <Check size={20} />
               </div>
               <div className="text-center mt-2">
-                <p className="font-medium">Tutores</p>
-                <p className="text-xs text-gray-500">Información de tutores</p>
+                <p className="text-xs sm:text-base font-medium break-words">Tutores</p>
+                <p className="hidden sm:block text-xs text-gray-500">Información de tutores</p>
               </div>
             </div>
 
             {/* Step 4 */}
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-center flex-1 min-w-0 sm:flex-none">
               <div className={`w-12 h-12 rounded-full flex items-center justify-center ${step === 4 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'}`}>
                 <Check size={20} />
               </div>
               <div className="text-center mt-2">
-                <p className="font-medium">Confirmación</p>
-                <p className="text-xs text-gray-500">Revisión y pago</p>
+                <p className="text-xs sm:text-base font-medium break-words">Confirmación</p>
+                <p className="hidden sm:block text-xs text-gray-500">Revisión y pago</p>
               </div>
             </div>
           </div>          {/* Form Content based on step */}
@@ -642,7 +642,7 @@ export default function RegistrationPage() {
     {/* Modal de detalles del estudiante */}
     {isModalOpen && selectedStudentDetails && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto break-words">
             <div className="sticky top-0 bg-white p-4 border-b flex justify-between items-center">
               <h3 className="text-lg font-semibold">
                 Detalles de {selectedStudentDetails.nombres} {selectedStudentDetails.apellidos}
@@ -766,7 +766,7 @@ export default function RegistrationPage() {
                           {tutorAcademico && (
                             <div className="mt-2 pt-2 border-t">
                               <p className="text-sm font-medium text-gray-700">Tutor Académico:</p>
-                              <div className="grid grid-cols-2 gap-2 text-sm mt-1">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm mt-1">
                                 {tutorAcademico.nombres && (
                                   <div>
                                     <span className="text-gray-500">Nombres:</span> {tutorAcademico.nombres}
@@ -820,7 +820,7 @@ export default function RegistrationPage() {
       {/* Modal de la boleta de pago */}
       {isBoletaModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto break-words">
             <div className="sticky top-0 bg-white p-4 border-b flex justify-between items-center">
               <h3 className="text-lg font-semibold">Boleta de Pago Consolidada</h3>
               <button 
@@ -850,7 +850,7 @@ export default function RegistrationPage() {
                 
                 <div className="border rounded-lg p-4 mb-4 bg-gray-50">
                   <h4 className="font-medium text-gray-800 mb-3">Detalle de Estudiantes</h4>
-                  <div className="border-t border-b py-2">
+                  <div className="border-t border-b py-2 overflow-x-auto"><div className="min-w-[480px]">
                     <div className="grid grid-cols-12 gap-2 mb-2 text-sm font-medium">
                       <div className="col-span-1">#</div>
                       <div className="col-span-4">Estudiante</div>
@@ -881,8 +881,8 @@ export default function RegistrationPage() {
                         </div>
                       );
                     })}
-                  </div>
-                  
+                  </div></div>
+
                   <div className="flex justify-between items-center py-2 text-sm">
                     <p className="font-medium">Subtotal</p>
                     <p className="font-medium">{costoTotalGeneral} Bs.</p>
@@ -904,7 +904,7 @@ export default function RegistrationPage() {
                   </ol>
                 </div>
 
-                <div className="border-t pt-4 mt-4 flex justify-between items-center">
+                <div className="border-t pt-4 mt-4 flex flex-wrap gap-3 justify-between items-center">
                   <div>
                     <p className="text-xs text-gray-500">Esta boleta es válida hasta:</p>
                     <p className="font-medium text-sm">{new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString()}</p>
@@ -929,7 +929,7 @@ export default function RegistrationPage() {
       {/* Modal de detalles del comprobante */}
       {isComprobanteModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 relative">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto break-words p-4 sm:p-6 relative">
             <button
               className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
               onClick={() => setIsComprobanteModalOpen(false)}
@@ -980,7 +980,7 @@ export default function RegistrationPage() {
       {/* Modal de éxito de pre-inscripción */}
       {isSuccessModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-lg p-6">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto break-words p-4 sm:p-6">
             <div className="text-center">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Check size={32} className="text-green-600" />

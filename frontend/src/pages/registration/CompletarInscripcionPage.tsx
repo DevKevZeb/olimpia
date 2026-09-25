@@ -141,7 +141,7 @@ export default function CompletarInscripcionPage() {
       />      {!isVerified ? (
         // Paso 1: Verificación de código
         <div className="max-w-2xl mx-auto space-y-6">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 sm:p-6">
             <h3 className="font-semibold text-blue-900 mb-3 text-lg">Instrucciones</h3>
             <ol className="text-blue-800 list-decimal list-inside space-y-2">
               <li>Ingrese el código de inscripción que recibió al completar su pre-inscripción</li>
@@ -160,7 +160,7 @@ export default function CompletarInscripcionPage() {
         // Paso 2: Información de orden y subida de archivo
         <div className="max-w-4xl mx-auto space-y-6">
           {/* Información de la orden */}
-          <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 sm:p-6 break-words">
             <h3 className="font-semibold text-green-900 mb-4 text-lg">✓ Código verificado correctamente</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="bg-white rounded-lg p-4">
@@ -214,7 +214,7 @@ export default function CompletarInscripcionPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>          <div className="space-y-4">
-            <h3 className="text-2xl font-bold text-gray-900">
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900">
               ¡Inscripción completada exitosamente!
             </h3>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">

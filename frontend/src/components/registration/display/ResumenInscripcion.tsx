@@ -97,7 +97,7 @@ const ResumenInscripcion: React.FC<ResumenInscripcionProps> = ({
   const [habilitar, setHabilitar] = useState(false);
   return (
     <>
-      <div>
+      <div className="break-words">
         <h3 className="text-lg font-semibold mb-2">Confirmación y Boleta de Pago</h3>
         <p className="text-sm text-gray-600 mb-6">
           Revisa los datos de tu inscripción y descarga tu boleta de pago
@@ -139,7 +139,7 @@ const ResumenInscripcion: React.FC<ResumenInscripcionProps> = ({
         
         {/* Resumen de Estudiantes */}
         <div className="border-b pb-4 mb-4">
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex flex-wrap gap-2 justify-between items-center mb-4">
             <h4 className="text-base font-semibold">Resumen de Estudiantes</h4>
             <div className="flex items-center">
               <span className="text-sm font-medium mr-2">Total: {estudiantes.length} estudiante(s)</span>
@@ -162,7 +162,7 @@ const ResumenInscripcion: React.FC<ResumenInscripcionProps> = ({
               return (
                 <div key={estudiante.id} className={`rounded-lg border ${acordeonColor}`}>
                   <div className="p-4">
-                    <div className="flex justify-between items-center mb-3">
+                    <div className="flex flex-wrap gap-2 justify-between items-center mb-3">
                       <div className="flex items-center">
                         <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center mr-3 font-medium">
                           {index + 1}
@@ -232,7 +232,7 @@ const ResumenInscripcion: React.FC<ResumenInscripcionProps> = ({
         </div>
         
         {/* Botones de acción */}
-        <div className="flex gap-3 mb-6">
+        <div className="flex flex-col sm:flex-row gap-3 mb-6">
           <button
             className="w-full bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 flex items-center justify-center"
             onClick={() => {
@@ -259,7 +259,7 @@ const ResumenInscripcion: React.FC<ResumenInscripcionProps> = ({
 
         {habilitar && (
           <>
-            <div className="border rounded-lg p-6 mb-8">
+            <div className="border rounded-lg p-4 sm:p-6 mb-8">
               <h2 className="text-xl font-semibold mb-2">Encargado de Pago</h2>
               <p className="text-sm text-gray-600 mb-4">
                 La persona encargada deberá ir a realizar el pago para la inscripción
@@ -366,7 +366,7 @@ const ResumenInscripcion: React.FC<ResumenInscripcionProps> = ({
       {/* Modal de detalles del estudiante */}
       {isModalOpen && selectedStudentDetails && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto break-words">
             <div className="sticky top-0 bg-white p-4 border-b flex justify-between items-center">
               <h3 className="text-lg font-semibold">
                 Detalles de {selectedStudentDetails.nombres} {selectedStudentDetails.apellidos}
@@ -378,7 +378,7 @@ const ResumenInscripcion: React.FC<ResumenInscripcionProps> = ({
                 <X size={20} />
               </button>
             </div>
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               {/* Datos Personales */}
               <div className="mb-6">
                 <h4 className="font-medium text-gray-800 mb-2 border-b pb-1">Datos Personales</h4>
@@ -481,7 +481,7 @@ const ResumenInscripcion: React.FC<ResumenInscripcionProps> = ({
                           {tutorAcademico && (
                             <div className="mt-2 pt-2 border-t">
                               <p className="text-sm font-medium text-gray-700">Tutor Académico:</p>
-                              <div className="grid grid-cols-2 gap-2 text-sm mt-1">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm mt-1">
                                 {tutorAcademico.nombres && (
                                   <div>
                                     <span className="text-gray-500">Nombres:</span> {tutorAcademico.nombres}
@@ -535,7 +535,7 @@ const ResumenInscripcion: React.FC<ResumenInscripcionProps> = ({
       {/* Modal de la boleta de pago */}
       {isBoletaModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto break-words">
             <div className="sticky top-0 bg-white p-4 border-b flex justify-between items-center">
               <h3 className="text-lg font-semibold">Boleta de Pago Consolidada</h3>
               <button 
@@ -545,7 +545,7 @@ const ResumenInscripcion: React.FC<ResumenInscripcionProps> = ({
                 <X size={20} />
               </button>
             </div>
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               <div className="mb-6">
                 <div className="flex justify-between items-center mb-4">
                   <div>
@@ -566,7 +566,7 @@ const ResumenInscripcion: React.FC<ResumenInscripcionProps> = ({
                 
                 <div className="border rounded-lg p-4 mb-4 bg-gray-50">
                   <h4 className="font-medium text-gray-800 mb-3">Detalle de Estudiantes</h4>
-                  <div className="border-t border-b py-2">
+                  <div className="border-t border-b py-2 overflow-x-auto"><div className="min-w-[480px]">
                     <div className="grid grid-cols-12 gap-2 mb-2 text-sm font-medium">
                       <div className="col-span-1">#</div>
                       <div className="col-span-4">Estudiante</div>
@@ -595,7 +595,7 @@ const ResumenInscripcion: React.FC<ResumenInscripcionProps> = ({
                         </div>
                       );
                     })}
-                  </div>
+                  </div></div>
                   
                   <div className="flex justify-between items-center py-2 text-sm">
                     <p className="font-medium">Subtotal</p>
@@ -618,7 +618,7 @@ const ResumenInscripcion: React.FC<ResumenInscripcionProps> = ({
                   </ol>
                 </div>
 
-                <div className="border-t pt-4 mt-4 flex justify-between items-center">
+                <div className="border-t pt-4 mt-4 flex flex-wrap gap-3 justify-between items-center">
                   <div>
                     <p className="text-xs text-gray-500">Esta boleta es válida hasta:</p>
                     <p className="font-medium text-sm">{new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString()}</p>
@@ -643,7 +643,7 @@ const ResumenInscripcion: React.FC<ResumenInscripcionProps> = ({
       {/* Modal de detalles del comprobante */}
       {isComprobanteModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 relative">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto break-words p-4 sm:p-6 relative">
             <button
               className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
               onClick={() => onSetIsComprobanteModalOpen(false)}

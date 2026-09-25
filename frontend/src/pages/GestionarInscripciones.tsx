@@ -97,10 +97,10 @@ export default function GestionarInscripciones() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="bg-white rounded-lg shadow-lg p-8">        {/* Header */}
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
+      <div className="bg-white rounded-lg shadow-lg p-4 sm:p-8">        {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
             Tramitar Inscripciones
           </h1>
           <p className="text-gray-600 max-w-3xl mx-auto">
@@ -109,7 +109,7 @@ export default function GestionarInscripciones() {
           </p>
         </div>{/* Accesos Rápidos */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 sm:p-6 text-center">
             <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
               <FileDown className="w-6 h-6 text-white" />
             </div>
@@ -125,7 +125,7 @@ export default function GestionarInscripciones() {
             </button>
           </div>
 
-          <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 sm:p-6 text-center">
             <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
               <Upload className="w-6 h-6 text-white" />
             </div>
@@ -141,7 +141,7 @@ export default function GestionarInscripciones() {
             </button>
           </div>
 
-          <div className="bg-purple-50 border border-purple-200 rounded-lg p-6 text-center">
+          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 sm:p-6 text-center">
             <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
               <CreditCard className="w-6 h-6 text-white" />
             </div>
@@ -157,7 +157,7 @@ export default function GestionarInscripciones() {
             </button>
           </div>
         </div>        {/* Consultar Estado */}
-        <div className="border rounded-lg p-6">
+        <div className="border rounded-lg p-4 sm:p-6">
           <h2 className="text-xl font-semibold mb-4 flex items-center">
             <Search className="w-5 h-5 mr-2" />
             Consultar Estado de Inscripción
@@ -171,13 +171,13 @@ export default function GestionarInscripciones() {
             </p>
           </div>
           
-          <div className="flex gap-4 mb-6">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6">
             <input
               type="text"
               placeholder="Código de inscripción (ej: OLP-2025-12345)"
               value={codigo}
               onChange={(e) => setCodigo(e.target.value)}
-              className="flex-1 px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+              className="flex-1 min-w-0 px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
               onKeyPress={(e) => e.key === 'Enter' && consultarEstado()}
             />
             <button
@@ -196,7 +196,7 @@ export default function GestionarInscripciones() {
           )}
 
           {estadoInscripcion && (
-            <div className="bg-gray-50 border rounded-lg p-6">
+            <div className="bg-gray-50 border rounded-lg p-4 sm:p-6 break-words">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Información General */}
                 <div>
