@@ -221,7 +221,7 @@ const StudentForm: React.FC<StudentFormProps> = ({
             ) : (
               grados.map((grado) => (
                 <option key={grado.id} value={grado.id} className="text-gray-800">
-                  {grado.nombre || grado.nombre_grado}
+                  {grado.nombre_grado}
                 </option>
               ))
             )}

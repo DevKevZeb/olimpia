@@ -615,10 +615,8 @@ export default function RegistrationPage() {
               encargadoApellido={encargadoApellido}
               encargadoCorreo={encargadoCorreo}
               encargadoCI={encargadoCI}
-              isModalOpen={isModalOpen}
               isBoletaModalOpen={isBoletaModalOpen}
               isComprobanteModalOpen={isComprobanteModalOpen}
-              selectedStudentDetails={selectedStudentDetails}
               codigo_unico={codigoUnicoBackend || codigo_unico_temporal}
               comprobanteDetails={comprobanteDetails}
               ordenInfo={ordenInfo}
@@ -627,7 +625,6 @@ export default function RegistrationPage() {
               onEncargadoCorreoChange={setEncargadoCorreo}
               onEncargadoCIChange={setEncargadoCI}
               onOpenStudentDetailsModal={openStudentDetailsModal}
-              onCloseModal={closeModal}
               onCloseBoletaModal={closeBoletaModal}
               onSetIsComprobanteModalOpen={setIsComprobanteModalOpen}
               onFetchCodigoUnico={fetchCodigoUnico}
@@ -690,7 +687,7 @@ export default function RegistrationPage() {
                   <div>
                     <p className="text-sm text-gray-500">Grado</p>
                     <p className="font-medium">
-                      {grados.find(g => g.id.toString() === selectedStudentDetails.id_grado.toString())?.nombre || ''}
+                      {grados.find(g => g.id.toString() === selectedStudentDetails.id_grado.toString())?.nombre_grado || ''}
                     </p>
                   </div>
                 </div>
