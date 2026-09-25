@@ -142,7 +142,7 @@ export default function DescargarBoletaPage() {
       />      {!isVerified ? (
         // Verificación de código
         <div className="max-w-2xl mx-auto space-y-6">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 sm:p-6">
             <h3 className="font-semibold text-blue-900 mb-3 text-lg">Instrucciones</h3>
             <ol className="text-blue-800 list-decimal list-inside space-y-2">
               <li>Ingrese su código de inscripción</li>
@@ -170,13 +170,16 @@ export default function DescargarBoletaPage() {
           </div>
 
           {/* Componente de boleta para visualización y PDF */}
-          <div ref={componentRef}>
-            <BoletaInfo
-              estudiantes={estudiantes}
-              costoTotalGeneral={costoTotalGeneral}
-              encargado={encargado}
-              codigoBoleta={codigoBoleta}
-            />
+          {/* En pantallas angostas la boleta (ancho fijo para el PDF) se desplaza dentro de su contenedor */}
+          <div className="overflow-x-auto">
+            <div ref={componentRef} className="min-w-fit">
+              <BoletaInfo
+                estudiantes={estudiantes}
+                costoTotalGeneral={costoTotalGeneral}
+                encargado={encargado}
+                codigoBoleta={codigoBoleta}
+              />
+            </div>
           </div>          {/* Acciones */}
           <div className="flex flex-col sm:flex-row gap-3 justify-center max-w-4xl mx-auto">
             <Button
@@ -212,7 +215,7 @@ export default function DescargarBoletaPage() {
             >
               Volver
             </Button>
-          </div>          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 max-w-4xl mx-auto">
+          </div>          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 sm:p-6 max-w-4xl mx-auto">
             <h3 className="font-semibold text-yellow-800 mb-3 text-lg">Instrucciones de Pago</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <ol className="text-yellow-700 list-decimal list-inside space-y-2">
