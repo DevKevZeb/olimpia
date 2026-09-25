@@ -202,21 +202,21 @@ export default function ConvocatoriasPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="block xl:table min-w-full divide-y divide-gray-200">
-              <thead className="hidden xl:table-header-group bg-gray-50">                <tr>
+            <table className="block 2xl:table min-w-full divide-y divide-gray-200">
+              <thead className="hidden 2xl:table-header-group bg-gray-50">                <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fechas</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado y Gestión</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Áreas</th>
                 </tr>
               </thead>
-              <tbody className="block xl:table-row-group bg-white divide-y divide-gray-200">
+              <tbody className="block 2xl:table-row-group bg-white divide-y divide-gray-200">
                 {convocatorias.map((convocatoria) => (
-                  <tr key={convocatoria.id_convocatoria} className="block xl:table-row py-4 xl:py-0">
-                    <td className="block xl:table-cell xl:px-6 py-2 xl:py-4 xl:whitespace-nowrap">
+                  <tr key={convocatoria.id_convocatoria} className="block 2xl:table-row py-4 2xl:py-0">
+                    <td className="block 2xl:table-cell 2xl:px-6 py-2 2xl:py-4 2xl:whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">{convocatoria.nombre}</div>
                       <div className="text-xs text-gray-500">Máx. {convocatoria.max_areas_por_estudiante} áreas</div>
-                    </td>                    <td className="block xl:table-cell xl:px-6 py-2 xl:py-4 xl:whitespace-nowrap">
+                    </td>                    <td className="block 2xl:table-cell 2xl:px-6 py-2 2xl:py-4 2xl:whitespace-nowrap">
                       <div className="text-sm text-gray-900">
                         <div className="font-medium text-gray-700 mb-1">Fechas de Inscripción:</div>
                         <div>Del {new Date(convocatoria.fecha_inicio_inscripcion).toLocaleDateString()}</div>
@@ -250,15 +250,15 @@ export default function ConvocatoriasPage() {
                           </div>
                         )}
                       </div>
-                    </td><td className="block xl:table-cell xl:px-6 py-2 xl:py-4">
-                      <div className="xl:hidden text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Estado y Gestión</div>
+                    </td><td className="block 2xl:table-cell 2xl:px-6 py-2 2xl:py-4">
+                      <div className="2xl:hidden text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Estado y Gestión</div>
                       <EstadoConvocatoria 
                         convocatoriaId={convocatoria.id_convocatoria}
                         onEstadoChanged={() => refetch()}
                       />
                     </td>
-                    <td className="block xl:table-cell xl:px-6 py-2 xl:py-4">
-                      <div className="xl:hidden text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Áreas</div>
+                    <td className="block 2xl:table-cell 2xl:px-6 py-2 2xl:py-4">
+                      <div className="2xl:hidden text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Áreas</div>
                       {convocatoria.areas && convocatoria.areas.length > 0 ? (
                         <div className="flex flex-wrap gap-1">
                           {convocatoria.areas.map((areaItem) => (
