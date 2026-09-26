@@ -1,7 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, Lock, User, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Lock, User, AlertCircle, LogIn } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+
+// En modo demo el acceso es con un botón, sin mostrar ni escribir credenciales
+const ES_DEMO = import.meta.env.VITE_DEMO_MODE === 'true';
+const CUENTA_DEMO = { email: 'admin@olimpia.test', password: 'admin123' };
 
 export default function AdminLogin() {
   const [formData, setFormData] = useState({
@@ -33,13 +37,12 @@ export default function AdminLogin() {
     if (error) setError('');
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const iniciarSesion = async (email: string, password: string) => {
     setIsLoading(true);
     setError('');
 
     try {
-      const result = await login(formData.email, formData.password);
+      const result = await login(email, password);
       if (result.success) {
         const redirectTo = location.state?.from?.pathname || '/admin';
         navigate(redirectTo, { replace: true });
@@ -51,6 +54,11 @@ export default function AdminLogin() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    iniciarSesion(formData.email, formData.password);
   };
 
   return (
@@ -83,6 +91,31 @@ export default function AdminLogin() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow-xl rounded-lg sm:px-10 border border-gray-200">
+          {ES_DEMO && (
+            <div className="mb-6">
+              <button
+                type="button"
+                onClick={() => iniciarSesion(CUENTA_DEMO.email, CUENTA_DEMO.password)}
+                disabled={isLoading}
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-md text-sm font-semibold text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <LogIn className="h-5 w-5" />
+                Entrar como administrador (demo)
+              </button>
+              <p className="mt-2 text-center text-xs text-gray-500">
+                Accede al panel con una cuenta de demostración y datos ficticios.
+              </p>
+              <div className="relative mt-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300" />
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-white text-gray-500">o ingresa con tu cuenta</span>
+                </div>
+              </div>
+            </div>
+          )}
+
           <form className="space-y-6" onSubmit={handleSubmit}>
             {/* Campo de email */}
             <div>
@@ -102,7 +135,7 @@ export default function AdminLogin() {
                   value={formData.email}
                   onChange={handleInputChange}
                   className="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
-                  placeholder="admin@olimpia.test"
+                  placeholder="correo@ejemplo.com"
                 />
               </div>
             </div>
@@ -170,22 +203,6 @@ export default function AdminLogin() {
               </button>
             </div>
           </form>
-
-          {/* Información adicional */}
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Credenciales por defecto</span>
-              </div>
-            </div>
-            <div className="mt-4 text-center text-sm text-gray-600">
-              <p>Email: <span className="font-mono text-blue-600">admin@olimpia.test</span></p>
-              <p>Contraseña: <span className="font-mono text-blue-600">admin123</span></p>
-            </div>
-          </div>
         </div>
 
         {/* Footer */}
