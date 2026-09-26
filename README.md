@@ -2,7 +2,7 @@
 
 **Registration platform for academic olympiads** — calls for participation, student registration (form or Excel), payment slips, automatic payment-receipt verification from PDF, and reports.
 
-**Demo:** runs entirely in the browser with fictitious data (admin `admin@olimpia.test` / `admin123`).
+**Demo:** runs entirely in the browser with fictitious data; use **“Entrar como administrador (demo)”** on the login page to open the admin panel.
 
 > 🇪🇸 **Resumen:** Olimpia es un sistema de inscripción a olimpiadas académicas. El administrador crea convocatorias con áreas, niveles y costos; los tutores inscriben estudiantes (uno a uno o por Excel), descargan la boleta de pago y suben el recibo en PDF, que el sistema lee y valida automáticamente para confirmar el pago. Incluye panel de administración y reportes por área, nivel, colegio, departamento, provincia y género.
 
