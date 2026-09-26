@@ -114,7 +114,7 @@ frontend/
   src/api                    Axios client and API modules
   src/pages, src/components  UI
   src/mocks                  MSW handlers and seed data for demo mode
-docs/                        screenshots and working notes
+docs/screenshots              README screenshots
 ```
 
 ## License
