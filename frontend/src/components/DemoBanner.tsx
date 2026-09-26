@@ -14,8 +14,7 @@ export default function DemoBanner() {
       className="relative z-20 flex h-6 items-center justify-center gap-2 bg-amber-100 px-8 text-[11px] leading-none text-amber-900 border-b border-amber-200"
     >
       <span className="truncate">
-        <strong className="font-semibold">Modo demo</strong> · datos ficticios, los cambios se pierden al recargar · Admin:{' '}
-        <code className="font-mono">admin@olimpia.test</code> / <code className="font-mono">admin123</code>
+        <strong className="font-semibold">Modo demo</strong> · datos ficticios, los cambios se pierden al recargar
       </span>
       {REPO_URL && (
         <a href={REPO_URL} target="_blank" rel="noreferrer" className="shrink-0 font-medium underline hover:text-amber-700">
